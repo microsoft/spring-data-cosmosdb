@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-azure-cosmosdb-documentdb</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.1</version>
 
     <name>Spring Data for Azure Cosmos DB DocumentDB API</name>
     <description>Spring Data for Azure Cosmos DB DocumentDB API</description>
@@ -35,8 +35,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-azure-cosmosdb-documentdb.git
-        </developerConnection>
+        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-azure-cosmosdb-documentdb.git</developerConnection>
         <url>https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/tree/master</url>
     </scm>
     <properties>
@@ -106,11 +105,6 @@
             <artifactId>spring-expression</artifactId>
         </dependency>
 
-        <!--<dependency>-->
-        <!--<groupId>com.microsoft.azure</groupId>-->
-        <!--<artifactId>azure-spring-common</artifactId>-->
-        <!--</dependency>-->
-
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-documentdb</artifactId>
@@ -146,7 +140,7 @@
                     <failOnError>false</failOnError>
                     <sourceFileExcludes>
                         <exclude>
-                            com/microsoft/azure/spring/data/documentdb/core/mapping/BasicDocumentDbPersistentProperty.java
+                            com/microsoft/azure/spring/data/cosmosdb/documentdb/core/mapping/BasicDocumentDbPersistentProperty.java
                         </exclude>
                     </sourceFileExcludes>
                 </configuration>
