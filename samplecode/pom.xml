@@ -44,7 +44,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.data.azure.cosmosdb.documentdb.version>0.1.0-SNAPSHOT</spring.data.azure.cosmosdb.documentdb.version>
+        <spring.data.azure.cosmosdb.documentdb.version>0.1.1</spring.data.azure.cosmosdb.documentdb.version>
     </properties>
 
     <dependencies>
