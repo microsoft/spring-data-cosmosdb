@@ -38,7 +38,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-azure-cosmosdb-documentdb.git</developerConnection>
+        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-azure-cosmosdb-documentdb.git
+        </developerConnection>
         <url>https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/tree/master</url>
     </scm>
 
