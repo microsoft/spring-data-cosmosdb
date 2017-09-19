@@ -1,3 +1,9 @@
+[![Travis CI](https://travis-ci.org/Microsoft/spring-data-azure-cosmosdb-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-azure-cosmosdb-documentdb)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/b6n5vsbqbd69g8c1/branch/master?svg=true)](https://ci.appveyor.com/project/yungez/spring-data-azure-cosmosdb-documentdb)
+[![codecov](https://codecov.io/gh/Microsoft/spring-data-azure-cosmosdb-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-azure-cosmosdb-documentdb)
+[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/blob/master/LICENSE)
+
+
 ## Spring Data for Azure Cosmos DB DocumentDB API
 [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as DocumentDB, MongoDB, Graph, and Table APIs. Azure Cosmos DB DocumentDB Spring Data provides initial Spring Data support for [Azure Cosmos DB Document API](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) based on Spring Data framework, the other 3 APIs are not supported in this package. Key functionalities supported are listed at below. More features will coming soon.
 
