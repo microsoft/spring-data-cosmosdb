@@ -3,8 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-
-package com.microsoft.azure.sample;
+package com.microsoft.azure.spring.data.documentdb.repository;
 
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
@@ -13,25 +12,25 @@ import com.microsoft.azure.spring.data.documentdb.config.AbstractDocumentDbConfi
 import com.microsoft.azure.spring.data.documentdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 @Configuration
+@PropertySource(value = {"classpath:application.properties"})
 @EnableDocumentDbRepositories
-public class AppConfiguration extends AbstractDocumentDbConfiguration {
+public class ContactRepositoryConfig extends AbstractDocumentDbConfiguration {
+    @Value("${documentdb.uri}")
+    String dbUri;
 
-    @Value("${azure.documentdb.uri}")
-    private String uri;
+    @Value("${documentdb.key}")
+    String dbKey;
 
-    @Value("${azure.documentdb.key}")
-    private String key;
-
-    @Value("${azure.documentdb.database}")
-    private String dbName;
-
+    @Override
     public DocumentClient documentClient() {
-        return new DocumentClient(uri, key, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
+        return new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
     }
 
+    @Override
     public String getDatabase() {
-        return dbName;
+        return "itdb";
     }
 }

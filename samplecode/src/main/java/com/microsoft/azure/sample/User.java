@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.sample;
 
-import com.microsoft.azure.spring.data.cosmosdb.documentdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.cosmosdb.documentdb.core.mapping.PartitionKey;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import org.springframework.data.annotation.Id;
 
 @Document(collection = "mycollection")
