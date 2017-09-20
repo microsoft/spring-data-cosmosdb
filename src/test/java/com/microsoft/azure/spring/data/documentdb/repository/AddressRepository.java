@@ -3,13 +3,11 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
+package com.microsoft.azure.spring.data.documentdb.repository;
 
-package com.microsoft.azure.sample;
-
-import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends DocumentDbRepository<User, String> {
+public interface AddressRepository extends DocumentDbRepository<Address, String> {
 }
-

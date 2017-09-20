@@ -1,7 +1,7 @@
-[![Travis CI](https://travis-ci.org/Microsoft/spring-data-azure-cosmosdb-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-azure-cosmosdb-documentdb)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/b6n5vsbqbd69g8c1/branch/master?svg=true)](https://ci.appveyor.com/project/yungez/spring-data-azure-cosmosdb-documentdb)
-[![codecov](https://codecov.io/gh/Microsoft/spring-data-azure-cosmosdb-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-azure-cosmosdb-documentdb)
-[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/blob/master/LICENSE)
+[![Travis CI](https://travis-ci.org/Microsoft/spring-data-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-documentdb)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/ms9i54axmxa7jg9d/branch/master?svg=true)](https://ci.appveyor.com/project/yungez/spring-data-documentdb)
+[![codecov](https://codecov.io/gh/Microsoft/spring-data-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-documentdb)
+[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
 
 
 ## Spring Data for Azure Cosmos DB DocumentDB API
@@ -29,14 +29,14 @@ Please refer to [sample project here](./samplecode).
 ## Quick Start
 
 ### Add the dependency
-`spring-data-azure-cosmosdb-documentdb` is published on Maven Central Repository.  
+`spring-data-documentdb` is published on Maven Central Repository.  
 If you are using Maven, add the following dependency.  
 
 ```xml
 <dependency>
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>spring-data-azure-cosmosdb-documentdb</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <artifactId>spring-data-documentdb</artifactId>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -120,7 +120,7 @@ public class User {
 Extends DocumentDbRepository interface, which provides Spring Data repository support.
 
 ```
-import com.microsoft.azure.spring.data.cosmosdb.documentdb.repository.DocumentDbRepository;
+import DocumentDbRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -162,13 +162,13 @@ Autowired UserRepository interface, then can do save, delete and find operations
 
 ## Filing Issues
 
-If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/issues/new).
+If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-documentdb/issues/new).
 
 To suggest a new feature or changes that could be made, file an issue the same way you would for a bug.
 
 ## Pull Requests
 
-Pull requests are welcome. To open your own pull request, click [here](https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/compare). When creating a pull request, make sure you are pointing to the fork and branch that your changes were made in.
+Pull requests are welcome. To open your own pull request, click [here](https://github.com/Microsoft/spring-data-documentdb/compare). When creating a pull request, make sure you are pointing to the fork and branch that your changes were made in.
 
 ## Code of Conduct
 

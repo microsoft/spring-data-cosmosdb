@@ -18,12 +18,12 @@
 
     <name>Spring Data Azure Cosmos DB DocumentDB Sample</name>
     <description>Sample project for Spring Data Azure Cosmos DB DocumentDB</description>
-    <url>https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb</url>
+    <url>https://github.com/Microsoft/spring-data-documentdb</url>
 
     <licenses>
         <license>
             <name>MIT</name>
-            <url>https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/blob/master/LICENSE</url>
+            <url>https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -37,15 +37,15 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-azure-cosmosdb-documentdb.git
+        <connection>scm:git:git://github.com/Microsoft/spring-data-documentdb.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-documentdb.git
         </developerConnection>
-        <url>https://github.com/Microsoft/spring-data-azure-cosmosdb-documentdb/tree/master</url>
+        <url>https://github.com/Microsoft/spring-data-documentdb/tree/master</url>
     </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.data.azure.cosmosdb.documentdb.version>0.1.2-SNAPSHOT</spring.data.azure.cosmosdb.documentdb.version>
+        <spring.data.documentdb.version>0.1.2</spring.data.documentdb.version>
     </properties>
 
     <dependencies>
@@ -55,8 +55,8 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>spring-data-azure-cosmosdb-documentdb</artifactId>
-            <version>${spring.data.azure.cosmosdb.documentdb.version}</version>
+            <artifactId>spring-data-documentdb</artifactId>
+            <version>${spring.data.documentdb.version}</version>
         </dependency>
     </dependencies>
 
