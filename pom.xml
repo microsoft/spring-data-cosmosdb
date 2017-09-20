@@ -255,7 +255,7 @@
                 <version>2.19</version>
                 <configuration>
                     <systemPropertiesFile>src/test/resources/application.properties</systemPropertiesFile>
-                    <skipITs>false</skipITs>
+                    <skipITs>${skip.integration.tests}</skipITs>
                 </configuration>
                 <executions>
                     <execution>
