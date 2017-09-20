@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.documentdb.repository;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,5 +100,28 @@ public class ContactRepositoryIT {
 
         assertThat(contact.getLogicId()).isEqualTo(updatedContact.getLogicId());
         assertThat(contact.getTitle()).isEqualTo(updatedContact.getTitle());
+    }
+
+    @Test
+    public void testBatchOperations() {
+
+        final Contact contact1 = new Contact("newid1", "newtitle");
+        final Contact contact2 = new Contact("newid2", "newtitle");
+        final ArrayList<Contact> contacts = new ArrayList<Contact>();
+        contacts.add(contact1);
+        contacts.add(contact2);
+        repository.save(contacts);
+
+        final ArrayList<String> ids = new ArrayList<String>();
+        ids.add(contact1.getLogicId());
+        ids.add(contact2.getLogicId());
+        final List<Contact> result = Lists.newArrayList(repository.findAll(ids));
+
+        assertThat(result.size()).isEqualTo(2);
+
+        repository.delete(contacts);
+
+        final List<Contact> result2 = Lists.newArrayList(repository.findAll(ids));
+        assertThat(result2.size()).isEqualTo(0);
     }
 }
