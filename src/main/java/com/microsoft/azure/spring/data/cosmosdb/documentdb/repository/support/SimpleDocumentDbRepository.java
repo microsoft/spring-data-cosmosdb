@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
@@ -68,7 +69,18 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> entities) {
-        throw new UnsupportedOperationException("save not supported yet.");
+        // create collection if not exists
+        documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
+                entityInformation.getPartitionKeyFieldName(),
+                entityInformation.getRequestUint());
+
+        for (final S entity : entities) {
+            documentDbOperations.insert(entityInformation.getCollectionName(),
+                    entity,
+                    entityInformation.getPartitionKeyFieldValue(entity));
+        }
+
+        return entities;
     }
 
     /**
@@ -90,7 +102,15 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public List<T> findAll(Iterable<ID> ids) {
-        throw new UnsupportedOperationException("findAll not supported yet.");
+        final List<T> entities = new ArrayList<T>();
+        for (final ID id : ids) {
+            final T entity = findOne(id);
+
+            if (entity != null) {
+                entities.add(entity);
+            }
+        }
+        return entities;
     }
 
     /**
@@ -167,7 +187,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void delete(Iterable<? extends T> entities) {
-        throw new UnsupportedOperationException("delete not supported yet.");
+        for (final T entity : entities) {
+            delete(entity);
+        }
     }
 
     /**
