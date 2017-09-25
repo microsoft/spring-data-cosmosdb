@@ -25,6 +25,7 @@ Please refer to [sample project here](./samplecode).
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annoataion `@Document(collection="myCustomCollectionName")` to domain class, that's all.
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
+- Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation.
   
 ## Quick Start
 
@@ -125,10 +126,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends DocumentDbRepository<User, String> {
+    List<User> findByFirstName(String firstName); 
 }
 ```
 
-So far DocumentDbRepository provides basic save, delete, update and find operations. More operations will be supported later.
+`findByFirstName` method is custom query method, it will find documents per FirstName.
 
 ### Create an Application class
 Here create an application class with all the components

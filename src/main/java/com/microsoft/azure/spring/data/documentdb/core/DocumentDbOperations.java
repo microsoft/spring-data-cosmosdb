@@ -7,6 +7,8 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 
 import java.util.List;
 
@@ -36,6 +38,10 @@ public interface DocumentDbOperations {
                    Class<T> entityClass,
                    String partitionKeyFieldValue);
 
+    <T> List<T> find(Query query,
+                     Class<T> entityClass,
+                     String collectionName);
+
     <T> T insert(T objectToSave, String partitionKeyFieldValue);
 
     <T> T insert(String collectionName,
@@ -55,4 +61,6 @@ public interface DocumentDbOperations {
                         String partitionKeyFieldValue);
 
     void deleteAll(String collectionName);
+
+    MappingDocumentDbConverter getConverter();
 }

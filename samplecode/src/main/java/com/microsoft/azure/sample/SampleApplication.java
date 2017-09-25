@@ -14,6 +14,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.util.Assert;
 
+import java.util.List;
+
 @SpringBootApplication
 public class SampleApplication implements CommandLineRunner {
 
@@ -33,12 +35,32 @@ public class SampleApplication implements CommandLineRunner {
         repository.deleteAll();
         repository.save(testUser);
 
-        final User result = repository.findOne(testUser.getEmailAddress(), testUser.getLastName());
+        final User result1 = repository.findOne(testUser.getEmailAddress(), testUser.getLastName());
 
-        Assert.state(result.getFirstName().equals(testUser.getFirstName()), "query result firstName doesn't match!");
-        Assert.state(result.getLastName().equals(testUser.getLastName()), "query result lastName doesn't match!");
+        Assert.state(result1.getFirstName().equals(testUser.getFirstName()), "query result firstName doesn't match!");
+        Assert.state(result1.getLastName().equals(testUser.getLastName()), "query result lastName doesn't match!");
 
-        LOGGER.info("findOne in User collection get result: {}", result.toString());
-        System.out.println("findOne in User collection get result:" + result.toString());
+        LOGGER.info("findOne in User collection get result: {}", result1.toString());
+        System.out.println("findOne in User collection get result:" + result1.toString());
+
+        final List<User> result2 = repository.findByFirstName(testUser.getFirstName());
+
+        Assert.state(result2.get(0).getFirstName().equals(testUser.getFirstName()),
+                "query result firstName doesn't match!");
+        Assert.state(result2.get(0).getLastName().equals(testUser.getLastName()),
+                "query result lastName doesn't match!");
+
+        LOGGER.info("findByFirstName in User collection get result: {}", result2.get(0).toString());
+        System.out.println("findByFirstName in User collection get result:" + result2.get(0).toString());
+
+        final List<User> result3 = repository.findByLastName(testUser.getLastName());
+
+        Assert.state(result3.get(0).getFirstName().equals(testUser.getFirstName()),
+                "query result firstName doesn't match!");
+        Assert.state(result3.get(0).getLastName().equals(testUser.getLastName()),
+                "query result lastName doesn't match!");
+
+        LOGGER.info("findByFirstName in User collection get result: {}", result3.get(0).toString());
+        System.out.println("findByFirstName in User collection get result:" + result3.get(0).toString());
     }
 }

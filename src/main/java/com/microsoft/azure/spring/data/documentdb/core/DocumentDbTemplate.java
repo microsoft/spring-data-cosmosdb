@@ -10,18 +10,17 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
@@ -29,7 +28,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
-    private final MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext;
 
     private Database databaseCache;
     private List<String> collectionCache;
@@ -43,7 +41,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         this.databaseName = dbName;
         this.documentDbFactory = documentDbFactory;
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
-        this.mappingContext = mappingDocumentDbConverter.getMappingContext();
         this.collectionCache = new ArrayList<>();
     }
 
@@ -372,5 +369,51 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return requestOptions;
+    }
+
+    public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
+        final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query);
+
+        final List<DocumentCollection> collections = documentDbFactory.getDocumentClient().
+                queryCollections(
+                        getDatabaseLink(this.databaseName),
+                        new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id",
+                                new SqlParameterCollection(new SqlParameter("@id", collectionName))), null)
+                .getQueryIterable().toList();
+
+        if (collections.size() != 1) {
+            throw new RuntimeException("expect only one collection: " + collectionName
+                    + " in database: " + this.databaseName + ", but found " + collections.size());
+        }
+
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.setEnableCrossPartitionQuery(true);
+        final List<Document> results = documentDbFactory.getDocumentClient()
+                .queryDocuments(collections.get(0).getSelfLink(),
+                        sqlQuerySpec, feedOptions)
+                .getQueryIterable().toList();
+
+        final List<T> entities = new ArrayList<>();
+
+        for (int i = 0; i < results.size(); i++) {
+            final T entity = mappingDocumentDbConverter.read(domainClass, results.get(i));
+            entities.add(entity);
+        }
+        return entities;
+    }
+
+    private static SqlQuerySpec createSqlQuerySpec(Query query) {
+        String queryStr = "SELECT * FROM ROOT r WHERE r.";
+        final SqlParameterCollection parameterCollection = new SqlParameterCollection();
+
+        for (final Map.Entry<String, Object> entry : query.getCriteria().entrySet()) {
+            queryStr += entry.getKey() + "=@" + entry.getKey();
+            parameterCollection.add(new SqlParameter("@" + entry.getKey(), entry.getValue()));
+        }
+        return new SqlQuerySpec(queryStr, parameterCollection);
+    }
+
+    public MappingDocumentDbConverter getConverter() {
+        return this.mappingDocumentDbConverter;
     }
 }

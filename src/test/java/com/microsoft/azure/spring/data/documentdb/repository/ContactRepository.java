@@ -7,6 +7,9 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ContactRepository extends DocumentDbRepository<Contact, String> {
+    List<Contact> findByTitle(String title);
 }
