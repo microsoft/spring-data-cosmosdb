@@ -4,8 +4,17 @@
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
 
 
-## Spring Data for Azure Cosmos DB DocumentDB API
+# Spring Data for Azure Cosmos DB DocumentDB API
 [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as DocumentDB, MongoDB, Graph, and Table APIs. Azure Cosmos DB DocumentDB Spring Data provides initial Spring Data support for [Azure Cosmos DB Document API](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) based on Spring Data framework, the other 3 APIs are not supported in this package. Key functionalities supported are listed at below. More features will coming soon.
+
+## TOC
+
+* [Sample Code](#sample-codes)
+* [Feature List](#feature-list)
+* [Quick Start](#quick-start)
+* [Filing Issues](#filing-issues)
+* [How to Contribute](#how-to-contribute)
+* [Code of Conduct](#code-of-conduct)
 
 ## Sample Code
 Please refer to [sample project here](./samplecode).
@@ -166,9 +175,9 @@ If you encounter any bug, please file an issue [here](https://github.com/Microso
 
 To suggest a new feature or changes that could be made, file an issue the same way you would for a bug.
 
-## Pull Requests
+## How To Contribute
 
-Pull requests are welcome. To open your own pull request, click [here](https://github.com/Microsoft/spring-data-documentdb/compare). When creating a pull request, make sure you are pointing to the fork and branch that your changes were made in.
+Contribution is welcome. Please follow [this instruction](./HowToContribute.md) to contribute code.
 
 ## Code of Conduct
 
