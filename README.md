@@ -177,7 +177,7 @@ To suggest a new feature or changes that could be made, file an issue the same w
 
 ## How To Contribute
 
-Contribution are welcome. Please follow [this instruction](./HowToContribute.md) to contribute code.
+Contribution is welcome. Please follow [this instruction](./HowToContribute.md) to contribute code.
 
 ## Code of Conduct
 
