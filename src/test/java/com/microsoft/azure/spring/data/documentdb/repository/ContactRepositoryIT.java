@@ -46,7 +46,7 @@ public class ContactRepositoryIT {
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
         assertThat(result.get(0).getTitle()).isEqualTo(TEST_CONTACT.getTitle());
 
-        final Contact contact = repository.findOne(TEST_CONTACT.getLogicId());
+        final Contact contact = repository.findById(TEST_CONTACT.getLogicId()).get();
 
         assertThat(contact.getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
         assertThat(contact.getTitle()).isEqualTo(TEST_CONTACT.getTitle());
@@ -62,7 +62,7 @@ public class ContactRepositoryIT {
         long count = repository.count();
         assertThat(count).isEqualTo(2);
 
-        repository.delete(contact2.getLogicId());
+        repository.delete(contact2);
 
         final List<Contact> result = repository.findAll();
 
@@ -96,7 +96,7 @@ public class ContactRepositoryIT {
 
         repository.update(updatedContact);
 
-        final Contact contact = repository.findOne(TEST_CONTACT.getLogicId());
+        final Contact contact = repository.findById(TEST_CONTACT.getLogicId()).get();
 
         assertThat(contact.getLogicId()).isEqualTo(updatedContact.getLogicId());
         assertThat(contact.getTitle()).isEqualTo(updatedContact.getTitle());
@@ -110,18 +110,18 @@ public class ContactRepositoryIT {
         final ArrayList<Contact> contacts = new ArrayList<Contact>();
         contacts.add(contact1);
         contacts.add(contact2);
-        repository.save(contacts);
+        repository.saveAll(contacts);
 
         final ArrayList<String> ids = new ArrayList<String>();
         ids.add(contact1.getLogicId());
         ids.add(contact2.getLogicId());
-        final List<Contact> result = Lists.newArrayList(repository.findAll(ids));
+        final List<Contact> result = Lists.newArrayList(repository.findAllById(ids));
 
         assertThat(result.size()).isEqualTo(2);
 
-        repository.delete(contacts);
+        repository.deleteAll(contacts);
 
-        final List<Contact> result2 = Lists.newArrayList(repository.findAll(ids));
+        final List<Contact> result2 = Lists.newArrayList(repository.findAllById(ids));
         assertThat(result2.size()).isEqualTo(0);
     }
 }

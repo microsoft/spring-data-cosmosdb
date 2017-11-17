@@ -6,7 +6,19 @@
 
 package com.microsoft.azure.spring.data.documentdb.core;
 
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.documentdb.Database;
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.FeedOptions;
+import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.documentdb.PartitionKeyDefinition;
+import com.microsoft.azure.documentdb.RequestOptions;
+import com.microsoft.azure.documentdb.Resource;
+import com.microsoft.azure.documentdb.SqlParameter;
+import com.microsoft.azure.documentdb.SqlParameterCollection;
+import com.microsoft.azure.documentdb.SqlQuerySpec;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
@@ -22,6 +34,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
@@ -85,19 +98,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> T findById(Object id,
-                          Class<T> entityClass,
-                          String partitionKeyFieldValue) {
+    public <T> Optional<T> findById(Object id,
+                                    Class<T> entityClass,
+                                    String partitionKeyFieldValue) {
         return findById(getCollectionName(entityClass),
                 id,
                 entityClass,
                 partitionKeyFieldValue);
     }
 
-    public <T> T findById(String collectionName,
-                          Object id,
-                          Class<T> entityClass,
-                          String partitionKeyFieldValue) {
+    public <T> Optional<T> findById(String collectionName,
+                                    Object id,
+                                    Class<T> entityClass,
+                                    String partitionKeyFieldValue) {
 
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
@@ -106,13 +119,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             if (resource instanceof Document) {
                 final Document document = (Document) resource;
-                return mappingDocumentDbConverter.read(entityClass, document);
+                return Optional.of(mappingDocumentDbConverter.read(entityClass, document));
             } else {
-                return null;
+                return Optional.empty();
             }
         } catch (DocumentClientException e) {
             if (e.getStatusCode() == HttpConstants.StatusCodes.NOTFOUND) {
-                return null;
+                return Optional.empty();
             }
 
             throw new RuntimeException("findById exception", e);

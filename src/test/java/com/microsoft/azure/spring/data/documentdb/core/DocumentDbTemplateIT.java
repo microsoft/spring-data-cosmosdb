@@ -109,13 +109,13 @@ public class DocumentDbTemplateIT {
     @Test
     public void testFindById() {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, null);
+                TEST_PERSON.getId(), Person.class, null).get();
         assertThat(result.getId()).isEqualTo(TEST_PERSON.getId());
         assertThat(result.getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
         assertThat(result.getLastName()).isEqualTo(TEST_PERSON.getLastName());
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_NOTEXIST_ID, Person.class, null);
+                TEST_NOTEXIST_ID, Person.class, null).get();
         assertThat(nullResult).isNull();
     }
 
@@ -124,13 +124,13 @@ public class DocumentDbTemplateIT {
         setupPartition();
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
+                TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName()).get();
         assertThat(result.getId()).isEqualTo(TEST_PERSON.getId());
         assertThat(result.getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
         assertThat(result.getLastName()).isEqualTo(TEST_PERSON.getLastName());
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_NOTEXIST_ID, Person.class, TEST_PERSON.getLastName());
+                TEST_NOTEXIST_ID, Person.class, TEST_PERSON.getLastName()).get();
         assertThat(nullResult).isNull();
     }
 
@@ -141,7 +141,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class, null);
+                updated.getId(), Person.class, null).get();
 
         assertThat(result.getId()).isEqualTo(updated.getId());
         assertThat(result.getFirstName()).isEqualTo(updated.getFirstName());
@@ -156,7 +156,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class, updated.getLastName());
+                updated.getId(), Person.class, updated.getLastName()).get();
 
         assertThat(result.getId()).isEqualTo(updated.getId());
         assertThat(result.getFirstName()).isEqualTo(updated.getFirstName());

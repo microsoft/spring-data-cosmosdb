@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.documentdb.core;
 import com.microsoft.azure.documentdb.DocumentCollection;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentDbOperations {
 
@@ -27,14 +28,14 @@ public interface DocumentDbOperations {
                         String partitionKeyFieldName,
                         String partitionKeyFieldValue);
 
-    <T> T findById(Object id,
-                   Class<T> entityClass,
-                   String partitionKeyFieldValue);
+    <T> Optional<T> findById(Object id,
+                             Class<T> entityClass,
+                             String partitionKeyFieldValue);
 
-    <T> T findById(String collectionName,
-                   Object id,
-                   Class<T> entityClass,
-                   String partitionKeyFieldValue);
+    <T> Optional<T> findById(String collectionName,
+                             Object id,
+                             Class<T> entityClass,
+                             String partitionKeyFieldValue);
 
     <T> T insert(T objectToSave, String partitionKeyFieldValue);
 

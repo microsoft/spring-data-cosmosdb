@@ -9,11 +9,9 @@ package com.microsoft.azure.spring.data.documentdb.core.mapping;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 
 
 public class DocumentDbMappingContext
@@ -33,11 +31,10 @@ public class DocumentDbMappingContext
     }
 
     @Override
-    public DocumentDbPersistentProperty createPersistentProperty(Field field, PropertyDescriptor propertyDescriptor,
-                                                                 BasicDocumentDbPersistentEntity<?> owner,
-                                                                 SimpleTypeHolder simpleTypeHolder) {
-        return new BasicDocumentDbPersistentProperty(field, propertyDescriptor, owner,
-                simpleTypeHolder);
+    protected DocumentDbPersistentProperty createPersistentProperty(
+            Property property, BasicDocumentDbPersistentEntity<?> documentDbPersistentProperties,
+            SimpleTypeHolder simpleTypeHolder) {
+        return new BasicDocumentDbPersistentProperty(property, documentDbPersistentProperties, simpleTypeHolder);
     }
 
     @Override

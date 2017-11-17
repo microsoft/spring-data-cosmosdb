@@ -20,7 +20,11 @@ import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public abstract class DocumentDbConfigurationSupport {
@@ -66,11 +70,13 @@ public abstract class DocumentDbConfigurationSupport {
                     new ClassPathScanningCandidateComponentProvider(false);
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
 
-            for (final BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
 
-                initialEntitySet
-                        .add(ClassUtils.forName(candidate.getBeanClassName(),
-                                DocumentDbConfigurationSupport.class.getClassLoader()));
+            for (final BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+                final String name = candidate.getBeanClassName();
+                if (name != null) {
+                    initialEntitySet.add(ClassUtils.forName(name,
+                            DocumentDbConfigurationSupport.class.getClassLoader()));
+                }
             }
         }
 

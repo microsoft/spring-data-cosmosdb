@@ -11,6 +11,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 @NoRepositoryBean
 public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
@@ -22,7 +23,7 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends Paging
 
     List<T> findAll(String partitionKeyValue);
 
-    T findOne(ID id, String partitionKeyValue);
+    Optional<T> findOne(ID id, String partitionKeyValue);
 
     void delete(ID id, String partitionKeyValue);
 
