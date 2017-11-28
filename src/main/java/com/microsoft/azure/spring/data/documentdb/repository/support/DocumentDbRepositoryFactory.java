@@ -36,7 +36,7 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
     }
 
     @Override
-    public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-        return new DocumentDbEntityInformation<T, ID>(domainClass);
+    public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> aClass) {
+        return new DocumentDbEntityInformation<T, ID>(aClass);
     }
 }

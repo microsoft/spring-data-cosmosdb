@@ -87,7 +87,7 @@ public class AddressRepositoryIT {
 
         repository.update(updatedAddress, updatedAddress.getCity());
 
-        final Address address = repository.findOne(updatedAddress.getPostalCode(), updatedAddress.getCity());
+        final Address address = repository.findOne(updatedAddress.getPostalCode(), updatedAddress.getCity()).get();
 
         assertThat(address.getStreet()).isEqualTo(updatedAddress.getStreet());
         assertThat(address.getPostalCode()).isEqualTo(updatedAddress.getPostalCode());

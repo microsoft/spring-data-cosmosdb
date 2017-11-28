@@ -18,6 +18,7 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
 
@@ -63,24 +64,24 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     /**
      * batch save entities
      *
-     * @param entities
+     * @param iterable
      * @param <S>
      * @return
      */
     @Override
-    public <S extends T> Iterable<S> save(Iterable<S> entities) {
+    public <S extends T> Iterable<S> saveAll(Iterable<S> iterable) {
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
                 entityInformation.getRequestUint());
 
-        for (final S entity : entities) {
+        for (final S entity : iterable) {
             documentDbOperations.insert(entityInformation.getCollectionName(),
                     entity,
                     entityInformation.getPartitionKeyFieldValue(entity));
         }
 
-        return entities;
+        return iterable;
     }
 
     /**
@@ -97,17 +98,16 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     /**
      * find entities based on id list from one collection without partitions
      *
-     * @param ids
+     * @param iterable
      * @return
      */
     @Override
-    public List<T> findAll(Iterable<ID> ids) {
+    public Iterable<T> findAllById(Iterable<ID> iterable) {
         final List<T> entities = new ArrayList<T>();
-        for (final ID id : ids) {
-            final T entity = findOne(id);
-
-            if (entity != null) {
-                entities.add(entity);
+        for (final ID id : iterable) {
+            final Optional<T> entity = findById(id);
+            if (entity.isPresent()) {
+                entities.add(entity.get());
             }
         }
         return entities;
@@ -120,7 +120,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public T findOne(ID id) {
+    public Optional<T> findById(ID id) {
         Assert.notNull(id, "id must not be null");
         return documentDbOperations.findById(
                 entityInformation.getCollectionName(), id, entityInformation.getJavaType(), null);
@@ -152,7 +152,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param id
      */
     @Override
-    public void delete(ID id) {
+    public void deleteById(ID id) {
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
                 id,
                 entityInformation.getJavaType(),
@@ -183,11 +183,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     /**
      * delete list of entities without partitions
      *
-     * @param entities
+     * @param iterable
      */
     @Override
-    public void delete(Iterable<? extends T> entities) {
-        for (final T entity : entities) {
+    public void deleteAll(Iterable<? extends T> iterable) {
+        for (final T entity : iterable) {
             delete(entity);
         }
     }
@@ -195,12 +195,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     /**
      * check if an entity exists per id without partition
      *
-     * @param primaryKey
+     * @param id
      * @return
      */
-    @Override
-    public boolean exists(ID primaryKey) {
-        return findOne(primaryKey) != null;
+    public boolean existsById(ID id) {
+        return findById(id).isPresent();
     }
 
     /**
@@ -237,7 +236,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param partitionKeyValue
      * @return
      */
-    public T findOne(ID id, String partitionKeyValue) {
+    public Optional<T> findOne(ID id, String partitionKeyValue) {
         Assert.notNull(id, "id must not be null");
         Assert.notNull(partitionKeyValue, "partitionKeyValue must not be null");
 

@@ -14,11 +14,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.lang.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -42,12 +44,17 @@ public class MappingDocumentDbConverter
     }
 
     @Override
+    @Nullable
     public <R extends Object> R read(Class<R> type, Document sourceDocument) {
         if (sourceDocument == null) {
             return null;
         }
 
         final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(type);
+        if (entity == null) {
+            return null;
+        }
+
         return readInternal(entity, type, sourceDocument);
     }
 
@@ -92,23 +99,34 @@ public class MappingDocumentDbConverter
             return;
         }
 
+        final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity);
+        if (accessor == null) {
+            return;
+        }
+
         if (entityInformation == null) {
             throw new MappingException("no mapping metadata for entity type: " + entity.getClass().getName());
         }
 
-        final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity);
         final DocumentDbPersistentProperty idProperty = entityInformation.getIdProperty();
 
-        if (idProperty != null) {
-            targetDocument.setId((String) accessor.getProperty(idProperty));
-        }
-
-        for (final Field field : entity.getClass().getDeclaredFields()) {
-            if (null != idProperty && field.getName().equals(idProperty.getName())) {
-                continue;
+        if (targetDocument != null) {
+            if (idProperty != null) {
+                targetDocument.setId((String) accessor.getProperty(idProperty));
             }
-            targetDocument.set(field.getName(),
-                    accessor.getProperty(entityInformation.getPersistentProperty(field.getName())));
+
+            for (final Field field : entity.getClass().getDeclaredFields()) {
+                final String fieldName = field.getName();
+
+                if (idProperty != null && fieldName.equals(idProperty.getName())) {
+                    continue;
+                }
+
+                final PersistentProperty<?> persistentProperty = entityInformation.getPersistentProperty(fieldName);
+                if (persistentProperty != null) {
+                    targetDocument.set(fieldName, accessor.getProperty(persistentProperty));
+                }
+            }
         }
     }
 
@@ -133,8 +151,12 @@ public class MappingDocumentDbConverter
 
     private ConvertingPropertyAccessor getPropertyAccessor(Object entity) {
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
-        final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
-        return new ConvertingPropertyAccessor(accessor, conversionService);
+        if (entityInformation != null) {
+            final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
+            return new ConvertingPropertyAccessor(accessor, conversionService);
+        } else {
+            return null;
+        }
     }
 
     private <T> T instantiate(Class<T> tClass) {

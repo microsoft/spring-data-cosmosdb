@@ -13,12 +13,11 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 
 
-public class DocumentDbEntityInformation<T, ID extends Serializable>
+public class DocumentDbEntityInformation<T, ID>
         extends AbstractEntityInformation<T, ID> {
 
     private Field id;

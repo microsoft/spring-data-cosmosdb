@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -55,11 +56,11 @@ public class SimpleDocumentDbRepositoryUnitTest {
 
     @Test
     public void testFindOne() {
-        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(TEST_PERSON);
+        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(Optional.of(TEST_PERSON));
 
         repository.save(TEST_PERSON);
 
-        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
+        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName()).get();
 
         assertEquals(result.getId(), TEST_PERSON.getId());
         assertEquals(result.getFirstName(), TEST_PERSON.getFirstName());
@@ -71,9 +72,9 @@ public class SimpleDocumentDbRepositoryUnitTest {
         final Person updatedPerson = new Person(TEST_PERSON.getId(), "updated", "updated");
         repository.update(updatedPerson);
 
-        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(updatedPerson);
+        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(Optional.of(updatedPerson));
 
-        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
+        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName()).get();
 
         assertEquals(result.getId(), updatedPerson.getId());
         assertEquals(result.getFirstName(), updatedPerson.getFirstName());
