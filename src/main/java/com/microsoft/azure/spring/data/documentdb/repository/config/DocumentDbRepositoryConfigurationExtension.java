@@ -10,6 +10,7 @@ import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMapping
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbRepositoryFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -56,10 +57,17 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
     public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource config) {
         super.registerBeansForRoot(registry, config);
 
-        final RootBeanDefinition definition = new RootBeanDefinition(DocumentDbMappingContext.class);
-        definition.setRole(AbstractBeanDefinition.ROLE_INFRASTRUCTURE);
-        definition.setSource(config.getSource());
+        if (!registry.containsBeanDefinition("documentDbMappingContext")) {
+            final RootBeanDefinition definition = new RootBeanDefinition(DocumentDbMappingContext.class);
+            definition.setRole(AbstractBeanDefinition.ROLE_INFRASTRUCTURE);
+            definition.setSource(config.getSource());
 
-        registry.registerBeanDefinition("documentDbMappingContext", definition);
+            registry.registerBeanDefinition("documentDbMappingContext", definition);
+        }
+    }
+
+    @Override
+    public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
+        super.postProcess(builder, source);
     }
 }

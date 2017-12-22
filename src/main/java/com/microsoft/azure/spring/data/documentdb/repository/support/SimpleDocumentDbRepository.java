@@ -10,9 +10,6 @@ package com.microsoft.azure.spring.data.documentdb.repository.support;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
@@ -89,7 +86,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public List<T> findAll() {
+    public Iterable<T> findAll() {
         return documentDbOperations.findAll(entityInformation.getCollectionName(),
                 entityInformation.getJavaType(), null, null);
     }
@@ -126,16 +123,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 entityInformation.getCollectionName(), id, entityInformation.getJavaType(), null);
     }
 
-    @Override
-    public Page<T> findAll(Pageable pageable) {
-        throw new UnsupportedOperationException("findAll(Pageable pageable) not supported yet.");
-    }
-
-    @Override
-    public List<T> findAll(Sort sort) {
-        throw new UnsupportedOperationException("findAll(Sort sort) Sort not supported yet.");
-    }
-
     /**
      * return count of documents in one collection without partitions
      *
@@ -143,7 +130,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public long count() {
-        return findAll().size();
+        return findAll().spliterator().getExactSizeIfKnown();
     }
 
     /**
