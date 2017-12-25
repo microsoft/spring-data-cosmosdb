@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.documentdb.core;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.documentdb.core.convert.DocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
@@ -372,5 +373,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return requestOptions;
+    }
+
+    @Override
+    public MappingDocumentDbConverter getConverter() {
+        return mappingDocumentDbConverter;
     }
 }

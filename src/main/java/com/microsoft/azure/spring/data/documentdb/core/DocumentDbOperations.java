@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 
 import java.util.List;
 
@@ -55,4 +56,6 @@ public interface DocumentDbOperations {
                         String partitionKeyFieldValue);
 
     void deleteAll(String collectionName);
+
+    MappingDocumentDbConverter getConverter();
 }
