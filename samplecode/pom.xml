@@ -11,14 +11,6 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <!--<repositories>-->
-        <!--<repository>-->
-            <!--<id>commicrosoftazure-2160</id>-->
-            <!--<name>commicrosoftazure-2160</name>-->
-            <!--<url>https://oss.sonatype.org/content/repositories/commicrosoftazure-2160</url>-->
-        <!--</repository>-->
-    <!--</repositories>-->
-
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-azure-cosmodb-documentdb-sample</artifactId>
     <version>0.0.1-SNAPSHOT</version>
