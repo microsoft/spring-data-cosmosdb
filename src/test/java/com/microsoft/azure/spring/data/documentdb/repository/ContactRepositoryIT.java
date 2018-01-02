@@ -125,6 +125,16 @@ public class ContactRepositoryIT {
         assertThat(result2.size()).isEqualTo(0);
     }
 
+    @Test
+    public void testCustomQuery() {
+        final List<Contact> result = repository.findByTitle(TEST_CONTACT.getTitle());
+
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
+        assertThat(result.get(0).getTitle()).isEqualTo(TEST_CONTACT.getTitle());
+
+    }
+    
     private <T> List<T> toList(Iterable<T> iterable) {
         if (iterable != null) {
             final List<T> list = new ArrayList<>();

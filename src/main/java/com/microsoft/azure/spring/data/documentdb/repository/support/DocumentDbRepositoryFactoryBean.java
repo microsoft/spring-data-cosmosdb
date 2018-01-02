@@ -28,9 +28,11 @@ public class DocumentDbRepositoryFactoryBean<T extends Repository<S, ID>, S, ID 
     private boolean mappingContextConfigured = false;
 
 
-    public DocumentDbRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+    public DocumentDbRepositoryFactoryBean(Class<? extends T> repositoryInterface,
+                                           DocumentDbOperations operations) {
 
         super(repositoryInterface);
+        this.operations = operations;
     }
 
     public void setDocumentDbOperations(DocumentDbOperations operations) {
@@ -43,7 +45,7 @@ public class DocumentDbRepositoryFactoryBean<T extends Repository<S, ID>, S, ID 
     }
 
     protected RepositoryFactorySupport getFactoryInstance(ApplicationContext applicationContext) {
-        return new DocumentDbRepositoryFactory(applicationContext);
+        return new DocumentDbRepositoryFactory(operations, applicationContext);
     }
 
     @Override
