@@ -40,7 +40,7 @@ public class ContactRepositoryIT {
 
     @Test
     public void testFindAll() {
-        final List<Contact> result = repository.findAll();
+        final List<Contact> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
@@ -56,7 +56,7 @@ public class ContactRepositoryIT {
     public void testCountAndDeleteByID() {
         final Contact contact2 = new Contact("newid", "newtitle");
         repository.save(contact2);
-        final List<Contact> all = repository.findAll();
+        final List<Contact> all = toList(repository.findAll());
         assertThat(all.size()).isEqualTo(2);
 
         long count = repository.count();
@@ -64,7 +64,7 @@ public class ContactRepositoryIT {
 
         repository.delete(contact2.getLogicId());
 
-        final List<Contact> result = repository.findAll();
+        final List<Contact> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
@@ -78,12 +78,12 @@ public class ContactRepositoryIT {
     public void testCountAndDeleteEntity() {
         final Contact contact2 = new Contact("newid", "newtitle");
         repository.save(contact2);
-        final List<Contact> all = repository.findAll();
+        final List<Contact> all = toList(repository.findAll());
         assertThat(all.size()).isEqualTo(2);
 
         repository.delete(contact2);
 
-        final List<Contact> result = repository.findAll();
+        final List<Contact> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
@@ -132,5 +132,15 @@ public class ContactRepositoryIT {
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
         assertThat(result.get(0).getTitle()).isEqualTo(TEST_CONTACT.getTitle());
+
+    }
+    
+    private <T> List<T> toList(Iterable<T> iterable) {
+        if (iterable != null) {
+            final List<T> list = new ArrayList<>();
+            iterable.forEach(list::add);
+            return list;
+        }
+        return null;
     }
 }

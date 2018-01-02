@@ -7,16 +7,13 @@
 package com.microsoft.azure.spring.data.documentdb.repository;
 
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.io.Serializable;
 import java.util.List;
 
 @NoRepositoryBean
-public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
-
-    @Override
-    List<T> findAll();
+public interface DocumentDbRepository<T, ID extends Serializable> extends CrudRepository<T, ID> {
 
     void update(T entity);
 

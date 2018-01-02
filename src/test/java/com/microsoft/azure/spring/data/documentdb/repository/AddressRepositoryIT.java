@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +45,7 @@ public class AddressRepositoryIT {
     @Test
     public void testFindAll() {
         // findAll cross partition
-        final List<Address> result = repository.findAll();
+        final List<Address> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(3);
 
@@ -63,7 +64,7 @@ public class AddressRepositoryIT {
 
         repository.delete(TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = repository.findAll();
+        final List<Address> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(2);
 
@@ -75,7 +76,7 @@ public class AddressRepositoryIT {
     public void testCountAndDeleteEntity() {
         repository.delete(TEST_ADDRESS1_PARTITION1, TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = repository.findAll();
+        final List<Address> result = toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(2);
     }
@@ -93,4 +94,12 @@ public class AddressRepositoryIT {
         assertThat(address.getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
     }
 
+    private <T> List<T> toList(Iterable<T> iterable) {
+        if (iterable != null) {
+            final List<T> list = new ArrayList<>();
+            iterable.forEach(list::add);
+            return list;
+        }
+        return null;
+    }
 }

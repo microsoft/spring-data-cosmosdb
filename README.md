@@ -4,8 +4,17 @@
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
 
 
-## Spring Data for Azure Cosmos DB DocumentDB API
+# Spring Data for Azure Cosmos DB DocumentDB API
 [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as DocumentDB, MongoDB, Graph, and Table APIs. Azure Cosmos DB DocumentDB Spring Data provides initial Spring Data support for [Azure Cosmos DB Document API](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) based on Spring Data framework, the other 3 APIs are not supported in this package. Key functionalities supported are listed at below. More features will coming soon.
+
+## TOC
+
+* [Sample Code](#sample-codes)
+* [Feature List](#feature-list)
+* [Quick Start](#quick-start)
+* [Filing Issues](#filing-issues)
+* [How to Contribute](#how-to-contribute)
+* [Code of Conduct](#code-of-conduct)
 
 ## Sample Code
 Please refer to [sample project here](./samplecode).
@@ -23,9 +32,10 @@ Please refer to [sample project here](./samplecode).
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
   - set name of this field to `id`, this field will be mapped to document `id` in Cosmos DB.
 - Custom collection Name.
-  By default, collection name will be class name of user domain class. To customize it, add annoataion `@Document(collection="myCustomCollectionName")` to domain class, that's all.
+  By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation.
+- Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
   
 ## Quick Start
 
@@ -37,7 +47,7 @@ If you are using Maven, add the following dependency.
 <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-documentdb</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
 </dependency>
 ```
 
@@ -168,9 +178,9 @@ If you encounter any bug, please file an issue [here](https://github.com/Microso
 
 To suggest a new feature or changes that could be made, file an issue the same way you would for a bug.
 
-## Pull Requests
+## How To Contribute
 
-Pull requests are welcome. To open your own pull request, click [here](https://github.com/Microsoft/spring-data-documentdb/compare). When creating a pull request, make sure you are pointing to the fork and branch that your changes were made in.
+Contribution is welcome. Please follow [this instruction](./HowToContribute.md) to contribute code.
 
 ## Code of Conduct
 

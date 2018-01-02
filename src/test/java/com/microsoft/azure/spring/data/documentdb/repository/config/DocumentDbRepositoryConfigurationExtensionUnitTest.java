@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.config;
 
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
 import org.junit.Test;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ResourceLoader;
@@ -27,7 +28,7 @@ public class DocumentDbRepositoryConfigurationExtensionUnitTest {
     ResourceLoader loader = new PathMatchingResourcePatternResolver();
     Environment environment = new StandardEnvironment();
     RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
-            EnableDocumentDbRepositories.class, loader, environment);
+            EnableDocumentDbRepositories.class, loader, environment, new DefaultListableBeanFactory());
 
     private static void assertHashRepo(Class<?> repositoryInterface,
                                        Collection<RepositoryConfiguration<RepositoryConfigurationSource>> configs) {

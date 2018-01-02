@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.documentdb.core;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.documentdb.core.convert.DocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import org.slf4j.Logger;
@@ -371,7 +372,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
+  public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
         final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query);
 
         final List<DocumentCollection> collections = documentDbFactory.getDocumentClient().
@@ -413,6 +414,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return new SqlQuerySpec(queryStr, parameterCollection);
     }
 
+    @Override
     public MappingDocumentDbConverter getConverter() {
         return this.mappingDocumentDbConverter;
     }
