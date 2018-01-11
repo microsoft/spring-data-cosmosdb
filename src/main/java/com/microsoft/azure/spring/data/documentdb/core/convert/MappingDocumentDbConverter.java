@@ -94,8 +94,7 @@ public class MappingDocumentDbConverter
                     }
                     accessor.setProperty(prop, mappedList);
                 } else {
-                    final Object converted = conversionService.convert(fieldValue, prop.getActualType());
-                    accessor.setProperty(prop, converted);
+                    accessor.setProperty(prop, sourceDocument.get(prop.getName()));
                 }
             }
         );
