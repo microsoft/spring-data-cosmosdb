@@ -9,8 +9,10 @@ package com.microsoft.azure.spring.data.documentdb.core;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import org.junit.After;
 import org.junit.Before;
@@ -27,16 +29,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
+    private static final String TEST_ID = "template_it_id";
+    private static final String TEST_NOTEXIST_ID = "non_exist_id";
 
-    private static final String TEST_ID = "testid";
-    private static final String TEST_NOTEXIST_ID = "testid2";
-
-    private static final String TEST_DB_NAME = "testdb";
-    private static final Person TEST_PERSON = new Person(TEST_ID, "testfirstname", "testlastname");
+    private static final String TEST_DB_NAME = "template_it_db";
+    private static final List<String> HOBBIES = Constants.HOBBIES;
+    private static final List<Address> ADDRESSES = Constants.ADDRESSES;
+    private static final Person TEST_PERSON = new Person(TEST_ID, "testfirstname", "testlastname", HOBBIES, ADDRESSES);
 
     private static final String PARTITION_KEY = "lastName";
 
@@ -88,9 +92,7 @@ public class DocumentDbTemplateIT {
     public void testFindAll() {
         final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class, null, null);
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getId()).isEqualTo(TEST_PERSON.getId());
-        assertThat(result.get(0).getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
-        assertThat(result.get(0).getLastName()).isEqualTo(TEST_PERSON.getLastName());
+        assertThat(result.get(0)).isEqualTo(TEST_PERSON);
     }
 
     @Test
@@ -101,18 +103,14 @@ public class DocumentDbTemplateIT {
                 Person.class, PARTITION_KEY, TEST_PERSON.getLastName());
 
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getId()).isEqualTo(TEST_PERSON.getId());
-        assertThat(result.get(0).getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
-        assertThat(result.get(0).getLastName()).isEqualTo(TEST_PERSON.getLastName());
+        assertThat(result.get(0)).isEqualTo(TEST_PERSON);
     }
 
     @Test
     public void testFindById() {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class, null);
-        assertThat(result.getId()).isEqualTo(TEST_PERSON.getId());
-        assertThat(result.getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
-        assertThat(result.getLastName()).isEqualTo(TEST_PERSON.getLastName());
+        assertTrue(result.equals(TEST_PERSON));
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_NOTEXIST_ID, Person.class, null);
@@ -125,9 +123,7 @@ public class DocumentDbTemplateIT {
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
-        assertThat(result.getId()).isEqualTo(TEST_PERSON.getId());
-        assertThat(result.getFirstName()).isEqualTo(TEST_PERSON.getFirstName());
-        assertThat(result.getLastName()).isEqualTo(TEST_PERSON.getLastName());
+        assertTrue(result.equals(TEST_PERSON));
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_NOTEXIST_ID, Person.class, TEST_PERSON.getLastName());
@@ -137,35 +133,31 @@ public class DocumentDbTemplateIT {
     @Test
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
-                TEST_PERSON.getLastName());
+                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, null);
 
-        assertThat(result.getId()).isEqualTo(updated.getId());
-        assertThat(result.getFirstName()).isEqualTo(updated.getFirstName());
-        assertThat(result.getLastName()).isEqualTo(updated.getLastName());
+        assertTrue(result.equals(updated));
     }
 
     @Test
     public void testUpdatePartition() {
         setupPartition();
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
-                TEST_PERSON.getLastName());
+                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, updated.getLastName());
 
-        assertThat(result.getId()).isEqualTo(updated.getId());
-        assertThat(result.getFirstName()).isEqualTo(updated.getFirstName());
-        assertThat(result.getLastName()).isEqualTo(updated.getLastName());
+        assertTrue(result.equals(updated));
     }
 
     @Test
     public void testDeleteById() {
-        final Person person2 = new Person("newid", "newfn", "newln");
+        final Person person2 = new Person("newid", "newfn", "newln", HOBBIES, ADDRESSES);
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class, null, null).size()).isEqualTo(2);
 
@@ -173,10 +165,7 @@ public class DocumentDbTemplateIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class, null, null);
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getId()).isEqualTo(person2.getId());
-        assertThat(result.get(0).getFirstName()).isEqualTo(person2.getFirstName());
-        assertThat(result.get(0).getLastName()).isEqualTo(person2.getLastName());
-
+        assertTrue(result.get(0).equals(person2));
     }
 
     @Test
@@ -184,7 +173,7 @@ public class DocumentDbTemplateIT {
         setupPartition();
 
         // insert new document with same partition key
-        final Person person2 = new Person("newid", "newfn", TEST_PERSON.getLastName());
+        final Person person2 = new Person("newid", "newfn", TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
         dbTemplate.insert(Person.class.getSimpleName(), person2, person2.getLastName());
 
         assertThat(dbTemplate.findAll(Person.class, PARTITION_KEY, person2.getLastName()).size()).isEqualTo(2);
@@ -194,10 +183,7 @@ public class DocumentDbTemplateIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class, PARTITION_KEY, person2.getLastName());
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getId()).isEqualTo(person2.getId());
-        assertThat(result.get(0).getFirstName()).isEqualTo(person2.getFirstName());
-        assertThat(result.get(0).getLastName()).isEqualTo(person2.getLastName());
-
+        assertTrue(result.get(0).equals(person2));
     }
 
     private void setupPartition() {

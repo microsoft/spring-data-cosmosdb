@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository;
 
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.documentdb.repository.support.SimpleDocumentDbRepository;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,8 +28,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleDocumentDbRepositoryUnitTest {
+    private static final Person TEST_PERSON =
+            new Person("test_person", "firstname", "lastname",
+                    Constants.HOBBIES, Constants.ADDRESSES);
 
-    private static final Person TEST_PERSON = new Person("aaa", "firstname", "lastname");
     SimpleDocumentDbRepository<Person, String> repository;
     @Mock
     DocumentDbOperations dbOperations;
@@ -49,8 +54,9 @@ public class SimpleDocumentDbRepositoryUnitTest {
     public void testSave() {
         repository.save(TEST_PERSON);
 
-        assertEquals(1, repository.findAll(TEST_PERSON.getLastName()).size());
-        assertEquals(TEST_PERSON.getFirstName(), repository.findAll(TEST_PERSON.getLastName()).get(0).getFirstName());
+        final List<Person> result = repository.findAll(TEST_PERSON.getLastName());
+        assertEquals(1, result.size());
+        assertEquals(TEST_PERSON, result.get(0));
     }
 
     @Test
@@ -60,23 +66,21 @@ public class SimpleDocumentDbRepositoryUnitTest {
         repository.save(TEST_PERSON);
 
         final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
-
-        assertEquals(result.getId(), TEST_PERSON.getId());
-        assertEquals(result.getFirstName(), TEST_PERSON.getFirstName());
-        assertEquals(result.getLastName(), TEST_PERSON.getLastName());
+        assertEquals(TEST_PERSON, result);
     }
 
     @Test
     public void testUpdate() {
-        final Person updatedPerson = new Person(TEST_PERSON.getId(), "updated", "updated");
+        final List<Address> updatedAddress =
+                Arrays.asList(new Address("12345", "updated city", "updated street"));
+        final Person updatedPerson =
+                new Person(TEST_PERSON.getId(), "updated", "updated",
+                        Arrays.asList("updated hobbies"), updatedAddress);
         repository.update(updatedPerson);
 
         when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(updatedPerson);
 
         final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
-
-        assertEquals(result.getId(), updatedPerson.getId());
-        assertEquals(result.getFirstName(), updatedPerson.getFirstName());
-        assertEquals(result.getLastName(), updatedPerson.getLastName());
+        assertEquals(updatedPerson, result);
     }
 }

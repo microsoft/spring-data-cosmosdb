@@ -18,4 +18,5 @@ public class Person {
     private String firstName;
     private String lastName;
     private List<String> hobbies;
+    private List<Address> shippingAddresses;
 }

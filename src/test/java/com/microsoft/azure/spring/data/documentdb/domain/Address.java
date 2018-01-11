@@ -7,43 +7,17 @@ package com.microsoft.azure.spring.data.documentdb.domain;
 
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 
 @Document(ru = "1000")
+@Data
+@AllArgsConstructor
 public class Address {
     @Id
     String postalCode;
     String street;
     @PartitionKey
     String city;
-
-    public Address(String postalCode, String city, String street) {
-        this.postalCode = postalCode;
-        this.city = city;
-        this.street = street;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public String getPostalCode() {
-        return this.postalCode;
-    }
-
-    public void setPostalCode(String code) {
-        this.postalCode = code;
-    }
 }

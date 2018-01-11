@@ -23,9 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = ContactRepositoryConfig.class)
 public class AddressRepositoryIT {
 
-    private static final Address TEST_ADDRESS1_PARTITION1 = new Address("111", "redmond", "111st avenue");
-    private static final Address TEST_ADDRESS2_PARTITION1 = new Address("222", "redmond", "98th street");
-    private static final Address TEST_ADDRESS1_PARTITION2 = new Address("333", "bellevue", "103rd street");
+    private static final Address TEST_ADDRESS1_PARTITION1 = new Address("111", "111st avenue", "redmond");
+    private static final Address TEST_ADDRESS2_PARTITION1 = new Address("222", "98th street", "redmond");
+    private static final Address TEST_ADDRESS1_PARTITION2 = new Address("333", "103rd street", "bellevue");
 
     @Autowired
     AddressRepository repository;
@@ -83,8 +83,8 @@ public class AddressRepositoryIT {
 
     @Test
     public void testUpdateEntity() {
-        final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(),
-                TEST_ADDRESS1_PARTITION1.getCity(), "new street");
+        final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), "new street",
+                TEST_ADDRESS1_PARTITION1.getCity());
 
         repository.update(updatedAddress, updatedAddress.getCity());
 

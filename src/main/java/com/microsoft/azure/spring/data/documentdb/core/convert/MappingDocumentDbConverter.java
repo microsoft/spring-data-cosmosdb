@@ -5,10 +5,12 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.convert;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import org.apache.commons.lang3.ClassUtils;
+import org.json.JSONArray;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
@@ -20,6 +22,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +58,7 @@ public class MappingDocumentDbConverter
                                                 final Document sourceDocument) {
         final R result = instantiate(type);
 
-        final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(result);
+        final PersistentPropertyAccessor accessor = getPropertyAccessor(result);
 
         final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
         final Object idValue = sourceDocument.getId();
@@ -64,12 +67,37 @@ public class MappingDocumentDbConverter
             accessor.setProperty(idProperty, idValue);
         }
 
-        entity.doWithProperties((PropertyHandler<DocumentDbPersistentProperty>) prop -> {
-                    if (idProperty != null && idProperty.equals(prop)) {
-                        return;
-                    }
-                    accessor.setProperty(prop, sourceDocument.get(prop.getName()));
+        entity.doWithProperties((PropertyHandler<DocumentDbPersistentProperty>) (DocumentDbPersistentProperty prop) -> {
+                if (idProperty != null && idProperty.equals(prop)) {
+                    return;
                 }
+
+                final Object fieldValue = sourceDocument.get(prop.getName());
+
+                if (fieldValue instanceof JSONArray) {
+                    final List<Object> mappedList = new ArrayList<>();
+                    for (int i = 0; i < ((JSONArray) fieldValue).length(); i++) {
+                        Object value;
+                        if (prop.getActualType().isPrimitive() || prop.getActualType().equals(String.class)) {
+                            value = ((JSONArray) fieldValue).getString(i);
+                        } else {
+                            final String curJson = ((JSONArray) fieldValue).getJSONObject(i).toString();
+                            final ObjectMapper objectMapper = new ObjectMapper();
+                            try {
+                                value = objectMapper.readValue(curJson, prop.getActualType());
+                            } catch (IOException e) {
+                                throw new IllegalStateException("Cannot convert json string " + curJson
+                                        + " to type " + prop.getActualType(), e);
+                            }
+                        }
+                        mappedList.add(value);
+                    }
+                    accessor.setProperty(prop, mappedList);
+                } else {
+                    final Object converted = conversionService.convert(fieldValue, prop.getActualType());
+                    accessor.setProperty(prop, converted);
+                }
+            }
         );
         return result;
 

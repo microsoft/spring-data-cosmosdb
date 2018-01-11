@@ -5,17 +5,26 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import org.junit.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DocumentDbEntityInformationUnitTest {
+    private static final String ID = "entity_info_test_id";
+    private static final String FIRST_NAME = "first name";
+    private static final String LAST_NAME = "last name";
+    private static final List<String> HOBBIES = Constants.HOBBIES;
+    private static final List<Address> ADDRESSES = Constants.ADDRESSES;
 
     @Test
     public void testGetId() {
-        final Person testPerson = new Person("test", "test", "test");
+        final Person testPerson = new Person(ID, FIRST_NAME, LAST_NAME, HOBBIES, ADDRESSES);
         final DocumentDbEntityInformation<Person, String> entityInformation =
                 new DocumentDbEntityInformation<Person, String>(Person.class);
 
