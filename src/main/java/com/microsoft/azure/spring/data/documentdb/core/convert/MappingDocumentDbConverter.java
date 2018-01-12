@@ -58,9 +58,11 @@ public class MappingDocumentDbConverter
             final Object idValue = sourceDocument.getId();
 
             final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
-            // Replace the key id to the actual id field name in domain
-            jsonObject.remove("id");
-            jsonObject.put(idProperty.getName(), idValue);
+            if (idProperty != null) {
+                // Replace the key id to the actual id field name in domain
+                jsonObject.remove("id");
+                jsonObject.put(idProperty.getName(), idValue);
+            }
 
             return objectMapper.readValue(jsonObject.toString(), type);
         } catch (IOException e) {
