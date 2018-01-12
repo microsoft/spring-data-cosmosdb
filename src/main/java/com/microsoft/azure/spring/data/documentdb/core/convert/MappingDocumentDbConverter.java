@@ -5,29 +5,24 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.convert;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
-import org.apache.commons.lang3.ClassUtils;
-import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
@@ -56,50 +51,22 @@ public class MappingDocumentDbConverter
 
     protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
                                                 final Document sourceDocument) {
-        final R result = instantiate(type);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
+            final Object idValue = sourceDocument.getId();
 
-        final PersistentPropertyAccessor accessor = getPropertyAccessor(result);
+            final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
+            // Replace the key id to the actual id field name in domain
+            jsonObject.remove("id");
+            jsonObject.put(idProperty.getName(), idValue);
 
-        final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
-        final Object idValue = sourceDocument.getId();
-
-        if (idProperty != null) {
-            accessor.setProperty(idProperty, idValue);
+            return objectMapper.readValue(jsonObject.toString(), type);
+        } catch (IOException e) {
+            throw  new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
+                    + "  to target type " + type, e);
         }
-
-        entity.doWithProperties((PropertyHandler<DocumentDbPersistentProperty>) (DocumentDbPersistentProperty prop) -> {
-                if (idProperty != null && idProperty.equals(prop)) {
-                    return;
-                }
-
-                final Object fieldValue = sourceDocument.get(prop.getName());
-
-                if (fieldValue instanceof JSONArray) {
-                    final List<Object> mappedList = new ArrayList<>();
-                    for (int i = 0; i < ((JSONArray) fieldValue).length(); i++) {
-                        Object value;
-                        if (prop.getActualType().isPrimitive() || prop.getActualType().equals(String.class)) {
-                            value = ((JSONArray) fieldValue).getString(i);
-                        } else {
-                            final String curJson = ((JSONArray) fieldValue).getJSONObject(i).toString();
-                            final ObjectMapper objectMapper = new ObjectMapper();
-                            try {
-                                value = objectMapper.readValue(curJson, prop.getActualType());
-                            } catch (IOException e) {
-                                throw new IllegalStateException("Cannot convert json string " + curJson
-                                        + " to type " + prop.getActualType(), e);
-                            }
-                        }
-                        mappedList.add(value);
-                    }
-                    accessor.setProperty(prop, mappedList);
-                } else {
-                    accessor.setProperty(prop, sourceDocument.get(prop.getName()));
-                }
-            }
-        );
-        return result;
-
     }
 
     @Override
@@ -162,19 +129,5 @@ public class MappingDocumentDbConverter
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
-    }
-
-    private <T> T instantiate(Class<T> tClass) {
-        try {
-            final Constructor<T> constructor = (Constructor<T>) tClass.getConstructors()[0];
-            final List<Object> params = new ArrayList<>();
-            for (final Class<?> paramType : constructor.getParameterTypes()) {
-                params.add((paramType.isPrimitive()) ? ClassUtils.primitiveToWrapper(paramType).newInstance() : null);
-            }
-
-            return constructor.newInstance(params.toArray());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e.getMessage());
-        }
     }
 }
