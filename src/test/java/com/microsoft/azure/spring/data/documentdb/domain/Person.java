@@ -6,44 +6,17 @@
 
 package com.microsoft.azure.spring.data.documentdb.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+import java.util.List;
+
+@Data
+@AllArgsConstructor
 public class Person {
+    private String id;
     private String firstName;
     private String lastName;
-
-    private String id;
-
-    public Person() {
-        this(null, null, null);
-    }
-
-    public Person(String id, String fname, String lname) {
-        this.firstName = fname;
-        this.lastName = lname;
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String fname) {
-        this.firstName = fname;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+    private List<String> hobbies;
+    private List<Address> shippingAddresses;
 }

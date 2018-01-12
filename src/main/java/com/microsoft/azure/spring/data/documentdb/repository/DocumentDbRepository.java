@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository;
 
-import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
 import java.util.List;

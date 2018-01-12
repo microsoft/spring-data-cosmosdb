@@ -5,32 +5,15 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+@Data
+@AllArgsConstructor
 public class Contact {
     @Id
     private String logicId;
 
     private String title;
-
-    public Contact(String id, String title) {
-        this.logicId = id;
-        this.title = title;
-    }
-
-    public String getLogicId() {
-        return logicId;
-    }
-
-    public void setLogicId(String logicId) {
-        this.logicId = logicId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 }
