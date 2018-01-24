@@ -82,7 +82,7 @@ public class AddressRepositoryIT {
     }
 
     @Test
-    public void testSaveForExistingEntity() {
+    public void testUpdateEntity() {
         final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), "new street",
                 TEST_ADDRESS1_PARTITION1.getCity());
 

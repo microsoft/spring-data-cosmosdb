@@ -91,7 +91,7 @@ public class ContactRepositoryIT {
     }
 
     @Test
-    public void testSaveForExistingEntity() {
+    public void testUpdateEntity() {
         final Contact updatedContact = new Contact(TEST_CONTACT.getLogicId(), "updated");
 
         repository.save(updatedContact);

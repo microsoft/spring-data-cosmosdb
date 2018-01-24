@@ -70,7 +70,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
     }
 
     @Test
-    public void testUpsert() {
+    public void testUpdate() {
         final List<Address> updatedAddress =
                 Arrays.asList(new Address("12345", "updated city", "updated street"));
         final Person updatedPerson =
