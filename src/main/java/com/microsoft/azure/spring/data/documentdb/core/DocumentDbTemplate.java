@@ -116,49 +116,38 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void update(T object, String id, String partitionKeyFieldValue) {
-        update(getCollectionName(object.getClass()), object, id, partitionKeyFieldValue);
+    public <T> void upsert(T object, Object id, String partitionKeyFieldValue) {
+        upsert(getCollectionName(object.getClass()), object, id, partitionKeyFieldValue);
     }
 
 
-    public <T> void update(String collectionName, T object, String id, String partitionKeyFieldValue) {
-
+    public <T> void upsert(String collectionName, T object, Object id, String partitionKeyFieldValue) {
         try {
-            final Resource resource = documentDbFactory.getDocumentClient()
-                    .readDocument(getDocumentLink(this.databaseName, collectionName, id),
-                            getRequestOptions(partitionKeyFieldValue, null))
-                    .getResource();
-
-            if (resource instanceof Document) {
-                final Document originalDoc = (Document) resource;
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("execute replaceDocument in database {} collection {} with id {}",
-                            this.databaseName, collectionName, id);
-                }
-
-                mappingDocumentDbConverter.write(object, originalDoc);
-
-                documentDbFactory.getDocumentClient().replaceDocument(
-                        originalDoc.getSelfLink(),
-                        originalDoc,
-                        getRequestOptions(partitionKeyFieldValue, null));
+            Document originalDoc = new Document();
+            if (object instanceof Document) {
+                originalDoc = (Document) object;
             } else {
-                LOGGER.error("invalid Document to update {}", resource.getSelfLink());
-                throw new RuntimeException("invalid Document to update " + resource.getSelfLink());
+                mappingDocumentDbConverter.write(object, originalDoc);
             }
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("execute upsert document in database {} collection {} with id {}",
+                        this.databaseName, collectionName, id);
+            }
+
+            documentDbFactory.getDocumentClient().upsertDocument(
+                    getCollectionLink(this.databaseName, collectionName),
+                    originalDoc,
+                    getRequestOptions(partitionKeyFieldValue, null), false);
         } catch (DocumentClientException ex) {
-            throw new RuntimeException("update exception", ex);
+            throw new RuntimeException("Failed to upsert document to database.", ex);
         }
     }
 
     public <T> List<T> findAll(Class<T> entityClass,
                                String partitionKeyFieldName,
                                String partitionKeyFieldValue) {
-        return findAll(getCollectionName(entityClass),
-                entityClass,
-                partitionKeyFieldName,
-                partitionKeyFieldValue);
+        return findAll(getCollectionName(entityClass), entityClass, partitionKeyFieldName, partitionKeyFieldValue);
     }
 
 
@@ -178,17 +167,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     + " in database: " + this.databaseName + ", but found " + collections.size());
         }
 
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.setEnableCrossPartitionQuery(true);
+
         SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT * FROM root c");
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             sqlQuerySpec = new SqlQuerySpec("SELECT * FROM root c WHERE c." + partitionKeyFieldName + "=@partition",
                     new SqlParameterCollection(new SqlParameter("@partition", partitionKeyFieldValue)));
+            feedOptions.setPartitionKey(new PartitionKey(partitionKeyFieldValue));
         }
 
-        final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(true);
         final List<Document> results = documentDbFactory.getDocumentClient()
-                .queryDocuments(collections.get(0).getSelfLink(),
-                        sqlQuerySpec, feedOptions)
+                .queryDocuments(collections.get(0).getSelfLink(), sqlQuerySpec, feedOptions, partitionKeyFieldName)
                 .getQueryIterable().toList();
 
         final List<T> entities = new ArrayList<>();
@@ -347,7 +337,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getDatabaseLink(databaseName) + "/colls/" + collectionName;
     }
 
-    private String getDocumentLink(String databaseName, String collectionName, String documentId) {
+    private String getDocumentLink(String databaseName, String collectionName, Object documentId) {
         return getCollectionLink(databaseName, collectionName) + "/docs/" + documentId;
     }
 

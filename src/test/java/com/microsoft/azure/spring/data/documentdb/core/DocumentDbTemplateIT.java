@@ -131,10 +131,10 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
-    public void testUpdate() {
+    public void testUpsert() {
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), null);
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, null);
@@ -143,11 +143,11 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
-    public void testUpdatePartition() {
+    public void testUpsertPartition() {
         setupPartition();
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, updated.getLastName());

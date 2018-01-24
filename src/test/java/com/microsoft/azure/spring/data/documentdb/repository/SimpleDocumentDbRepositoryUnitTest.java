@@ -70,13 +70,13 @@ public class SimpleDocumentDbRepositoryUnitTest {
     }
 
     @Test
-    public void testUpdate() {
+    public void testUpsert() {
         final List<Address> updatedAddress =
                 Arrays.asList(new Address("12345", "updated city", "updated street"));
         final Person updatedPerson =
                 new Person(TEST_PERSON.getId(), "updated", "updated",
                         Arrays.asList("updated hobbies"), updatedAddress);
-        repository.update(updatedPerson);
+        repository.save(updatedPerson);
 
         when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(updatedPerson);
 

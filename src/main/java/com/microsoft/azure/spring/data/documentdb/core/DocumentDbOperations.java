@@ -48,11 +48,11 @@ public interface DocumentDbOperations {
                  T objectToSave,
                  String partitionKeyFieldValue);
 
-    <T> void update(T object, String id, String partitionKeyFieldValue);
+    <T> void upsert(T object, Object id, String partitionKeyFieldValue);
 
-    <T> void update(String collectionName,
+    <T> void upsert(String collectionName,
                     T object,
-                    String id,
+                    Object id,
                     String partitionKeyFieldValue);
 
     <T> void deleteById(String collectionName,

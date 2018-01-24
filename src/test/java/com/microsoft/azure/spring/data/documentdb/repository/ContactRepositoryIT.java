@@ -91,10 +91,10 @@ public class ContactRepositoryIT {
     }
 
     @Test
-    public void testUpdateEntity() {
+    public void testSaveForExistingEntity() {
         final Contact updatedContact = new Contact(TEST_CONTACT.getLogicId(), "updated");
 
-        repository.update(updatedContact);
+        repository.save(updatedContact);
 
         final Contact contact = repository.findOne(TEST_CONTACT.getLogicId());
 

@@ -14,9 +14,6 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface DocumentDbRepository<T, ID extends Serializable> extends CrudRepository<T, ID> {
-
-    void update(T entity);
-
     List<T> findAll(String partitionKeyValue);
 
     T findOne(ID id, String partitionKeyValue);
@@ -24,7 +21,5 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends CrudRe
     void delete(ID id, String partitionKeyValue);
 
     void delete(T entity, String partitionKeyValue);
-
-    void update(T entity, String partitionKeyValue);
 }
 
