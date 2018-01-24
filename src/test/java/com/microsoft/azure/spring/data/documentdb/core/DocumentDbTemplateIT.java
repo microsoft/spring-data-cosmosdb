@@ -27,6 +27,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -131,10 +132,46 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
+    public void testUpsertNewDocument() {
+        // Delete first as was inserted in setup
+        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class, null);
+
+        final String firstName = "newFirstName_" + UUID.randomUUID().toString();
+        final Person newPerson = new Person(null, firstName, "newLastName", null, null);
+
+        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, null);
+
+        final List<Person> result = dbTemplate.findAll(Person.class, null, null);
+
+        assertThat(result.size()).isEqualTo(1);
+        assertTrue(result.get(0).getFirstName().equals(firstName));
+    }
+
+    @Test
+    public void testUpsertNewDocumentPartition() {
+        // Delete first as was inserted in setup
+        dbTemplate.deleteById(Person.class.getSimpleName(),
+                TEST_PERSON.getId(), Person.class, null);
+
+        setupPartition();
+
+        final String firstName = "newFirstName_" + UUID.randomUUID().toString();
+        final Person newPerson = new Person(null, firstName, "newLastName", null, null);
+
+        final String partitionKeyValue = newPerson.getLastName();
+        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, partitionKeyValue);
+
+        final List<Person> result = dbTemplate.findAll(Person.class, PARTITION_KEY, partitionKeyValue);
+
+        assertThat(result.size()).isEqualTo(1);
+        assertTrue(result.get(0).getFirstName().equals(firstName));
+    }
+
+    @Test
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), null);
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, null);
@@ -147,7 +184,7 @@ public class DocumentDbTemplateIT {
         setupPartition();
         final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.update(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class, updated.getLastName());

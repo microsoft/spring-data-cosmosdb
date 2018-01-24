@@ -94,7 +94,7 @@ public class ContactRepositoryIT {
     public void testUpdateEntity() {
         final Contact updatedContact = new Contact(TEST_CONTACT.getLogicId(), "updated");
 
-        repository.update(updatedContact);
+        repository.save(updatedContact);
 
         final Contact contact = repository.findOne(TEST_CONTACT.getLogicId());
 

@@ -43,16 +43,22 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public <S extends T> S save(S entity) {
         Assert.notNull(entity, "entity must not be null");
-
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
                 entityInformation.getRequestUint());
 
         // save entity
-        documentDbOperations.insert(entityInformation.getCollectionName(),
-                entity,
-                entityInformation.getPartitionKeyFieldValue(entity));
+        if (entityInformation.isNew(entity)) {
+            documentDbOperations.insert(entityInformation.getCollectionName(),
+                    entity,
+                    entityInformation.getPartitionKeyFieldValue(entity));
+        } else {
+            documentDbOperations.upsert(entityInformation.getCollectionName(),
+                    entity,
+                    entityInformation.getId(entity),
+                    entityInformation.getPartitionKeyFieldValue(entity));
+        }
 
         return entity;
     }
@@ -72,9 +78,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 entityInformation.getRequestUint());
 
         for (final S entity : entities) {
-            documentDbOperations.insert(entityInformation.getCollectionName(),
-                    entity,
-                    entityInformation.getPartitionKeyFieldValue(entity));
+            save(entity);
         }
 
         return entities;
@@ -191,20 +195,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * update an entity without partitions
-     *
-     * @param entity
-     */
-    @Override
-    public void update(T entity) {
-        documentDbOperations.update(entityInformation.getCollectionName(),
-                entity,
-                ((String) entityInformation.getId(entity)),
-                null);
-    }
-
-
-    /**
      * find all entities from one collection with partitions
      *
      * @param partitionKeyValue
@@ -261,19 +251,4 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 entityInformation.getJavaType(),
                 partitionKeyValue);
     }
-
-    /**
-     * update an entity with partitions
-     *
-     * @param entity
-     * @param partitionKeyValue
-     */
-    public void update(T entity, String partitionKeyValue) {
-        documentDbOperations.update(entityInformation.getCollectionName(),
-                entity,
-                ((String) entityInformation.getId(entity)),
-                partitionKeyValue);
-    }
-
-
 }

@@ -86,7 +86,7 @@ public class AddressRepositoryIT {
         final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), "new street",
                 TEST_ADDRESS1_PARTITION1.getCity());
 
-        repository.update(updatedAddress, updatedAddress.getCity());
+        repository.save(updatedAddress);
 
         final Address address = repository.findOne(updatedAddress.getPostalCode(), updatedAddress.getCity());
 

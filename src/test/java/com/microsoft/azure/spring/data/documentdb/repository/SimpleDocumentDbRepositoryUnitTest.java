@@ -76,7 +76,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
         final Person updatedPerson =
                 new Person(TEST_PERSON.getId(), "updated", "updated",
                         Arrays.asList("updated hobbies"), updatedAddress);
-        repository.update(updatedPerson);
+        repository.save(updatedPerson);
 
         when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(updatedPerson);
 
