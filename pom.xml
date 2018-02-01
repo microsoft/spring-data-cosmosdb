@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-documentdb</artifactId>
-    <version>0.1.4-SNAPSHOT</version>
+    <version>0.1.5-SNAPSHOT</version>
 
     <name>Spring Data for Azure Cosmos DB DocumentDB API</name>
     <description>Spring Data for Azure Cosmos DB DocumentDB API</description>
