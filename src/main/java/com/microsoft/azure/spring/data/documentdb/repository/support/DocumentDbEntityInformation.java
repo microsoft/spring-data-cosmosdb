@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.support;
 
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
@@ -46,6 +47,10 @@ public class DocumentDbEntityInformation<T, ID extends Serializable>
 
     public ID getId(T entity) {
         return (ID) ReflectionUtils.getField(id, entity);
+    }
+
+    public Field getId() {
+        return this.id;
     }
 
     public Class<ID> getIdType() {

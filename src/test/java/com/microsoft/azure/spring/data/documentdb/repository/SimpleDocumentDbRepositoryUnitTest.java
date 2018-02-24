@@ -12,8 +12,11 @@ import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.documentdb.repository.support.SimpleDocumentDbRepository;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -32,20 +35,24 @@ public class SimpleDocumentDbRepositoryUnitTest {
             new Person("test_person", "firstname", "lastname",
                     Constants.HOBBIES, Constants.ADDRESSES);
 
+    private static final String PARTITION_VALUE_REQUIRED_MSG =
+            "PartitionKey value must be supplied for this operation.";
+
     SimpleDocumentDbRepository<Person, String> repository;
     @Mock
     DocumentDbOperations dbOperations;
     @Mock
     DocumentDbEntityInformation<Person, String> entityInformation;
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Before
     public void setUp() {
         when(entityInformation.getJavaType()).thenReturn(Person.class);
         when(entityInformation.getCollectionName()).thenReturn(Person.class.getSimpleName());
-        when(entityInformation.getPartitionKeyFieldName()).thenReturn("lastName");
         when(entityInformation.getRequestUint()).thenReturn(1000);
-        when(dbOperations.findAll(anyString(), any(), anyString(), anyString()))
-                .thenReturn(Arrays.asList(TEST_PERSON));
+        when(dbOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
 
         repository = new SimpleDocumentDbRepository<Person, String>(entityInformation, dbOperations);
     }
@@ -54,19 +61,32 @@ public class SimpleDocumentDbRepositoryUnitTest {
     public void testSave() {
         repository.save(TEST_PERSON);
 
-        final List<Person> result = repository.findAll(TEST_PERSON.getLastName());
+        final List<Person> result = Lists.newArrayList(repository.findAll());
         assertEquals(1, result.size());
         assertEquals(TEST_PERSON, result.get(0));
     }
 
     @Test
     public void testFindOne() {
-        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(TEST_PERSON);
+        when(dbOperations.findById(anyString(), any(), any())).thenReturn(TEST_PERSON);
 
         repository.save(TEST_PERSON);
 
-        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
+        final Person result = repository.findOne(TEST_PERSON.getId());
         assertEquals(TEST_PERSON, result);
+    }
+
+    @Test
+    public void testFindOneExceptionForPartitioned() {
+        expectedException.expect(UnsupportedOperationException.class);
+        expectedException.expectMessage(PARTITION_VALUE_REQUIRED_MSG);
+
+        repository.save(TEST_PERSON);
+
+        when(dbOperations.findById(anyString(), any(), any()))
+                .thenThrow(new UnsupportedOperationException(PARTITION_VALUE_REQUIRED_MSG));
+
+        final Person result = repository.findOne(TEST_PERSON.getId());
     }
 
     @Test
@@ -78,9 +98,9 @@ public class SimpleDocumentDbRepositoryUnitTest {
                         Arrays.asList("updated hobbies"), updatedAddress);
         repository.save(updatedPerson);
 
-        when(dbOperations.findById(anyString(), any(), any(), anyString())).thenReturn(updatedPerson);
+        when(dbOperations.findById(anyString(), any(), any())).thenReturn(updatedPerson);
 
-        final Person result = repository.findOne(TEST_PERSON.getId(), TEST_PERSON.getLastName());
+        final Person result = repository.findOne(TEST_PERSON.getId());
         assertEquals(updatedPerson, result);
     }
 }

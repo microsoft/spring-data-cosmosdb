@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 
@@ -20,47 +21,42 @@ public interface DocumentDbOperations {
                                                    String partitionKeyFieldName,
                                                    Integer requestUnit);
 
-    <T> List<T> findAll(Class<T> entityClass,
-                        String partitionKeyFieldName,
-                        String partitionKeyFieldValue);
+    <T> List<T> findAll(Class<T> entityClass);
 
-    <T> List<T> findAll(String collectionName,
-                        Class<T> entityClass,
-                        String partitionKeyFieldName,
-                        String partitionKeyFieldValue);
+    <T> List<T> findAll(String collectionName, Class<T> entityClass);
 
     <T> T findById(Object id,
-                   Class<T> entityClass,
-                   String partitionKeyFieldValue);
+                   Class<T> entityClass);
 
     <T> T findById(String collectionName,
                    Object id,
-                   Class<T> entityClass,
-                   String partitionKeyFieldValue);
+                   Class<T> entityClass);
 
     <T> List<T> find(Query query,
                      Class<T> entityClass,
                      String collectionName);
 
-    <T> T insert(T objectToSave, String partitionKeyFieldValue);
+    <T> T insert(T objectToSave, PartitionKey partitionKey);
 
     <T> T insert(String collectionName,
                  T objectToSave,
-                 String partitionKeyFieldValue);
+                 PartitionKey partitionKey);
 
-    <T> void upsert(T object, Object id, String partitionKeyFieldValue);
+    <T> void upsert(T object, Object id, PartitionKey partitionKey);
 
     <T> void upsert(String collectionName,
                     T object,
                     Object id,
-                    String partitionKeyFieldValue);
+                    PartitionKey partitionKey);
 
     <T> void deleteById(String collectionName,
                         Object id,
                         Class<T> domainClass,
-                        String partitionKeyFieldValue);
+                        PartitionKey partitionKey);
 
     void deleteAll(String collectionName);
+
+    <T> List<T> delete(Query query, Class<T> entityClass, String collectionName);
 
     MappingDocumentDbConverter getConverter();
 }

@@ -6,9 +6,7 @@
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-
 
 public class Criteria implements CriteriaDefinition {
 

@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.query;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
+import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -18,10 +19,7 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 
 
 public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria> {
@@ -44,24 +42,22 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
         final PersistentPropertyPath<DocumentDbPersistentProperty> propertyPath =
                 mappingContext.getPersistentPropertyPath(part.getProperty());
         final DocumentDbPersistentProperty property = propertyPath.getLeafProperty();
-        final LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>();
-        final Collection<Object> clonedIterator = new ArrayList<Object>();
+        final Criteria criteria = from(part, property, Criteria.where(propertyPath.toDotPath()), iterator);
 
-        while (iterator.hasNext()) {
-            final Object obj = iterator.next();
-            params.put(propertyPath.toDotPath(), obj);
-            clonedIterator.add(obj);
-        }
-
-        final Criteria criteria = from(part, property, Criteria.where(propertyPath.toDotPath(), params),
-                clonedIterator.iterator());
         return criteria;
     }
 
     @Override
     protected Criteria and(Part part, Criteria base, Iterator<Object> iterator) {
-        // not supported yet
-        return null;
+        if (base == null) {
+            return create(part, iterator);
+        }
+
+        final PersistentPropertyPath<DocumentDbPersistentProperty> path =
+                mappingContext.getPersistentPropertyPath(part.getProperty());
+        final DocumentDbPersistentProperty property = path.getLeafProperty();
+
+        return from(part, property, base.and(path.toDotPath()), iterator);
     }
 
     @Override
@@ -73,7 +69,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
     @Override
     protected Criteria or(Criteria base, Criteria criteria) {
         // not supported yet
-        return null;
+        throw new NotImplementedException("Criteria or is not supported.");
     }
 
     private Criteria from(Part part, DocumentDbPersistentProperty property,

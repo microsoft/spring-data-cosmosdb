@@ -34,9 +34,9 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
 
     private DocumentDbQueryExecution getExecution(Query query, DocumentDbParameterAccessor accessor) {
         if (isDeleteQuery()) {
-            return new DocumentDbQueryExecution.DeleteExecution();
+            return new DocumentDbQueryExecution.DeleteExecution(operations);
         } else {
-            return new DocumentDbQueryExecution.SingleEntityExecution(operations);
+            return new DocumentDbQueryExecution.MultiEntityExecution(operations);
         }
     }
 

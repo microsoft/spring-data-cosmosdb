@@ -8,7 +8,9 @@ package com.microsoft.azure.spring.data.documentdb.repository.support;
 
 
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
@@ -52,15 +54,23 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         if (entityInformation.isNew(entity)) {
             documentDbOperations.insert(entityInformation.getCollectionName(),
                     entity,
-                    entityInformation.getPartitionKeyFieldValue(entity));
+                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
             documentDbOperations.upsert(entityInformation.getCollectionName(),
                     entity,
                     entityInformation.getId(entity),
-                    entityInformation.getPartitionKeyFieldValue(entity));
+                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         }
 
         return entity;
+    }
+
+    private PartitionKey createKey(String partitionKeyValue) {
+        if (StringUtils.isEmpty(partitionKeyValue)) {
+            return null;
+        }
+
+        return new PartitionKey(partitionKeyValue);
     }
 
     /**
@@ -85,14 +95,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * find all entities from one collection without partition
+     * find all entities from one collection without configuring partition key value
      *
      * @return
      */
     @Override
     public Iterable<T> findAll() {
-        return documentDbOperations.findAll(entityInformation.getCollectionName(),
-                entityInformation.getJavaType(), null, null);
+        return documentDbOperations.findAll(entityInformation.getCollectionName(), entityInformation.getJavaType());
     }
 
     /**
@@ -104,6 +113,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public List<T> findAll(Iterable<ID> ids) {
         final List<T> entities = new ArrayList<T>();
+
         for (final ID id : ids) {
             final T entity = findOne(id);
 
@@ -124,7 +134,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public T findOne(ID id) {
         Assert.notNull(id, "id must not be null");
         return documentDbOperations.findById(
-                entityInformation.getCollectionName(), id, entityInformation.getJavaType(), null);
+                entityInformation.getCollectionName(), id, entityInformation.getJavaType());
     }
 
     /**
@@ -138,7 +148,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document per id without partitions
+     * delete one document per id without configuring partition key value
      *
      * @param id
      */
@@ -151,16 +161,18 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document per entity without partitions
+     * delete one document per entity
      *
      * @param entity
      */
     @Override
     public void delete(T entity) {
+        final String paritionKeyValue = entityInformation.getPartitionKeyFieldValue(entity);
+
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
                 entityInformation.getId(entity),
                 entityInformation.getJavaType(),
-                null);
+                paritionKeyValue == null ? null : new PartitionKey(paritionKeyValue));
     }
 
     /**
@@ -192,63 +204,5 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public boolean exists(ID primaryKey) {
         return findOne(primaryKey) != null;
-    }
-
-    /**
-     * find all entities from one collection with partitions
-     *
-     * @param partitionKeyValue
-     * @return
-     */
-    public List<T> findAll(String partitionKeyValue) {
-        return documentDbOperations.findAll(entityInformation.getCollectionName(),
-                entityInformation.getJavaType(),
-                entityInformation.getPartitionKeyFieldName(),
-                partitionKeyValue);
-    }
-
-    /**
-     * find one entity per id with partitions
-     *
-     * @param id
-     * @param partitionKeyValue
-     * @return
-     */
-    public T findOne(ID id, String partitionKeyValue) {
-        Assert.notNull(id, "id must not be null");
-        Assert.notNull(partitionKeyValue, "partitionKeyValue must not be null");
-
-        return documentDbOperations.findById(
-                entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                partitionKeyValue);
-    }
-
-    /**
-     * delete an entity per id with partitions
-     *
-     * @param id
-     * @param partitionKeyValue
-     */
-    public void delete(ID id, String partitionKeyValue) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                partitionKeyValue);
-
-    }
-
-    /**
-     * delete an entity with partitions
-     *
-     * @param entity
-     * @param partitionKeyValue
-     */
-    public void delete(T entity, String partitionKeyValue) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                entityInformation.getId(entity),
-                entityInformation.getJavaType(),
-                partitionKeyValue);
     }
 }
