@@ -354,7 +354,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         // Run repository integration test to reproduce.
         final DocumentCollection collection = getDocCollection(collectionName);
         final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(true);
+
+        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, domainClass);
+        if (!partitionKeyValue.isPresent()) {
+            feedOptions.setEnableCrossPartitionQuery(true);
+        }
+
         final List<Document> results = documentDbFactory.getDocumentClient()
                 .queryDocuments(collection.getSelfLink(),
                         sqlQuerySpec, feedOptions)
@@ -424,16 +429,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public <T> List<T> delete(Query query, Class<T> entityClass, String collectionName) {
         final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, entityClass);
+        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, entityClass);
 
         final DocumentCollection collection = getDocCollection(collectionName);
         final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(true);
+        if (!partitionKeyValue.isPresent()) {
+            feedOptions.setEnableCrossPartitionQuery(true);
+        }
 
         final List<Document> results = documentDbFactory.getDocumentClient()
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
 
         final  RequestOptions options = new RequestOptions();
-        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, entityClass);
         if (partitionKeyValue.isPresent()) {
             options.setPartitionKey(new PartitionKey(partitionKeyValue.get()));
         }
