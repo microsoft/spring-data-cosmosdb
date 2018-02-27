@@ -16,6 +16,7 @@
 * [Sample Code](#sample-codes)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
+* [Query Partitioned Collection](QueryPartitionedCollection.md)
 * [Filing Issues](#filing-issues)
 * [How to Contribute](#how-to-contribute)
 * [Code of Conduct](#code-of-conduct)
@@ -104,7 +105,10 @@ public class User {
     private String lastName;
  
     ... // setters and getters
-
+    
+    public User() {
+    }
+    
     public User(String id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
