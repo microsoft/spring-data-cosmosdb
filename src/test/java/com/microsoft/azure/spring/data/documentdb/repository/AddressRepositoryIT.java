@@ -28,6 +28,7 @@ public class AddressRepositoryIT {
     private static final Address TEST_ADDRESS1_PARTITION1 = new Address("111", "111st avenue", "redmond");
     private static final Address TEST_ADDRESS2_PARTITION1 = new Address("222", "98th street", "redmond");
     private static final Address TEST_ADDRESS1_PARTITION2 = new Address("333", "103rd street", "bellevue");
+    private static final Address TEST_ADDRESS4_PARTITION3 = new Address("111", "100rd street", "new york");
 
     @Autowired
     AddressRepository repository;
@@ -40,6 +41,7 @@ public class AddressRepositoryIT {
         repository.save(TEST_ADDRESS1_PARTITION1);
         repository.save(TEST_ADDRESS1_PARTITION2);
         repository.save(TEST_ADDRESS2_PARTITION1);
+        repository.save(TEST_ADDRESS4_PARTITION3);
     }
 
     @After
@@ -52,7 +54,16 @@ public class AddressRepositoryIT {
         // findAll cross partition
         final List<Address> result = toList(repository.findAll());
 
-        assertThat(result.size()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void testFindByIdForPartitionedCollection() {
+        final List<Address> addresses = repository.findByPostalCode("111");
+
+        assertThat(addresses.size()).isEqualTo(2);
+        assertThat(addresses.get(0).getPostalCode().equals("111"));
+        assertThat(addresses.get(1).getPostalCode().equals("111"));
     }
 
     @Test
@@ -69,7 +80,7 @@ public class AddressRepositoryIT {
     @Test
     public void testCount() {
         final long count = repository.count();
-        assertThat(count).isEqualTo(3);
+        assertThat(count).isEqualTo(4);
     }
 
     @Test
@@ -83,26 +94,26 @@ public class AddressRepositoryIT {
     @Test
     public void canDeleteByIdAndPartitionedCity() {
         final long count = repository.count();
-        assertThat(count).isEqualTo(3);
+        assertThat(count).isEqualTo(4);
 
         repository.deleteByPostalCodeAndCity(
                 TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
 
         final List<Address> result = toList(repository.findAll());
 
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
     public void canDeleteByPartitionedCity() {
         final long count = repository.count();
-        assertThat(count).isEqualTo(3);
+        assertThat(count).isEqualTo(4);
 
         repository.deleteByCity(TEST_ADDRESS1_PARTITION1.getCity());
 
         final List<Address> result = toList(repository.findAll());
 
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
     }
 

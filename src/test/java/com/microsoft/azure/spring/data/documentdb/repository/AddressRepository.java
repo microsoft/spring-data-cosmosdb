@@ -19,4 +19,6 @@ public interface AddressRepository extends DocumentDbRepository<Address, String>
     List<Address> findByPostalCodeAndCity(String postalCode, String city);
 
     List<Address> findByCity(String city);
+
+    List<Address> findByPostalCode(String postalCode);
 }
