@@ -1,6 +1,6 @@
-### How to Query Partitioned CosmosDB Collection
+### How to Query Partitioned DocumentDB Collection
 
-With CosmosDB, you can configure [partition key](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data) for your collection.
+With DocumentDB, you can configure [partition key](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data) for your collection.
 
 Below is an example about how to query partitioned collection with this spring data module.
 
@@ -20,23 +20,39 @@ Given a document entity structure:
     }
 ```
 
-How to write the repository interface:
+Write the repository interface:
 ```
     @Repository
     public interface AddressRepository extends DocumentDbRepository<Address, String> {
-        void deleteByPostalCodeAndCity(String postalCode, String city);
-        void deleteByCity(String city);   
-        List<Address> findByPostalCodeAndCity(String postalCode, String city);   
-        List<Address> findByCity(String city);
-        
-        /*
-         * Partition key value must be provided when querying with ID.
-         * UnsupportedOperationException will throw if partition key value is not provided, 
-         * which is different from querying collection without partition key.
-         */
-        // void deleteById(String postalCode); // Incorrect
-        // Address findById(String postalCode); // Incorrect
-        // Address findOne(String postalCode); // Incorrect
+        // Add query methods here, refer to below
     }
 ```
+
+Query by field name:
+```
+    List<Address> findByCity(String city);
+```
+
+Delete by field name:
+```
+    void deleteByStreet(String street);  
+```
+
+For `Partitioned collection`, if you want to query records by `findById(id)`, exception will be thrown.
+```
+   // Incorrect for partitioned collection, exception will be thrown
+   Address result = repository.findById(id);  // Caution: Works for non-partitioned collection
+```  
+
+Instead, you can query records by ID field name with custom query.
+```
+   // Correct, postalCode is the ID field in Address domain
+   @Repository
+   public interface AddressRepository extends DocumentDbRepository<Address, String> {
+      List<Address> findByPostalCode(String postalCode);
+   }
+   
+   // Query
+   List<Address> result = repository.findByPostalCode(postalCode);
+```  
 
