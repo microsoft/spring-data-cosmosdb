@@ -16,6 +16,7 @@
 * [Sample Code](#sample-codes)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
+* [Query Partitioned Collection](QueryPartitionedCollection.md)
 * [Filing Issues](#filing-issues)
 * [How to Contribute](#how-to-contribute)
 * [Code of Conduct](#code-of-conduct)
@@ -38,7 +39,7 @@ Please refer to [sample project here](./samplecode).
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
-- Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation.
+- Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField
 - Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
 - Supports List and nested type in domain class.
   
@@ -104,7 +105,10 @@ public class User {
     private String lastName;
  
     ... // setters and getters
-
+    
+    public User() {
+    }
+    
     public User(String id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;

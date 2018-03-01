@@ -78,7 +78,7 @@ public class DocumentDbConverterUnitTest {
         assertThat(person.getId()).isEqualTo(id);
         assertThat(person.getFirstName()).isEqualTo(firstName);
         assertThat(person.getLastName()).isEqualTo(lastName);
-        assertThat(person.getHobbies().equals(hobbies));
-        assertThat(person.getShippingAddresses().equals(addresses));
+        assertThat(person.getHobbies()).isEqualTo(hobbies);
+        assertThat(person.getShippingAddresses()).isEqualTo(addresses);
     }
 }

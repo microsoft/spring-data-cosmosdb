@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.query;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -37,7 +38,7 @@ public class PartTreeDocumentDbQuery extends AbstractDocumentDbQuery {
         final Query query = creator.createQuery();
 
         if (tree.isLimiting()) {
-            System.out.println("not implement yet!");
+            throw new NotImplementedException("Limiting is not supported.");
         }
         return query;
     }

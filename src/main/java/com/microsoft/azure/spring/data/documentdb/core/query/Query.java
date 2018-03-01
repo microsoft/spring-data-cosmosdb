@@ -6,21 +6,25 @@
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Query {
 
     private final Map<String, Object> criteria = new LinkedHashMap<>();
 
-    public static Query query(CriteriaDefinition criteriaDefinition) {
-        return new Query(criteriaDefinition);
+    public static Query query(Criteria criteria) {
+        return new Query(criteria);
     }
 
     public Query() {
     }
 
-    public Query(CriteriaDefinition criteriaDefinition) {
-        addCriteria(criteriaDefinition);
+    public Query(Criteria criteria) {
+        final List<Criteria> criteriaList = criteria.getCriteriaChain();
+        for (final Criteria c : criteriaList) {
+            addCriteria(c);
+        }
     }
 
     public Query addCriteria(CriteriaDefinition criteriaDefinition) {

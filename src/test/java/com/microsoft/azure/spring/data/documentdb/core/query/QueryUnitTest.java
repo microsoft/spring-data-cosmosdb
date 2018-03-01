@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.documentdb.core.query;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,10 +16,10 @@ public class QueryUnitTest {
 
     @Test
     public void testAddCriteria() {
-        final LinkedHashMap<String, Object> values = new LinkedHashMap<>();
-        values.putIfAbsent("name", "test");
+        final Criteria criteria = new Criteria(new ArrayList<>(), "name");
+        criteria.is("test");
 
-        final Query query = new Query().addCriteria(new Criteria("name", values));
+        final Query query = new Query().addCriteria(criteria);
 
         assertThat(query.getCriteria().size()).isEqualTo(1);
         assertThat(query.getCriteria().get("name")).isEqualTo("test");
@@ -26,11 +27,7 @@ public class QueryUnitTest {
 
     @Test
     public void testWhere() {
-        final LinkedHashMap<String, Object> values = new LinkedHashMap<>();
-        values.putIfAbsent("name", "test");
-
-        final Query query = new Query((Criteria.where("name", values)));
-
+        final Query query = new Query((Criteria.where("name").is("test")));
         assertThat(query.getCriteria().size()).isEqualTo(1);
         assertThat(query.getCriteria().get("name")).isEqualTo("test");
     }

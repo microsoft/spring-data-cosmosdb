@@ -7,8 +7,6 @@ package com.microsoft.azure.spring.data.documentdb.repository.query;
 
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 
 public interface DocumentDbQueryExecution {
     Object execute(Query query, Class<?> type, String collection);
@@ -27,11 +25,11 @@ public interface DocumentDbQueryExecution {
         }
     }
 
-    final class SingleEntityExecution implements DocumentDbQueryExecution {
+    final class MultiEntityExecution implements DocumentDbQueryExecution {
 
         private final DocumentDbOperations operations;
 
-        public SingleEntityExecution(DocumentDbOperations operations) {
+        public MultiEntityExecution(DocumentDbOperations operations) {
             this.operations = operations;
         }
 
@@ -42,11 +40,15 @@ public interface DocumentDbQueryExecution {
     }
 
     final class DeleteExecution implements DocumentDbQueryExecution {
+        private final DocumentDbOperations operations;
+
+        public DeleteExecution(DocumentDbOperations operations) {
+            this.operations = operations;
+        }
 
         @Override
         public Object execute(Query query, Class<?> type, String collection) {
-            // deletion not supported yet
-            throw new NotImplementedException();
+            return operations.delete(query, type, collection);
         }
     }
 }

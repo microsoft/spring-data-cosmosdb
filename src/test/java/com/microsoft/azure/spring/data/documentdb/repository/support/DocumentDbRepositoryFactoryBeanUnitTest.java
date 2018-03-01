@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.documentdb.domain.PersonRepository;
+import com.microsoft.azure.spring.data.documentdb.repository.PersonRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
