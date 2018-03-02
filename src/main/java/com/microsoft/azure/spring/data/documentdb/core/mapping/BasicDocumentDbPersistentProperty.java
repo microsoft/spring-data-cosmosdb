@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.core.mapping;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 
 import java.beans.PropertyDescriptor;
@@ -19,10 +20,9 @@ public class BasicDocumentDbPersistentProperty extends AnnotationBasedPersistent
 
     private static final String ID_PROPERTY_NAME = "id";
 
-    public BasicDocumentDbPersistentProperty(Field field, PropertyDescriptor propertyDescriptor,
-                                             DocumentDbPersistentEntity<?> owner,
+    public BasicDocumentDbPersistentProperty(Property property, DocumentDbPersistentEntity<?> owner,
                                              SimpleTypeHolder simpleTypeHolder) {
-        super(field, propertyDescriptor, owner, simpleTypeHolder);
+        super(property, owner, simpleTypeHolder);
     }
 
     @Override

@@ -17,6 +17,7 @@ import org.springframework.data.mapping.context.MappingContextIsNewStrategyFacto
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.support.CachingIsNewStrategyFactory;
 import org.springframework.data.support.IsNewStrategyFactory;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -64,13 +65,15 @@ public abstract class DocumentDbConfigurationSupport {
         if (StringUtils.hasText(basePackage)) {
             final ClassPathScanningCandidateComponentProvider componentProvider =
                     new ClassPathScanningCandidateComponentProvider(false);
+
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
 
             for (final BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+                final String className = candidate.getBeanClassName();
+                Assert.notNull(className, "Bean class name is null.");
 
                 initialEntitySet
-                        .add(ClassUtils.forName(candidate.getBeanClassName(),
-                                DocumentDbConfigurationSupport.class.getClassLoader()));
+                        .add(ClassUtils.forName(className, DocumentDbConfigurationSupport.class.getClassLoader()));
             }
         }
 

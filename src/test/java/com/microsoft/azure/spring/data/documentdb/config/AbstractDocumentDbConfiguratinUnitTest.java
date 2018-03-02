@@ -12,7 +12,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mock;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -33,7 +33,7 @@ public class AbstractDocumentDbConfiguratinUnitTest {
 
     @Configuration
     static class TestDocumentDbConfiguration extends AbstractDocumentDbConfiguration {
-        @MockBean
+        @Mock
         private DocumentClient mockClient;
 
         @Override

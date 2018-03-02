@@ -16,10 +16,12 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -46,6 +48,8 @@ public class MappingDocumentDbConverter
         }
 
         final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(type);
+        Assert.notNull(entity, "Entity is null.");
+
         return readInternal(entity, type, sourceDocument);
     }
 
@@ -103,8 +107,11 @@ public class MappingDocumentDbConverter
             if (null != idProperty && field.getName().equals(idProperty.getName())) {
                 continue;
             }
-            targetDocument.set(field.getName(),
-                    accessor.getProperty(entityInformation.getPersistentProperty(field.getName())));
+
+            final PersistentProperty property = entityInformation.getPersistentProperty(field.getName());
+            Assert.notNull(property, "Property is null.");
+
+            targetDocument.set(field.getName(), accessor.getProperty(property));
         }
     }
 
@@ -129,6 +136,8 @@ public class MappingDocumentDbConverter
 
     private ConvertingPropertyAccessor getPropertyAccessor(Object entity) {
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
+
+        Assert.notNull(entityInformation, "EntityInformation should not be null.");
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
     }
