@@ -19,8 +19,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 
-public class DocumentDbEntityInformation<T, ID extends Serializable>
-        extends AbstractEntityInformation<T, ID> {
+public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
 
     private Field id;
     private Field partitionKeyField;

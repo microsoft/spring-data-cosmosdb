@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
 
@@ -81,7 +82,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public <S extends T> Iterable<S> save(Iterable<S> entities) {
+    public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
@@ -111,14 +112,14 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public List<T> findAll(Iterable<ID> ids) {
+    public List<T> findAllById(Iterable<ID> ids) {
         final List<T> entities = new ArrayList<T>();
 
         for (final ID id : ids) {
-            final T entity = findOne(id);
+            final Optional<T> entity = findById(id);
 
-            if (entity != null) {
-                entities.add(entity);
+            if (entity.isPresent()) {
+                entities.add(entity.get());
             }
         }
         return entities;
@@ -131,10 +132,12 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public T findOne(ID id) {
+    public Optional<T> findById(ID id) {
         Assert.notNull(id, "id must not be null");
-        return documentDbOperations.findById(
+        final T result = documentDbOperations.findById(
                 entityInformation.getCollectionName(), id, entityInformation.getJavaType());
+
+        return result == null ? Optional.empty() : Optional.of(result);
     }
 
     /**
@@ -153,7 +156,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param id
      */
     @Override
-    public void delete(ID id) {
+    public void deleteById(ID id) {
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
                 id,
                 entityInformation.getJavaType(),
@@ -189,7 +192,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param entities
      */
     @Override
-    public void delete(Iterable<? extends T> entities) {
+    public void deleteAll(Iterable<? extends T> entities) {
         for (final T entity : entities) {
             delete(entity);
         }
@@ -202,7 +205,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return
      */
     @Override
-    public boolean exists(ID primaryKey) {
-        return findOne(primaryKey) != null;
+    public boolean existsById(ID primaryKey) {
+        return findById(primaryKey).isPresent();
     }
 }
