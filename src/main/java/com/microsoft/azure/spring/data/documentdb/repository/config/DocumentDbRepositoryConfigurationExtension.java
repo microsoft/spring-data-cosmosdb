@@ -38,11 +38,6 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
     }
 
     @Override
-    public String getRepositoryFactoryClassName() {
-        return DocumentDbRepositoryFactoryBean.class.getName();
-    }
-
-    @Override
     protected Collection<Class<?>> getIdentifyingTypes() {
         return Collections.<Class<?>>singleton(DocumentDbRepository.class);
     }
