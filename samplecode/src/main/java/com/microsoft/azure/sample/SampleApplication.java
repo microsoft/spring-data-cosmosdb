@@ -28,20 +28,22 @@ public class SampleApplication implements CommandLineRunner {
         SpringApplication.run(SampleApplication.class, args);
     }
 
-    public void run(String... var1) throws Exception {
+    public void run(String... var1) {
 
         final User testUser = new User("test@test.com", "testFirstName", "testLastName");
 
         repository.deleteAll();
         repository.save(testUser);
 
-        final User result1 = repository.findOne(testUser.getEmailAddress(), testUser.getLastName());
+        final List<User> results = repository.findByEmailAddressAndLastName(testUser.getEmailAddress(), testUser.getLastName());
+        Assert.isTrue(results.size() == 1, "Result size should be 1");
 
+        final User result1 = results.get(0);
         Assert.state(result1.getFirstName().equals(testUser.getFirstName()), "query result firstName doesn't match!");
         Assert.state(result1.getLastName().equals(testUser.getLastName()), "query result lastName doesn't match!");
 
-        LOGGER.info("findOne in User collection get result: {}", result1.toString());
-        System.out.println("findOne in User collection get result:" + result1.toString());
+        LOGGER.info("findByEmailAddressAndLastName in User collection get result: {}", result1.toString());
+        System.out.println("findByEmailAddressAndLastName in User collection get result:" + result1.toString());
 
         final List<User> result2 = repository.findByFirstName(testUser.getFirstName());
 
