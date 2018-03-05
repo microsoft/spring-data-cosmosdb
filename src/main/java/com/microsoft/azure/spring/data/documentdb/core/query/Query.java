@@ -5,6 +5,8 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
+import com.microsoft.azure.spring.data.documentdb.support.IllegalQueryException;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +35,7 @@ public class Query {
         if (existing == null) {
             this.criteria.put(criteriaDefinition.getKey(), criteriaDefinition.getCriteriaObject());
         } else {
-            throw new RuntimeException("invalid criteriaDefinition!");
+            throw new IllegalQueryException("invalid criteriaDefinition, criteria already exists.");
         }
         return this;
     }
