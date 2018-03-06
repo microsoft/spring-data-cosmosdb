@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
-import com.microsoft.azure.spring.data.documentdb.support.IllegalQueryException;
+import com.microsoft.azure.spring.data.documentdb.exception.IllegalQueryException;
 
 import java.util.LinkedHashMap;
 import java.util.List;

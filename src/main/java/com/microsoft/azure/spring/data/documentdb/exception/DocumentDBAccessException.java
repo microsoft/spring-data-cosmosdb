@@ -3,17 +3,17 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-package com.microsoft.azure.spring.data.documentdb.support;
+package com.microsoft.azure.spring.data.documentdb.exception;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.lang.Nullable;
 
-public class IllegalCollectionException extends DataAccessException {
-    public IllegalCollectionException(String msg) {
+public class DocumentDBAccessException extends DataAccessException {
+    public DocumentDBAccessException(String msg) {
         super(msg);
     }
 
-    public IllegalCollectionException(@Nullable String msg, @Nullable Throwable cause) {
+    public DocumentDBAccessException(@Nullable String msg, @Nullable Throwable cause) {
         super(msg, cause);
     }
 }

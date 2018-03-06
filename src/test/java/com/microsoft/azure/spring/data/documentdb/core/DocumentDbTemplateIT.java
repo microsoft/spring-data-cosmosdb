@@ -14,7 +14,7 @@ import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDb
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
-import com.microsoft.azure.spring.data.documentdb.support.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
