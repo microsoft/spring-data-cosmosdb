@@ -14,6 +14,7 @@
 ## TOC
 
 * [Sample Code](#sample-codes)
+* [Spring data version support](#spring-data-version-support)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
 * [Query Partitioned Collection](QueryPartitionedCollection.md)
@@ -23,6 +24,9 @@
 
 ## Sample Code
 Please refer to [sample project here](./samplecode).
+
+## Spring data version support
+This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-documentdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
