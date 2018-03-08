@@ -49,7 +49,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
-                entityInformation.getRequestUint());
+                entityInformation.getRequestUnit());
 
         // save entity
         if (entityInformation.isNew(entity)) {
@@ -86,7 +86,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
-                entityInformation.getRequestUint());
+                entityInformation.getRequestUnit());
 
         for (final S entity : entities) {
             save(entity);

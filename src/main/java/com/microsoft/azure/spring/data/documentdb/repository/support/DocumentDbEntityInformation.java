@@ -60,7 +60,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return this.collectionName;
     }
 
-    public Integer getRequestUint() {
+    public Integer getRequestUnit() {
         return this.requestUnit;
     }
 
