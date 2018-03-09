@@ -26,8 +26,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Field partitionKeyField;
     private String collectionName;
     private Integer requestUnit;
-    private Boolean indexingPolicyAutomatic;
-    private IndexingMode indexingPolicyMode;
+    private IndexingPolicy indexingPolicy;
 
     public DocumentDbEntityInformation(Class<T> domainClass) {
         super(domainClass);
@@ -44,8 +43,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         this.requestUnit = getRequestUnit(domainClass);
-        this.indexingPolicyAutomatic = getIndexingPolicyAutomatic(domainClass);
-        this.indexingPolicyMode = getIndexingPolicyMode(domainClass);
+        this.indexingPolicy = getIndexingPolicy(domainClass);
     }
 
     public ID getId(T entity) {
@@ -68,12 +66,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return this.requestUnit;
     }
 
-    public Boolean getIndexingPolicyAutomatic() {
-        return this.indexingPolicyAutomatic;
-    }
-
-    public IndexingMode getIndexingPolicyMode() {
-        return this.indexingPolicyMode;
+    public IndexingPolicy getIndexingPolicy() {
+        return this.indexingPolicy;
     }
 
     public String getPartitionKeyFieldName() {
@@ -84,11 +78,11 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
     }
 
-    public IndexingPolicy createIndexingPolicy() {
+    private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {
         final IndexingPolicy policy = new IndexingPolicy();
 
-        policy.setAutomatic(this.getIndexingPolicyAutomatic());
-        policy.setIndexingMode(this.getIndexingPolicyMode());
+        policy.setAutomatic(this.getIndexingPolicyAutomatic(domainClass));
+        policy.setIndexingMode(this.getIndexingPolicyMode(domainClass));
 
         return policy;
     }

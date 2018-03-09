@@ -51,7 +51,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
                 entityInformation.getRequestUnit(),
-                entityInformation.createIndexingPolicy());
+                entityInformation.getIndexingPolicy());
 
         // save entity
         if (entityInformation.isNew(entity)) {
@@ -89,7 +89,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
                 entityInformation.getRequestUnit(),
-                entityInformation.createIndexingPolicy());
+                entityInformation.getIndexingPolicy());
 
         for (final S entity : entities) {
             save(entity);
