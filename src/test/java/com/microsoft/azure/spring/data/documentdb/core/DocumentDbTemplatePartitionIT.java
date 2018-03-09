@@ -63,15 +63,10 @@ public class DocumentDbTemplatePartitionIT {
     private ApplicationContext applicationContext;
 
     @Before
-    public void setup() {
+    public void setup() throws ClassNotFoundException {
         mappingContext = new DocumentDbMappingContext();
-        try {
-            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext)
-                    .scan(Persistent.class));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e.getMessage());
+        mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        }
         dbConverter = new MappingDocumentDbConverter(mappingContext);
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
