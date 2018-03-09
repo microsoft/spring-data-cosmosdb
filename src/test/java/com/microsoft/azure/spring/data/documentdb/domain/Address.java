@@ -5,13 +5,16 @@
  */
 package com.microsoft.azure.spring.data.documentdb.domain;
 
+import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDBIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-@Document(ru = "1000")
+@Document(collection = "Address", ru = "1000")
+@DocumentDBIndexingPolicy(mode = IndexingMode.Lazy, automatic = false)
 @Data
 @AllArgsConstructor
 public class Address {

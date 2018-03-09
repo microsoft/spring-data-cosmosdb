@@ -73,7 +73,7 @@ public class DocumentDbTemplateIT {
 
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TEST_DB_NAME);
 
-        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), null, null);
+        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), null, null, null);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }
 

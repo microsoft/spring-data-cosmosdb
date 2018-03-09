@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
@@ -19,7 +20,8 @@ public interface DocumentDbOperations {
 
     DocumentCollection createCollectionIfNotExists(String collectionName,
                                                    String partitionKeyFieldName,
-                                                   Integer requestUnit);
+                                                   Integer requestUnit,
+                                                   IndexingPolicy policy);
 
     <T> List<T> findAll(Class<T> entityClass);
 

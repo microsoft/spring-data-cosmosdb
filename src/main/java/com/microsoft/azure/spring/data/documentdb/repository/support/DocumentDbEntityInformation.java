@@ -6,15 +6,16 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
+import com.microsoft.azure.documentdb.IndexingMode;
+import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDBIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Field partitionKeyField;
     private String collectionName;
     private Integer requestUnit;
+    private Boolean indexingPolicyAutomatic;
+    private IndexingMode indexingPolicyMode;
 
     public DocumentDbEntityInformation(Class<T> domainClass) {
         super(domainClass);
@@ -41,8 +44,9 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         this.requestUnit = getRequestUnit(domainClass);
+        this.indexingPolicyAutomatic = getIndexingPolicyAutomatic(domainClass);
+        this.indexingPolicyMode = getIndexingPolicyMode(domainClass);
     }
-
 
     public ID getId(T entity) {
         return (ID) ReflectionUtils.getField(id, entity);
@@ -64,12 +68,29 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return this.requestUnit;
     }
 
+    public Boolean getIndexingPolicyAutomatic() {
+        return this.indexingPolicyAutomatic;
+    }
+
+    public IndexingMode getIndexingPolicyMode() {
+        return this.indexingPolicyMode;
+    }
+
     public String getPartitionKeyFieldName() {
         return partitionKeyField == null ? null : partitionKeyField.getName();
     }
 
     public String getPartitionKeyFieldValue(T entity) {
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
+    }
+
+    public IndexingPolicy createIndexingPolicy() {
+        final IndexingPolicy policy = new IndexingPolicy();
+
+        policy.setAutomatic(this.getIndexingPolicyAutomatic());
+        policy.setIndexingMode(this.getIndexingPolicyMode());
+
+        return policy;
     }
 
     private Field getIdField(Class<?> domainClass) {
@@ -130,4 +151,27 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
         return ru;
     }
+
+    private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
+        Boolean isAutomatic = Boolean.valueOf(true);
+        final DocumentDBIndexingPolicy annotation = domainClass.getAnnotation(DocumentDBIndexingPolicy.class);
+
+        if (annotation != null) {
+            isAutomatic = Boolean.valueOf(annotation.automatic());
+        }
+
+        return isAutomatic;
+    }
+
+    private IndexingMode getIndexingPolicyMode(Class<?> domainClass) {
+        IndexingMode mode = IndexingMode.Consistent;
+        final DocumentDBIndexingPolicy annotation = domainClass.getAnnotation(DocumentDBIndexingPolicy.class);
+
+        if (annotation != null) {
+            mode = annotation.mode();
+        }
+
+        return mode;
+    }
 }
+
