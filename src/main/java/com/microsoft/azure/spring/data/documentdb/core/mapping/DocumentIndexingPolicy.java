@@ -14,7 +14,7 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface DocumentDBIndexingPolicy {
+public @interface DocumentIndexingPolicy {
     boolean automatic() default true;
     IndexingMode mode() default IndexingMode.Consistent;
 }

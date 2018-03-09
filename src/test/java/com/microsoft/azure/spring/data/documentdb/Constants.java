@@ -23,7 +23,7 @@ public class Constants {
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
 
-    public static final String COLLECTION_NAME = "Address";
+    public static final String COLLECTION_NAME = "PersonRole";
     public static final int REQUEST_UNIT = 1000;
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;

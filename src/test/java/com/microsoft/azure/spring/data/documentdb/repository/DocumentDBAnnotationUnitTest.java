@@ -7,9 +7,9 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 
 import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDBIndexingPolicy;
-import com.microsoft.azure.spring.data.documentdb.domain.Address;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
+import com.microsoft.azure.spring.data.documentdb.domain.PersonRole;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,21 +17,21 @@ import org.springframework.util.Assert;
 
 public class DocumentDBAnnotationUnitTest {
     private DocumentDbEntityInformation<Person, String> personInfo;
-    private DocumentDbEntityInformation<Address, String> addressInfo;
+    private DocumentDbEntityInformation<PersonRole, String> roleInfo;
 
     @Before
     public void setUp() {
         personInfo = new DocumentDbEntityInformation<>(Person.class);
-        addressInfo = new DocumentDbEntityInformation<>(Address.class);
+        roleInfo = new DocumentDbEntityInformation<>(PersonRole.class);
     }
 
     @Test
     public void testNoDocumentDBAnnotation() {
         final Document documentAnnotation = Person.class.getAnnotation(Document.class);
-        final DocumentDBIndexingPolicy policyAnnotation = Person.class.getAnnotation(DocumentDBIndexingPolicy.class);
+        final DocumentIndexingPolicy policyAnnotation = Person.class.getAnnotation(DocumentIndexingPolicy.class);
 
         Assert.isNull(documentAnnotation, "Person class should not have Document annotation");
-        Assert.isNull(policyAnnotation, "Person class should not have DocumentDBIndexingPolicy annotation");
+        Assert.isNull(policyAnnotation, "Person class should not have DocumentIndexingPolicy annotation");
 
         Assert.isTrue(personInfo.getCollectionName().equals(Constants.DEFAULT_COLLECTION_NAME),
                 "should be default collection name");
@@ -45,20 +45,20 @@ public class DocumentDBAnnotationUnitTest {
 
     @Test
     public void testDocumentDBAnnotation() {
-        final Document documentAnnotation = Address.class.getAnnotation(Document.class);
-        final DocumentDBIndexingPolicy policyAnnotation = Address.class.getAnnotation(DocumentDBIndexingPolicy.class);
+        final Document documentAnnotation = PersonRole.class.getAnnotation(Document.class);
+        final DocumentIndexingPolicy policyAnnotation = PersonRole.class.getAnnotation(DocumentIndexingPolicy.class);
 
         Assert.notNull(documentAnnotation, "Person class should have Document annotation");
-        Assert.notNull(policyAnnotation, "Person class should have DocumentDBIndexingPolicy annotation");
+        Assert.notNull(policyAnnotation, "Person class should have DocumentIndexingPolicy annotation");
 
-        Assert.isTrue(addressInfo.getCollectionName().equals(Constants.COLLECTION_NAME),
-                "should be Address(class) collection name");
-        Assert.isTrue(addressInfo.getRequestUnit() == Constants.REQUEST_UNIT,
-                "should be Address(class) request unit");
-        Assert.isTrue(addressInfo.getIndexingPolicyAutomatic() == Constants.INDEXINGPOLICY_AUTOMATIC,
-                "should be Address(class) indexing policy automatic");
-        Assert.isTrue(addressInfo.getIndexingPolicyMode() == Constants.INDEXINGPOLICY_MODE,
-                "should be Address(class) indexing policy mode");
+        Assert.isTrue(roleInfo.getCollectionName().equals(Constants.COLLECTION_NAME),
+                "should be PersonRole(class) collection name");
+        Assert.isTrue(roleInfo.getRequestUnit() == Constants.REQUEST_UNIT,
+                "should be PersonRole(class) request unit");
+        Assert.isTrue(roleInfo.getIndexingPolicyAutomatic() == Constants.INDEXINGPOLICY_AUTOMATIC,
+                "should be PersonRole(class) indexing policy automatic");
+        Assert.isTrue(roleInfo.getIndexingPolicyMode() == Constants.INDEXINGPOLICY_MODE,
+                "should be PersonRole(class) indexing policy mode");
     }
 }
 

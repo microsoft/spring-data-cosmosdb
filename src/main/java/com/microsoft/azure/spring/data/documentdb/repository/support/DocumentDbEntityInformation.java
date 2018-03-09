@@ -9,7 +9,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.support;
 import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDBIndexingPolicy;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
@@ -154,7 +154,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
     private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
         Boolean isAutomatic = Boolean.valueOf(true);
-        final DocumentDBIndexingPolicy annotation = domainClass.getAnnotation(DocumentDBIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
             isAutomatic = Boolean.valueOf(annotation.automatic());
@@ -165,7 +165,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
     private IndexingMode getIndexingPolicyMode(Class<?> domainClass) {
         IndexingMode mode = IndexingMode.Consistent;
-        final DocumentDBIndexingPolicy annotation = domainClass.getAnnotation(DocumentDBIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
             mode = annotation.mode();
