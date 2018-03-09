@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Date;
 
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
@@ -111,7 +112,12 @@ public class MappingDocumentDbConverter
             final PersistentProperty property = entityInformation.getPersistentProperty(field.getName());
             Assert.notNull(property, "Property is null.");
 
-            targetDocument.set(field.getName(), accessor.getProperty(property));
+            final Object value = accessor.getProperty(property);
+            if (value instanceof Date) {
+                targetDocument.set(field.getName(), ((Date) value).getTime());
+            } else {
+                targetDocument.set(field.getName(), accessor.getProperty(property));
+            }
         }
     }
 

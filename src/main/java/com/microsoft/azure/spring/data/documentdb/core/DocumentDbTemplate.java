@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -410,7 +411,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             queryStr += "r." + fieldName + "=@" + entry.getKey();
-            parameterCollection.add(new SqlParameter("@" + entry.getKey(), entry.getValue()));
+
+            final Object value = entry.getValue();
+            if (value instanceof Date) {
+                parameterCollection.add(new SqlParameter("@" + entry.getKey(), ((Date) value).getTime()));
+            } else {
+                parameterCollection.add(new SqlParameter("@" + entry.getKey(), value));
+            }
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);
