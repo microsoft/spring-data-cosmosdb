@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -394,7 +395,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return collections.get(0);
     }
 
-    private static <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
+    private <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
         String queryStr = "SELECT * FROM ROOT r WHERE ";
 
         final SqlParameterCollection parameterCollection = new SqlParameterCollection();
@@ -410,7 +411,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             queryStr += "r." + fieldName + "=@" + entry.getKey();
-            parameterCollection.add(new SqlParameter("@" + entry.getKey(), entry.getValue()));
+
+            parameterCollection.add(new SqlParameter("@" + entry.getKey(),
+                    mappingDocumentDbConverter.mapToDocumentDBValue(entry.getValue())));
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);

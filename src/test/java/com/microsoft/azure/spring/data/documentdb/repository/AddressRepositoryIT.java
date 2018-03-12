@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository;
 
+import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import org.junit.After;
 import org.junit.Before;
@@ -22,7 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ContactRepositoryConfig.class)
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class AddressRepositoryIT {
 
     private static final Address TEST_ADDRESS1_PARTITION1 = new Address("111", "111st avenue", "redmond");
@@ -52,7 +53,7 @@ public class AddressRepositoryIT {
     @Test
     public void testFindAll() {
         // findAll cross partition
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(4);
     }
@@ -69,7 +70,7 @@ public class AddressRepositoryIT {
     @Test
     public void testFindByPartitionedCity() {
         final String city = TEST_ADDRESS1_PARTITION1.getCity();
-        final List<Address> result = toList(repository.findByCity(city));
+        final List<Address> result = TestUtils.toList(repository.findByCity(city));
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isEqualTo(city);
@@ -99,7 +100,7 @@ public class AddressRepositoryIT {
         repository.deleteByPostalCodeAndCity(
                 TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(3);
     }
@@ -111,7 +112,7 @@ public class AddressRepositoryIT {
 
         repository.deleteByCity(TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
@@ -130,14 +131,5 @@ public class AddressRepositoryIT {
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getStreet()).isEqualTo(updatedAddress.getStreet());
         assertThat(results.get(0).getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
-    }
-
-    private <T> List<T> toList(Iterable<T> iterable) {
-        if (iterable != null) {
-            final List<T> list = new ArrayList<>();
-            iterable.forEach(list::add);
-            return list;
-        }
-        return null;
     }
 }
