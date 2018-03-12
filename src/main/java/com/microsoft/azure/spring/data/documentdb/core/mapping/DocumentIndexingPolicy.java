@@ -15,6 +15,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface DocumentIndexingPolicy {
-    boolean automatic() default true;
-    IndexingMode mode() default IndexingMode.Consistent;
+    boolean automatic() default Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC;
+
+    IndexingMode mode() default IndexingMode.Consistent; // Enum is not really compile time constant
+
+    String[] includePaths() default {Constants.DEFAULT_INCLUDEDPATH};
+
+    String[] excludePaths() default {Constants.DEFAULT_EXCLUDEDPATH};
 }

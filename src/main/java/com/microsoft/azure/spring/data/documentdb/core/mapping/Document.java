@@ -15,7 +15,7 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE})
 public @interface Document {
 
-    String collection() default "";
+    String collection() default Constants.DEFAULT_COLLECTION_NAME;
 
-    String ru() default "4000";
+    String ru() default Constants.DEFAULT_REQUEST_UNIT;
 }

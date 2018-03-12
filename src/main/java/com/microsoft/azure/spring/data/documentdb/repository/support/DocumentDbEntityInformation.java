@@ -6,8 +6,11 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
+import com.microsoft.azure.documentdb.ExcludedPath;
+import com.microsoft.azure.documentdb.IncludedPath;
 import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
@@ -17,6 +20,8 @@ import org.springframework.data.repository.core.support.AbstractEntityInformatio
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -83,6 +88,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
         policy.setAutomatic(this.getIndexingPolicyAutomatic(domainClass));
         policy.setIndexingMode(this.getIndexingPolicyMode(domainClass));
+        policy.setIncludedPaths(this.getIndexingPolicyIncludePaths(domainClass));
+        policy.setExcludedPaths(this.getIndexingPolicyExcludePaths(domainClass));
 
         return policy;
     }
@@ -137,7 +144,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private Integer getRequestUnit(Class<?> domainClass) {
-        Integer ru = 4000;
+        Integer ru = Integer.parseInt(Constants.DEFAULT_REQUEST_UNIT);
         final Document annotation = domainClass.getAnnotation(Document.class);
 
         if (annotation != null && annotation.ru() != null && !annotation.ru().isEmpty()) {
@@ -147,7 +154,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
-        Boolean isAutomatic = Boolean.valueOf(true);
+        Boolean isAutomatic = Boolean.valueOf(Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC);
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
@@ -158,7 +165,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private IndexingMode getIndexingPolicyMode(Class<?> domainClass) {
-        IndexingMode mode = IndexingMode.Consistent;
+        IndexingMode mode = Constants.DEFAULT_INDEXINGPOLICY_MODE;
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
@@ -166,6 +173,44 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         return mode;
+    }
+
+    private Collection<IncludedPath> getIndexingPolicyIncludePaths(Class<?> domainClass) {
+        final Collection<IncludedPath> pathsCollection = new ArrayList<>();
+        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final String[] defaultIncludePath = new String[]{Constants.DEFAULT_INCLUDEDPATH};
+        final String[] rawPaths;
+
+        if (annotation == null || annotation.includePaths() == null || annotation.includePaths().length == 0) {
+            rawPaths = defaultIncludePath;
+        } else {
+            rawPaths = annotation.includePaths();
+        }
+
+        for (final String path : rawPaths) {
+            pathsCollection.add(new IncludedPath(path));
+        }
+
+        return pathsCollection;
+    }
+
+    private Collection<ExcludedPath> getIndexingPolicyExcludePaths(Class<?> domainClass) {
+        final Collection<ExcludedPath> pathsCollection = new ArrayList<>();
+        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final String[] defaultExcludePath = new String[]{Constants.DEFAULT_EXCLUDEDPATH};
+        final String[] rawPaths;
+
+        if (annotation == null || annotation.excludePaths() == null || annotation.excludePaths().length == 0) {
+            rawPaths = defaultExcludePath;
+        } else {
+            rawPaths = annotation.excludePaths();
+        }
+
+        for (final String path : rawPaths) {
+            pathsCollection.add(new ExcludedPath(path));
+        }
+
+        return pathsCollection;
     }
 }
 

@@ -15,7 +15,21 @@ import org.springframework.data.annotation.Id;
 
 @Data
 @AllArgsConstructor
-@DocumentIndexingPolicy(mode = IndexingMode.Lazy, automatic = false)
+@DocumentIndexingPolicy(
+        mode = IndexingMode.Lazy,
+        automatic = false,
+        includePaths = {
+                "{\"path\":\"/*\",\"indexes\":[" +
+                        "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":3}" +
+                        "]}",
+                "{\"path\":\"/cache/*\",\"indexes\":[" +
+                        "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":-1}," +
+                        "]}",
+        },
+        excludePaths = {
+                "{\"path\":\"/excluded/*\"}",
+                "{\"path\":\"/props/*\"}",
+        })
 @Document(collection = "Role", ru = "1000")
 public class Role {
     @Id

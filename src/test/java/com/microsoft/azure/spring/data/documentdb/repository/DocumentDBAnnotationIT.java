@@ -26,6 +26,9 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
@@ -81,7 +84,7 @@ public class DocumentDBAnnotationIT {
     }
 
     @Test
-    public void testNoDocumentDBAnnotationIT() {
+    public void testDocumentDBAnnotationIT() {
         IndexingPolicy policy;
 
         Assert.notNull(collectionRole, "class Role Collection should not be null");
@@ -95,12 +98,18 @@ public class DocumentDBAnnotationIT {
         Assert.isTrue(policy.getIndexingMode() == Constants.DEFAULT_INDEXINGPOLICY_MODE,
                 "class Person collection policy should be default indexing mode");
 
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.DEFAULT_INCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.DEFAULT_EXCLUDEDPATHS);
+
         policy = collectionRole.getIndexingPolicy();
 
-        Assert.isTrue(policy.getAutomatic() == Constants.INDEXINGPOLICY_AUTOMATIC,
+        Assert.isTrue(policy.getAutomatic() == Constants.TEST_INDEXINGPOLICY_AUTOMATIC,
                 "unmatched collection policy automatic of class Role");
-        Assert.isTrue(policy.getIndexingMode() == Constants.INDEXINGPOLICY_MODE,
+        Assert.isTrue(policy.getIndexingMode() == Constants.TEST_INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
+
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.TEST_INCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.TEST_EXCLUDEDPATHS);
     }
 }
 
