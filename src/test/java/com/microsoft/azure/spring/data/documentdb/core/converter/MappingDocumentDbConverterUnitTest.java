@@ -28,6 +28,10 @@ public class MappingDocumentDbConverterUnitTest {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private static final String DATE_STR = "1/1/2000";
 
+    private static final SimpleDateFormat TIMEZONE_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm ZZZ");
+    private static final String DATE_TIMEZONE_STR = "1/1/2000 00:00 GMT";
+    private static final long MILLI_SECONDS = 946684800000L;
+
     MappingDocumentDbConverter dbConverter;
 
     DocumentDbMappingContext mappingContext;
@@ -101,6 +105,14 @@ public class MappingDocumentDbConverterUnitTest {
         assertThat(document.getId()).isEqualTo(memo.getId());
         assertThat(document.getString("message")).isEqualTo("test pojo with date");
         assertThat(document.getLong("date")).isEqualTo(date);
+    }
+
+    @Test
+    public void convertDateValueToMilliSeconds() throws ParseException {
+        final Date date = TIMEZONE_DATE_FORMAT.parse(DATE_TIMEZONE_STR);
+        final long time = (Long) dbConverter.mapToDocumentDBValue(date);
+
+        assertThat(time).isEqualTo(MILLI_SECONDS);
     }
 }
 
