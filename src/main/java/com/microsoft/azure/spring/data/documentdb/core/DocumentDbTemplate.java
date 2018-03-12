@@ -395,7 +395,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return collections.get(0);
     }
 
-    private static <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
+    private <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
         String queryStr = "SELECT * FROM ROOT r WHERE ";
 
         final SqlParameterCollection parameterCollection = new SqlParameterCollection();
@@ -412,12 +412,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             queryStr += "r." + fieldName + "=@" + entry.getKey();
 
-            final Object value = entry.getValue();
-            if (value instanceof Date) {
-                parameterCollection.add(new SqlParameter("@" + entry.getKey(), ((Date) value).getTime()));
-            } else {
-                parameterCollection.add(new SqlParameter("@" + entry.getKey(), value));
-            }
+            parameterCollection.add(new SqlParameter("@" + entry.getKey(),
+                    mappingDocumentDbConverter.mapToDocumentDBValue(entry.getValue())));
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);

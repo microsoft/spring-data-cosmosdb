@@ -112,12 +112,7 @@ public class MappingDocumentDbConverter
             final PersistentProperty property = entityInformation.getPersistentProperty(field.getName());
             Assert.notNull(property, "Property is null.");
 
-            final Object value = accessor.getProperty(property);
-            if (value instanceof Date) {
-                targetDocument.set(field.getName(), ((Date) value).getTime());
-            } else {
-                targetDocument.set(field.getName(), accessor.getProperty(property));
-            }
+            targetDocument.set(field.getName(), mapToDocumentDBValue(accessor.getProperty(property)));
         }
     }
 
@@ -146,5 +141,22 @@ public class MappingDocumentDbConverter
         Assert.notNull(entityInformation, "EntityInformation should not be null.");
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
+    }
+
+    /**
+     * Convert a property value to the value stored in DocumentDB
+     * @param fromPropertyValue
+     * @return
+     */
+    public Object mapToDocumentDBValue(Object fromPropertyValue) {
+        if (fromPropertyValue == null) {
+            return null;
+        }
+
+        if (fromPropertyValue instanceof Date) {
+            fromPropertyValue = ((Date) fromPropertyValue).getTime();
+        }
+
+        return fromPropertyValue;
     }
 }
