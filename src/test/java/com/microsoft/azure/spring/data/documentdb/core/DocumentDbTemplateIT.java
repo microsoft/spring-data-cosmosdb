@@ -6,14 +6,14 @@
 
 package com.microsoft.azure.spring.data.documentdb.core;
 
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
+import com.microsoft.azure.spring.data.documentdb.repository.DocumentDBTestUtils;
+import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.UUID;
@@ -53,6 +54,8 @@ public class DocumentDbTemplateIT {
 
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
+    private DocumentCollection collectionPerson;
+    private DocumentDbEntityInformation<Person, String> personInfo;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -60,20 +63,24 @@ public class DocumentDbTemplateIT {
     @Before
     public void setup() {
         mappingContext = new DocumentDbMappingContext();
+        personInfo = new DocumentDbEntityInformation<>(Person.class);
+
         try {
-            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext)
-                    .scan(Persistent.class));
+            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e.getMessage());
 
         }
+
         dbConverter = new MappingDocumentDbConverter(mappingContext);
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TEST_DB_NAME);
 
-        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), null, null, null);
+        final IndexingPolicy policy = personInfo.getIndexingPolicy();
+
+        collectionPerson = dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), null, null, policy);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }
 
@@ -144,5 +151,20 @@ public class DocumentDbTemplateIT {
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).equals(person2));
+    }
+
+
+    @Test
+    public void testDocumentDBAnnotation() {
+        final IndexingPolicy policy = collectionPerson.getIndexingPolicy();
+
+        Assert.notNull(collectionPerson, "class Person Collection should not be null");
+        Assert.isTrue(policy.getAutomatic() == Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
+                "class Person collection policy should be default automatic");
+        Assert.isTrue(policy.getIndexingMode() == Constants.DEFAULT_INDEXINGPOLICY_MODE,
+                "class Person collection policy should be default indexing mode");
+
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.DEFAULT_INCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.DEFAULT_EXCLUDEDPATHS);
     }
 }

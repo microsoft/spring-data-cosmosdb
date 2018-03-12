@@ -26,9 +26,6 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
@@ -48,16 +45,13 @@ public class DocumentDBAnnotationIT {
     private DocumentClient dbClient;
     private DocumentDbTemplate dbTemplate;
     private DocumentCollection collectionRole;
-    private DocumentCollection collectionPerson;
     private DocumentDbMappingContext dbContext;
     private MappingDocumentDbConverter mappingConverter;
     private DocumentDbEntityInformation<Role, String> roleInfo;
-    private DocumentDbEntityInformation<Person, String> personInfo;
 
     @Before
     public void setUp() throws ClassNotFoundException {
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
-        personInfo = new DocumentDbEntityInformation<>(Person.class);
         dbContext = new DocumentDbMappingContext();
 
         dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
@@ -66,43 +60,22 @@ public class DocumentDBAnnotationIT {
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
         dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, Constants.TEST_DB_NAME);
 
-        IndexingPolicy policy = roleInfo.getIndexingPolicy();
+        final IndexingPolicy policy = roleInfo.getIndexingPolicy();
 
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo.getCollectionName(), null, null, policy);
         dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
-
-        policy = personInfo.getIndexingPolicy();
-
-        collectionPerson = dbTemplate.createCollectionIfNotExists(personInfo.getCollectionName(), null, null, policy);
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON, null);
     }
 
     @After
     public void cleanUp() {
         dbTemplate.deleteAll(roleInfo.getCollectionName());
-        dbTemplate.deleteAll(personInfo.getCollectionName());
     }
 
     @Test
     public void testDocumentDBAnnotationIT() {
-        IndexingPolicy policy;
+        final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
         Assert.notNull(collectionRole, "class Role Collection should not be null");
-        Assert.notNull(collectionPerson, "class Person Collection should not be null");
-        Assert.isTrue(!collectionPerson.equals(collectionRole), "class Role and Person is different Collection");
-
-        policy = collectionPerson.getIndexingPolicy();
-
-        Assert.isTrue(policy.getAutomatic() == Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
-                "class Person collection policy should be default automatic");
-        Assert.isTrue(policy.getIndexingMode() == Constants.DEFAULT_INDEXINGPOLICY_MODE,
-                "class Person collection policy should be default indexing mode");
-
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.DEFAULT_INCLUDEDPATHS);
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.DEFAULT_EXCLUDEDPATHS);
-
-        policy = collectionRole.getIndexingPolicy();
-
         Assert.isTrue(policy.getAutomatic() == Constants.TEST_INDEXINGPOLICY_AUTOMATIC,
                 "unmatched collection policy automatic of class Role");
         Assert.isTrue(policy.getIndexingMode() == Constants.TEST_INDEXINGPOLICY_MODE,
