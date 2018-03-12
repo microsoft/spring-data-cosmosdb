@@ -23,8 +23,15 @@ public class Constants {
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
 
-    public static final String COLLECTION_NAME = "PersonRole";
+    public static final String COLLECTION_NAME = "Role";
     public static final int REQUEST_UNIT = 1000;
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;
+
+    public static final String TEST_DB_NAME = "template_it_db_pli";
+    public static final String TEST_ID = "template_it_id_pli";
+    public static final String TEST_FIRST_NAME = "first_name_li";
+    public static final String TEST_LAST_NAME = "last_name_p";
+    public static final String TEST_LEVEL = "B";
+    public static final String TEST_ROLE_NAME = "Developer";
 }

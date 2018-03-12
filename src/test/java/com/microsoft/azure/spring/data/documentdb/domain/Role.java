@@ -16,8 +16,8 @@ import org.springframework.data.annotation.Id;
 @Data
 @AllArgsConstructor
 @DocumentIndexingPolicy(mode = IndexingMode.Lazy, automatic = false)
-@Document(collection = "PersonRole", ru = "1000")
-public class PersonRole {
+@Document(collection = "Role", ru = "1000")
+public class Role {
     @Id
     String id;
 
