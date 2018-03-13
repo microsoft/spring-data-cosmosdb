@@ -62,8 +62,8 @@ public class AddressRepositoryIT {
         final List<Address> addresses = repository.findByPostalCode("111");
 
         assertThat(addresses.size()).isEqualTo(2);
-        assertThat(addresses.get(0).getPostalCode().equals("111"));
-        assertThat(addresses.get(1).getPostalCode().equals("111"));
+        assertThat(addresses.get(0).getPostalCode()).isEqualTo("111");
+        assertThat(addresses.get(1).getPostalCode()).isEqualTo("111");
     }
 
     @Test

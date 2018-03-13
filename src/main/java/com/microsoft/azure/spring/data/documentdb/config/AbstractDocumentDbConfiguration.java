@@ -21,17 +21,17 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     public abstract DocumentClient documentClient();
 
     @Bean
-    public DocumentDbFactory documentDbFactory() throws Exception {
+    public DocumentDbFactory documentDbFactory() {
         return new DocumentDbFactory(this.documentClient());
     }
 
     @Bean
-    public DocumentDbTemplate documentDbTemplate() throws Exception {
+    public DocumentDbTemplate documentDbTemplate() throws ClassNotFoundException {
         return new DocumentDbTemplate(this.documentDbFactory(), this.mappingDocumentDbConverter(), this.getDatabase());
     }
 
     @Bean
-    public MappingDocumentDbConverter mappingDocumentDbConverter() throws Exception {
+    public MappingDocumentDbConverter mappingDocumentDbConverter() throws ClassNotFoundException {
         return new MappingDocumentDbConverter(this.documentDbMappingContext());
     }
 
