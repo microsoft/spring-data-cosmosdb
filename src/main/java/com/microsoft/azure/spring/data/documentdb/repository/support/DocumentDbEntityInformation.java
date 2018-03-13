@@ -178,14 +178,12 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Collection<IncludedPath> getIndexingPolicyIncludePaths(Class<?> domainClass) {
         final Collection<IncludedPath> pathsCollection = new ArrayList<>();
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
-        final String[] defaultIncludePath = new String[]{Constants.DEFAULT_INCLUDEDPATH};
-        final String[] rawPaths;
 
         if (annotation == null || annotation.includePaths() == null || annotation.includePaths().length == 0) {
-            rawPaths = defaultIncludePath;
-        } else {
-            rawPaths = annotation.includePaths();
+            return null;
         }
+
+        final String[] rawPaths = annotation.includePaths();
 
         for (final String path : rawPaths) {
             pathsCollection.add(new IncludedPath(path));
@@ -197,14 +195,12 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Collection<ExcludedPath> getIndexingPolicyExcludePaths(Class<?> domainClass) {
         final Collection<ExcludedPath> pathsCollection = new ArrayList<>();
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
-        final String[] defaultExcludePath = new String[]{Constants.DEFAULT_EXCLUDEDPATH};
-        final String[] rawPaths;
 
         if (annotation == null || annotation.excludePaths() == null || annotation.excludePaths().length == 0) {
-            rawPaths = defaultExcludePath;
-        } else {
-            rawPaths = annotation.excludePaths();
+            return null;
         }
+
+        final String[] rawPaths = annotation.excludePaths();
 
         for (final String path : rawPaths) {
             pathsCollection.add(new ExcludedPath(path));

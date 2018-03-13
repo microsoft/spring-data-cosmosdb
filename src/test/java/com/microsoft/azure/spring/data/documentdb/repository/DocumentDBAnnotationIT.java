@@ -10,7 +10,6 @@ import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
-import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import com.microsoft.azure.spring.data.documentdb.domain.Role;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
@@ -29,8 +28,6 @@ import org.springframework.util.Assert;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
-    private static final Person TEST_PERSON = new Person(Constants.TEST_ID, Constants.TEST_FIRST_NAME,
-            Constants.TEST_LAST_NAME, Constants.HOBBIES, Constants.ADDRESSES);
     private static final Role TEST_ROLE = new Role(Constants.TEST_ID, Constants.TEST_LEVEL, Constants.TEST_ROLE_NAME);
 
     @Value("${documentdb.uri}")
@@ -75,7 +72,6 @@ public class DocumentDBAnnotationIT {
     public void testDocumentDBAnnotationIT() {
         final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
-        Assert.notNull(collectionRole, "class Role Collection should not be null");
         Assert.isTrue(policy.getAutomatic() == Constants.TEST_INDEXINGPOLICY_AUTOMATIC,
                 "unmatched collection policy automatic of class Role");
         Assert.isTrue(policy.getIndexingMode() == Constants.TEST_INDEXINGPOLICY_MODE,

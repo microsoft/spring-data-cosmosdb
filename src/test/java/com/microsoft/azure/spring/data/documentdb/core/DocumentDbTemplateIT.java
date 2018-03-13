@@ -154,7 +154,6 @@ public class DocumentDbTemplateIT {
     public void testDocumentDBAnnotation() {
         final IndexingPolicy policy = collectionPerson.getIndexingPolicy();
 
-        Assert.notNull(collectionPerson, "class Person Collection should not be null");
         Assert.isTrue(policy.getAutomatic() == Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
                 "class Person collection policy should be default automatic");
         Assert.isTrue(policy.getIndexingMode() == Constants.DEFAULT_INDEXINGPOLICY_MODE,

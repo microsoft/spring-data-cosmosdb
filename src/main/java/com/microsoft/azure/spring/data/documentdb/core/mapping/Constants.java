@@ -12,11 +12,5 @@ public class Constants {
     public static final String DEFAULT_REQUEST_UNIT              = "4000";
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
-    public static final String DEFAULT_INCLUDEDPATH              =
-            "{\"path\":\"/*\",\"indexes\":[" +
-                    "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":-1}," +
-                    "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":3}" +
-                    "]}";
-    public static final String DEFAULT_EXCLUDEDPATH              = "{\"path\":\"/excludedSample/?\"}";
 }
 

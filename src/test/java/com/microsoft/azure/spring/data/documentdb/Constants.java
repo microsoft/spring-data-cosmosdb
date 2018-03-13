@@ -29,7 +29,6 @@ public class Constants {
                     "]}",
     };
     public static final String[] DEFAULT_EXCLUDEDPATHS           = {
-            "{\"path\":\"/excludedSample/?\"}",
     };
 
     public static final String TEST_COLLECTION_NAME           = "Role";
