@@ -9,6 +9,7 @@ import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
+import com.microsoft.azure.spring.data.documentdb.domain.Memo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,10 +17,20 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MappingDocumentDbConverterUnitTest {
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+    private static final String DATE_STR = "1/1/2000";
+
+    private static final SimpleDateFormat TIMEZONE_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm ZZZ");
+    private static final String DATE_TIMEZONE_STR = "1/1/2000 00:00 GMT";
+    private static final long MILLI_SECONDS = 946684800000L;
 
     MappingDocumentDbConverter dbConverter;
 
@@ -68,6 +79,40 @@ public class MappingDocumentDbConverterUnitTest {
         assertThat(address.getPostalCode()).isEqualTo("testId");
         assertThat(address.getCity()).isEqualTo("testCity");
         assertThat(address.getStreet()).isEqualTo("testStreet");
+    }
+
+    @Test
+    public void canWritePojoWithDateToDocument() throws ParseException {
+        final Document document = new Document();
+        final Memo memo = new Memo("testId", "test pojo with date", DATE_FORMAT.parse(DATE_STR));
+        dbConverter.write(memo, document);
+
+        assertThat(document.getId()).isEqualTo(memo.getId());
+        assertThat(document.getString("message")).isEqualTo(memo.getMessage());
+        assertThat(document.getLong("date")).isEqualTo(memo.getDate().getTime());
+    }
+
+    @Test
+    public void canReadPojoWithDateFromDocument() throws ParseException {
+        final Document document = new Document();
+        document.setId("testId");
+        document.set("message", "test pojo with date");
+
+        final long date = DATE_FORMAT.parse(DATE_STR).getTime();
+        document.set("date", date);
+
+        final Memo memo = dbConverter.read(Memo.class, document);
+        assertThat(document.getId()).isEqualTo(memo.getId());
+        assertThat(document.getString("message")).isEqualTo("test pojo with date");
+        assertThat(document.getLong("date")).isEqualTo(date);
+    }
+
+    @Test
+    public void convertDateValueToMilliSeconds() throws ParseException {
+        final Date date = TIMEZONE_DATE_FORMAT.parse(DATE_TIMEZONE_STR);
+        final long time = (Long) dbConverter.mapToDocumentDBValue(date);
+
+        assertThat(time).isEqualTo(MILLI_SECONDS);
     }
 }
 

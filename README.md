@@ -97,7 +97,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 ```
 
 
-### Define en entity
+### Define an entity
 Define a simple entity as Document in DocumentDB.
 
 ```
@@ -111,6 +111,8 @@ public class User {
     ... // setters and getters
     
     public User() {
+        // If you do not want to create a default constructor, 
+        // use annotation @JsonCreator and @JsonProperty in the full args constructor
     }
     
     public User(String id, String firstName, String lastName) {

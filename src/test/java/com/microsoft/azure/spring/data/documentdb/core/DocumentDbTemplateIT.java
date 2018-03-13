@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDBTestUtils;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,16 +62,11 @@ public class DocumentDbTemplateIT {
     private ApplicationContext applicationContext;
 
     @Before
-    public void setup() {
+    public void setup() throws ClassNotFoundException {
         mappingContext = new DocumentDbMappingContext();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
 
-        try {
-            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e.getMessage());
-
-        }
+        mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         dbConverter = new MappingDocumentDbConverter(mappingContext);
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
@@ -89,7 +85,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.deleteAll(Person.class.getSimpleName());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = DocumentDBAccessException.class)
     public void testInsertDuplicateId() {
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }

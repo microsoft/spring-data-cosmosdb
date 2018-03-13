@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.sample;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import org.springframework.data.annotation.Id;
@@ -18,7 +20,9 @@ public class User {
     @PartitionKey
     private String lastName;
 
-    public User(String emailAddress, String firstName, String lastName) {
+    @JsonCreator
+    public User(@JsonProperty("emailAddress") String emailAddress, @JsonProperty("firstName") String firstName,
+                @JsonProperty("lastName") String lastName) {
         this.emailAddress = emailAddress;
         this.firstName = firstName;
         this.lastName = lastName;
