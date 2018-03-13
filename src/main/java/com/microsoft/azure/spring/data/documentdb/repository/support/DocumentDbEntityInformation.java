@@ -104,21 +104,21 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private Field getPartitionKeyField(Class<?> domainClass) {
-        Field partitionKeyField = null;
+        Field partitionKey = null;
 
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, PartitionKey.class);
 
         if (fields.size() == 1) {
-            partitionKeyField = fields.get(0);
+            partitionKey = fields.get(0);
         } else if (fields.size() > 1) {
             throw new IllegalArgumentException("Azure Cosmos DB supports only one partition key, " +
                     "only one field with @PartitionKey annotation!");
         }
 
-        if (partitionKeyField != null && partitionKeyField.getType() != String.class) {
+        if (partitionKey != null && partitionKey.getType() != String.class) {
             throw new IllegalArgumentException("type of PartitionKey field must be String");
         }
-        return partitionKeyField;
+        return partitionKey;
     }
 
     private Integer getRequestUnit(Class<?> domainClass) {
