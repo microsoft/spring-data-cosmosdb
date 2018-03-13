@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.documentdb.core.mapping;
 
 import com.microsoft.azure.documentdb.IndexingMode;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import org.springframework.data.annotation.Persistent;
 
 import java.lang.annotation.*;
