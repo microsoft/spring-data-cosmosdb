@@ -10,7 +10,7 @@ import com.microsoft.azure.documentdb.ExcludedPath;
 import com.microsoft.azure.documentdb.IncludedPath;
 import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.documentdb.IndexingPolicy;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.Constants;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
@@ -100,7 +100,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, Id.class);
 
         if (fields.isEmpty()) {
-            idField = ReflectionUtils.findField(getJavaType(), "id");
+            idField = ReflectionUtils.findField(getJavaType(), Constants.ID_PROPERTY_NAME);
         } else if (fields.size() == 1) {
             idField = fields.get(0);
         } else {

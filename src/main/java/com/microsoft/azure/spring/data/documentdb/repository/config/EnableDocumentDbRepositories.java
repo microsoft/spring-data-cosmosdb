@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository.config;
 
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbRepositoryFactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
@@ -32,7 +33,7 @@ public @interface EnableDocumentDbRepositories {
 
     Filter[] excludeFilters() default {};
 
-    String repositoryImplementationPostfix() default "Impl";
+    String repositoryImplementationPostfix() default Constants.DEFAULT_REPOSITORY_IMPLEMENT_POSTFIX;
 
     String namedQueriesLocation() default "";
 

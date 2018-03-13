@@ -14,8 +14,6 @@ import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
-    private static final String USER_AGENT_SUFFIX = "spring-data/2.0.2-SNAPSHOT";
-
     private DocumentClient documentClient;
 
     public DocumentDbFactory(String host, String key) {
@@ -28,7 +26,7 @@ public class DocumentDbFactory {
 
         final ConnectionPolicy policy = ConnectionPolicy.GetDefault();
 
-        String userAgent = ";" + USER_AGENT_SUFFIX;
+        String userAgent = ";" + Constants.USER_AGENT_SUFFIX;
         if (isBiEnabled && GetHashMac.getHashMac() != null) {
             userAgent += ";" + GetHashMac.getHashMac();
         }
