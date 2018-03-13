@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DocumentDbFactoryUnitTest {
-
     @Test(expected = IllegalArgumentException.class)
     public void testNullKey() throws Exception {
         new DocumentDbFactory("https://fakeuri", null);
