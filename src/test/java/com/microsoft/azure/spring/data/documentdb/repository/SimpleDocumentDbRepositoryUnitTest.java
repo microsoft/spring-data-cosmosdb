@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository;
 
-import com.microsoft.azure.spring.data.documentdb.Constants;
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
@@ -32,8 +32,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleDocumentDbRepositoryUnitTest {
     private static final Person TEST_PERSON =
-            new Person("test_person", "firstname", "lastname",
-                    Constants.HOBBIES, Constants.ADDRESSES);
+            new Person(TestConstants.ID, TestConstants.FIRST_NAME, TestConstants.LAST_NAME,
+                    TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     private static final String PARTITION_VALUE_REQUIRED_MSG =
             "PartitionKey value must be supplied for this operation.";
@@ -92,10 +92,11 @@ public class SimpleDocumentDbRepositoryUnitTest {
     @Test
     public void testUpdate() {
         final List<Address> updatedAddress =
-                Arrays.asList(new Address("12345", "updated city", "updated street"));
+                Arrays.asList(new Address(TestConstants.POSTAL_CODE, TestConstants.UPDATED_CITY,
+                        TestConstants.UPDATED_STREET));
         final Person updatedPerson =
-                new Person(TEST_PERSON.getId(), "updated", "updated",
-                        Arrays.asList("updated hobbies"), updatedAddress);
+                new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME, TestConstants.UPDATED_LAST_NAME,
+                        TestConstants.UPDATED_HOBBIES, updatedAddress);
         repository.save(updatedPerson);
 
         when(dbOperations.findById(anyString(), any(), any())).thenReturn(updatedPerson);
