@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.documentdb.repository;
 
 import com.microsoft.azure.documentdb.*;
-import com.microsoft.azure.spring.data.documentdb.Constants;
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
@@ -28,7 +28,8 @@ import org.springframework.util.Assert;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
-    private static final Role TEST_ROLE = new Role(Constants.TEST_ID, Constants.TEST_LEVEL, Constants.TEST_ROLE_NAME);
+    private static final Role TEST_ROLE = new Role(TestConstants.ID, TestConstants.LEVEL,
+            TestConstants.ROLE_NAME);
 
     @Value("${documentdb.uri}")
     private String dbUri;
@@ -55,7 +56,7 @@ public class DocumentDBAnnotationIT {
 
         mappingConverter = new MappingDocumentDbConverter(dbContext);
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-        dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, Constants.TEST_DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, TestConstants.DB_NAME);
 
         final IndexingPolicy policy = roleInfo.getIndexingPolicy();
 
@@ -72,13 +73,13 @@ public class DocumentDBAnnotationIT {
     public void testDocumentDBAnnotationIT() {
         final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
-        Assert.isTrue(policy.getAutomatic() == Constants.TEST_INDEXINGPOLICY_AUTOMATIC,
+        Assert.isTrue(policy.getAutomatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
                 "unmatched collection policy automatic of class Role");
-        Assert.isTrue(policy.getIndexingMode() == Constants.TEST_INDEXINGPOLICY_MODE,
+        Assert.isTrue(policy.getIndexingMode() == TestConstants.INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
 
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.TEST_INCLUDEDPATHS);
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.TEST_EXCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
     }
 }
 

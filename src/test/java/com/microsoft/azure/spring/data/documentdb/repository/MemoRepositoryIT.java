@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository;
 
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.domain.Memo;
 import org.junit.After;
@@ -26,15 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class MemoRepositoryIT {
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-
-    private static final String ID_1 = "id_1";
-    private static final String MESSAGE_1 = "first message";
-    private static final String DATE_STR_1 = "1/1/2000";
-
-    private static final String ID_2 = "id_2";
-    private static final String MESSAGE_2 = "second message";
-    private static final String DATE_STR_2 = "1/1/2001";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(TestConstants.DATE_FORMAT);
 
     private static Date date1;
     private static Date date2;
@@ -46,10 +39,10 @@ public class MemoRepositoryIT {
 
     @BeforeClass
     public static void init() throws ParseException {
-        date1 = DATE_FORMAT.parse(DATE_STR_1);
-        date2 = DATE_FORMAT.parse(DATE_STR_2);
-        testMemo1 = new Memo(ID_1, MESSAGE_1, date1);
-        testMemo2 = new Memo(ID_2, MESSAGE_2, date2);
+        date1 = DATE_FORMAT.parse(TestConstants.DATE_STRING);
+        date2 = DATE_FORMAT.parse(TestConstants.NEW_DATE_STRING);
+        testMemo1 = new Memo(TestConstants.ID, TestConstants.MESSAGE, date1);
+        testMemo2 = new Memo(TestConstants.NEW_ID, TestConstants.NEW_MESSAGE, date2);
     }
 
     @Before
@@ -72,11 +65,11 @@ public class MemoRepositoryIT {
 
     @Test
     public void testFindByDate() throws ParseException {
-        final List<Memo> result = repository.findMemoByDate(DATE_FORMAT.parse(DATE_STR_1));
+        final List<Memo> result = repository.findMemoByDate(DATE_FORMAT.parse(TestConstants.DATE_STRING));
 
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getId()).isEqualTo(ID_1);
-        assertThat(result.get(0).getMessage()).isEqualTo(MESSAGE_1);
-        assertThat(result.get(0).getDate()).isEqualTo(date1);
+        assertThat(result.get(0).getId().equals(TestConstants.ID));
+        assertThat(result.get(0).getMessage().equals(TestConstants.MESSAGE));
+        assertThat(result.get(0).getDate().equals(date1));
     }
 }
