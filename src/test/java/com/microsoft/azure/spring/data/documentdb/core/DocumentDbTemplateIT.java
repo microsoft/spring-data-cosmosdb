@@ -7,10 +7,9 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.*;
-import com.microsoft.azure.spring.data.documentdb.Constants;
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
-import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDBTestUtils;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
@@ -37,13 +36,8 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
-    private static final String TEST_ID = "template_it_id";
-    private static final String TEST_NOTEXIST_ID = "non_exist_id";
-
-    private static final String TEST_DB_NAME = "template_it_db";
-    private static final List<String> HOBBIES = Constants.HOBBIES;
-    private static final List<Address> ADDRESSES = Constants.ADDRESSES;
-    private static final Person TEST_PERSON = new Person(TEST_ID, "testfirstname", "testlastname", HOBBIES, ADDRESSES);
+    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+            TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${documentdb.uri}")
     private String documentDbUri;
@@ -72,7 +66,7 @@ public class DocumentDbTemplateIT {
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
-        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TEST_DB_NAME);
+        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
 
         final IndexingPolicy policy = personInfo.getIndexingPolicy();
 
@@ -104,7 +98,7 @@ public class DocumentDbTemplateIT {
         assertTrue(result.equals(TEST_PERSON));
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_NOTEXIST_ID, Person.class);
+                TestConstants.NOT_EXIST_ID, Person.class);
         assertThat(nullResult).isNull();
     }
 
@@ -113,8 +107,8 @@ public class DocumentDbTemplateIT {
         // Delete first as was inserted in setup
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class, null);
 
-        final String firstName = "newFirstName_" + UUID.randomUUID().toString();
-        final Person newPerson = new Person(null, firstName, "newLastName", null, null);
+        final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
+        final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
 
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, null);
 
@@ -126,7 +120,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testUpdate() {
-        final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
+        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
 
@@ -138,7 +132,8 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        final Person person2 = new Person("newid", "newfn", "newln", HOBBIES, ADDRESSES);
+        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+                TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
@@ -154,12 +149,12 @@ public class DocumentDbTemplateIT {
     public void testDocumentDBAnnotation() {
         final IndexingPolicy policy = collectionPerson.getIndexingPolicy();
 
-        Assert.isTrue(policy.getAutomatic() == Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
+        Assert.isTrue(policy.getAutomatic() == TestConstants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
                 "class Person collection policy should be default automatic");
-        Assert.isTrue(policy.getIndexingMode() == Constants.DEFAULT_INDEXINGPOLICY_MODE,
+        Assert.isTrue(policy.getIndexingMode() == TestConstants.DEFAULT_INDEXINGPOLICY_MODE,
                 "class Person collection policy should be default indexing mode");
 
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), Constants.DEFAULT_INCLUDEDPATHS);
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), Constants.DEFAULT_EXCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
+        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
     }
 }
