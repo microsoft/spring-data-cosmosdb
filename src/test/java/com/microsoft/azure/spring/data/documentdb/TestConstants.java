@@ -31,20 +31,36 @@ public class TestConstants {
                     "]}",
     };
 
-    public static final String       ROLE_COLLECTION_NAME     = "Role";
+    public static final String       ROLE_COLLECTION_NAME     = "RoleCollectionName";
     public static final int          REQUEST_UNIT             = 1000;
+    public static final String       REQUEST_UNIT_STRING      = "1000";
     public static final boolean      INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE      = IndexingMode.Lazy;
+    public static final String       INCLUDEDPATH_0           = "{\"path\":\"/*\",\"indexes\":[" +
+            "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":2}," +
+            "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":2}," +
+            "{\"kind\":\"Spatial\",\"dataType\":\"Point\"}" +
+            "]}";
+    public static final String       INCLUDEDPATH_1           = "{\"path\":\"/cache/*\",\"indexes\":[" +
+            "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":3}," +
+            "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":3}," +
+            "{\"kind\":\"Spatial\",\"dataType\":\"LineString\"}" +
+            "]}";
+    public static final String       INCLUDEDPATH_2           = "{\"path\":\"/entities/*\",\"indexes\":[" +
+            "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":4}," +
+            "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":4}," +
+            "{\"kind\":\"Spatial\",\"dataType\":\"Polygon\"}" +
+            "]}";
     public static final String[]     INCLUDEDPATHS            = {
-            "{\"path\":\"/*\",\"indexes\":[" +
-                    "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":3}",
-            // No tail "]}" here because the azure may change the value of paths, and we just keep front part of string
-            "{\"path\":\"/cache/*\",\"indexes\":[" +
-                    "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":-1}",
+            INCLUDEDPATH_0,
+            INCLUDEDPATH_1,
+            INCLUDEDPATH_2,
     };
+    public static final String       EXCLUDEDPATH_0           = "{\"path\":\"/excluded/*\"}";
+    public static final String       EXCLUDEDPATH_1           = "{\"path\":\"/props/*\"}";
     public static final String[]     EXCLUDEDPATHS            = {
-            "{\"path\":\"/excluded/*\"}",
-            "{\"path\":\"/props/*\"}",
+            EXCLUDEDPATH_0,
+            EXCLUDEDPATH_1,
     };
 
     public static final String DB_NAME            = "database_name_pli";
@@ -95,7 +111,6 @@ public class TestConstants {
     public static final String PROPERTY_HOBBIES            = "hobbies";
     public static final String PROPERTY_SHIPPING_ADDRESSES = "shippingAddresses";
 
-    public static final String PROPERTY_POSTAL_CODE = "postalCode";
     public static final String PROPERTY_CITY        = "city";
     public static final String PROPERTY_STREET      = "street";
 
