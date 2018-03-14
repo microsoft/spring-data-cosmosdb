@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @PrepareForTest(PropertyLoader.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*"})
 public class UserAgentTest {
-    private static final String TEST_VERSION = "1.0.0-FOR-TEST";
-
     @Test
     public void testUserAgentSuffixAppended() {
         PowerMockito.mockStatic(PropertyLoader.class);
-        BDDMockito.given(PropertyLoader.getProjectVersion()).willReturn(TEST_VERSION);
+        BDDMockito.given(PropertyLoader.getProjectVersion()).willReturn(TestConstants.VERSION);
 
-        assertThat(PropertyLoader.getProjectVersion()).isEqualTo(TEST_VERSION);
+        assertThat(PropertyLoader.getProjectVersion()).isEqualTo(TestConstants.VERSION);
 
-        final DocumentDbFactory factory = new DocumentDbFactory("https://fakeuri", "fakekey");
-        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
+        final DocumentDbFactory factory = new DocumentDbFactory(TestConstants.DOCUMENTDB_FAKE_HOST,
+                TestConstants.DOCUMENTDB_FAKE_KEY);
+        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix())
+                .contains(TestConstants.VERSION);
     }
 
 }

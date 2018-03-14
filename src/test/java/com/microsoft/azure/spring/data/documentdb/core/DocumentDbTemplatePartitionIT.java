@@ -10,7 +10,7 @@ import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.spring.data.documentdb.Constants;
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
@@ -38,15 +38,13 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplatePartitionIT {
-    private static final String TEST_ID = "template_it_id";
     private static final String TEST_NOTEXIST_ID = "non_exist_id";
 
     private static final String TEST_DB_NAME = "template_it_db";
-    private static final List<String> HOBBIES = Constants.HOBBIES;
-    private static final List<Address> ADDRESSES = Constants.ADDRESSES;
-    private static final Person TEST_PERSON = new Person(TEST_ID, "testfirstname", "testlastname", HOBBIES, ADDRESSES);
-
-    private static final String PARTITION_KEY = "lastName";
+    private static final List<String> HOBBIES = TestConstants.HOBBIES;
+    private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
+    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+            TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${documentdb.uri}")
     private String documentDbUri;
@@ -71,9 +69,10 @@ public class DocumentDbTemplatePartitionIT {
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
-        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TEST_DB_NAME);
+        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
 
-        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), PARTITION_KEY, 1000, null);
+        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), TestConstants.PROPERTY_LAST_NAME,
+                1000, null);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, new PartitionKey(TEST_PERSON.getLastName()));
     }
 
@@ -84,7 +83,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindAllByPartition() {
-        final Criteria criteria = new Criteria("lastName");
+        final Criteria criteria = new Criteria(TestConstants.PROPERTY_LAST_NAME);
         criteria.is(TEST_PERSON.getLastName());
         final Query query = new Query(criteria);
 
@@ -95,9 +94,9 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByIdWithPartition() {
-        final Criteria criteria = new Criteria("id");
+        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
         criteria.is(TEST_PERSON.getId());
-        criteria.and("lastName").is(TEST_PERSON.getLastName());
+        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
         final Query query = new Query(criteria);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
@@ -107,9 +106,9 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByNonExistIdWithPartition() {
-        final Criteria criteria = new Criteria("id");
-        criteria.is(TEST_NOTEXIST_ID);
-        criteria.and("lastName").is(TEST_PERSON.getLastName());
+        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
+        criteria.is(TestConstants.NOT_EXIST_ID);
+        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
         final Query query = new Query(criteria);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
@@ -118,8 +117,8 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testUpsertNewDocumentPartition() {
-        final String firstName = "newFirstName_" + UUID.randomUUID().toString();
-        final Person newPerson = new Person(null, firstName, "newLastName", null, null);
+        final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
+        final Person newPerson = new Person(null, firstName, TestConstants.NEW_LAST_NAME, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, new PartitionKey(partitionKeyValue));
@@ -135,7 +134,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testUpdatePartition() {
-        final Person updated = new Person(TEST_PERSON.getId(), "updatedname",
+        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(),
                 new PartitionKey(updated.getLastName()));
@@ -149,7 +148,8 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        final Person person2 = new Person("newid", "newfn", TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
+        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+                TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
         dbTemplate.insert(Person.class.getSimpleName(), person2, new PartitionKey(person2.getLastName()));
 
         final List<Person> inserted = dbTemplate.findAll(Person.class);

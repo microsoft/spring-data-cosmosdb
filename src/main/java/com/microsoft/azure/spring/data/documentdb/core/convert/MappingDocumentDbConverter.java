@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.core.convert;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import org.json.JSONObject;
@@ -65,7 +66,7 @@ public class MappingDocumentDbConverter
             final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
             if (idProperty != null) {
                 // Replace the key id to the actual id field name in domain
-                jsonObject.remove("id");
+                jsonObject.remove(Constants.ID_PROPERTY_NAME);
                 jsonObject.put(idProperty.getName(), idValue);
             }
 

@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -16,10 +17,10 @@ public class CriteriaUnitTest {
 
     @Test
     public void testSimpleCriteria() {
-        final Criteria c = new Criteria(new ArrayList<>(), "name");
-        c.is("test");
+        final Criteria c = new Criteria(new ArrayList<>(), TestConstants.CRITERIA_KEY);
+        c.is(TestConstants.CRITERIA_OBJECT);
 
-        assertThat(c.getKey()).isEqualTo("name");
-        assertThat(c.getCriteriaObject()).isEqualTo("test");
+        assertThat(c.getKey()).isEqualTo(TestConstants.CRITERIA_KEY);
+        assertThat(c.getCriteriaObject()).isEqualTo(TestConstants.CRITERIA_OBJECT);
     }
 }

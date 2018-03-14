@@ -15,7 +15,7 @@ import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
-    private static final String USER_AGENT_SUFFIX = "spring-data/" + PropertyLoader.getProjectVersion();
+    private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
     private DocumentClient documentClient;
 

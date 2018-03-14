@@ -101,7 +101,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
-                    .readDocument(getDocumentLink(this.databaseName, collectionName, (String) id),
+                    .readDocument(getDocumentLink(this.databaseName, collectionName, id),
                             new RequestOptions()).getResource();
 
             if (resource instanceof Document) {
