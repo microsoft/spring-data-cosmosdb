@@ -29,26 +29,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MemoRepositoryIT {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(TestConstants.DATE_FORMAT);
 
-    private static Date DATE_1;
-    private static Date DATE_2;
-    private static Memo TEST_MEMO_1;
-    private static Memo TEST_MEMO_2;
+    private static Date date1;
+    private static Date date2;
+    private static Memo testMemo1;
+    private static Memo testMemo2;
 
     @Autowired
     MemoRepository repository;
 
     @BeforeClass
     public static void init() throws ParseException {
-        DATE_1 = DATE_FORMAT.parse(TestConstants.DATE_STRING);
-        DATE_2 = DATE_FORMAT.parse(TestConstants.NEW_DATE_STRING);
-        TEST_MEMO_1 = new Memo(TestConstants.ID, TestConstants.MESSAGE, DATE_1);
-        TEST_MEMO_2 = new Memo(TestConstants.NEW_ID, TestConstants.NEW_MESSAGE, DATE_2);
+        date1 = DATE_FORMAT.parse(TestConstants.DATE_STRING);
+        date2 = DATE_FORMAT.parse(TestConstants.NEW_DATE_STRING);
+        testMemo1 = new Memo(TestConstants.ID, TestConstants.MESSAGE, date1);
+        testMemo2 = new Memo(TestConstants.NEW_ID, TestConstants.NEW_MESSAGE, date2);
     }
 
     @Before
     public void setup() {
-        repository.save(TEST_MEMO_1);
-        repository.save(TEST_MEMO_2);
+        repository.save(testMemo1);
+        repository.save(testMemo2);
     }
 
     @After
@@ -70,6 +70,6 @@ public class MemoRepositoryIT {
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getId().equals(TestConstants.ID));
         assertThat(result.get(0).getMessage().equals(TestConstants.MESSAGE));
-        assertThat(result.get(0).getDate().equals(DATE_1));
+        assertThat(result.get(0).getDate().equals(date1));
     }
 }
