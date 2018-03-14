@@ -248,17 +248,22 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public DocumentCollection createCollection(String dbName,
                                                String collectionName,
                                                RequestOptions collectionOptions,
-                                               String partitionKeyFieldName) {
+                                               String partitionKeyFieldName,
+                                               IndexingPolicy policy) {
         DocumentCollection collection = new DocumentCollection();
         collection.setId(collectionName);
 
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            final ArrayList<String> paths = new ArrayList<String>();
+            final ArrayList<String> paths = new ArrayList<>();
 
             paths.add(getPartitionKeyPath(partitionKeyFieldName));
             partitionKeyDefinition.setPaths(paths);
             collection.setPartitionKey(partitionKeyDefinition);
+        }
+
+        if (policy != null) {
+            collection.setIndexingPolicy(policy);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -281,7 +286,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public DocumentCollection createCollectionIfNotExists(String collectionName,
                                                           String partitionKeyFieldName,
-                                                          Integer requestUnit) {
+                                                          Integer requestUnit,
+                                                          IndexingPolicy policy) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
@@ -296,7 +302,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return collectionList.get(0);
         } else {
             final RequestOptions requestOptions = getRequestOptions(null, requestUnit);
-            return createCollection(this.databaseName, collectionName, requestOptions, partitionKeyFieldName);
+            return createCollection(this.databaseName, collectionName, requestOptions, partitionKeyFieldName, policy);
         }
     }
 

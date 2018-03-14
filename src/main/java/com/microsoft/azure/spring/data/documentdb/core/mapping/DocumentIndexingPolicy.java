@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.mapping;
 
+import com.microsoft.azure.documentdb.IndexingMode;
 import org.springframework.data.annotation.Persistent;
 
 import java.lang.annotation.*;
@@ -12,10 +13,13 @@ import java.lang.annotation.*;
 @Persistent
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Document {
+@Target(ElementType.TYPE)
+public @interface DocumentIndexingPolicy {
+    boolean automatic() default Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC;
 
-    String collection() default Constants.DEFAULT_COLLECTION_NAME;
+    IndexingMode mode() default IndexingMode.Consistent; // Enum is not really compile time constant
 
-    String ru() default Constants.DEFAULT_REQUEST_UNIT;
+    String[] includePaths();
+
+    String[] excludePaths();
 }

@@ -51,7 +51,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
     public void setUp() {
         when(entityInformation.getJavaType()).thenReturn(Person.class);
         when(entityInformation.getCollectionName()).thenReturn(Person.class.getSimpleName());
-        when(entityInformation.getRequestUint()).thenReturn(1000);
+        when(entityInformation.getRequestUnit()).thenReturn(1000);
         when(dbOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
 
         repository = new SimpleDocumentDbRepository<Person, String>(entityInformation, dbOperations);

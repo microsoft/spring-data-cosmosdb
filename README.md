@@ -42,6 +42,14 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
   - set name of this field to `id`, this field will be mapped to document `id` in Cosmos DB.
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
+- Custom IndexingPolicy
+  By default, IndexingPolicy will be set by azure service. To customize it add annotation `@DocumentIndexingPolicy` to domain class. This annotation has 4 attributes to customize, see following:
+```java
+   boolean automatic;     // Indicate if indexing policy use automatic or not
+   IndexingMode mode;     // Indexing policy mode, option Consistent|Lazy|None.
+   String[] includePaths; // Included paths for indexing
+   String[] excludePaths; // Excluded paths for indexing
+```
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField
 - Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
