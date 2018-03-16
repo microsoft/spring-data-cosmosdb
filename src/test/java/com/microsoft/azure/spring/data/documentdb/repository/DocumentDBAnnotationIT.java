@@ -79,8 +79,8 @@ public class DocumentDBAnnotationIT {
         Assert.isTrue(policy.getIndexingMode() == TestConstants.INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
 
-        TestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
-        TestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
     }
 }
 

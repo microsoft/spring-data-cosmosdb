@@ -49,12 +49,12 @@ public class DocumentDBAnnotationUnitTest {
                 "should be default indexing policy mode");
 
         // IncludedPaths and ExcludedPaths
-        // We do not use testIndexingPolicyPaths generic here, for unit test do not create documentdb instance, and the
-        // Paths of policy will never be set from azure service.
-        // testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
-        // testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
-        Assert.isTrue(policy.getIncludedPaths().size() == 0, "default includedpaths size should be 0");
-        Assert.isTrue(policy.getExcludedPaths().size() == 0, "default excludedpaths size should be 0");
+        // We do not use testIndexingPolicyPathsEquals generic here, for unit test do not create documentdb instance,
+        // and the paths of policy will never be set from azure service.
+        // testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
+        // testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+        Assert.isTrue(policy.getIncludedPaths().size() == 0, "default includedpaths size must be 0");
+        Assert.isTrue(policy.getExcludedPaths().size() == 0, "default excludedpaths size must be 0");
     }
 
     @Test
@@ -78,8 +78,8 @@ public class DocumentDBAnnotationUnitTest {
                 "should be Role(class) indexing policy mode");
 
         // IncludedPaths and ExcludedPaths
-        TestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
-        TestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
     }
 }
 

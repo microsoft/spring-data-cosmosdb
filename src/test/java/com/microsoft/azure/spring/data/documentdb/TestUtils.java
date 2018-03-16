@@ -23,8 +23,8 @@ public class TestUtils {
         return null;
     }
 
-    public static <T extends JsonSerializable> void testIndexingPolicyPaths(Collection<T> policyPaths,
-                                                                            String [] pathsExpected) {
+    public static <T extends JsonSerializable> void testIndexingPolicyPathsEquals(Collection<T> policyPaths,
+                                                                                  String [] pathsExpected) {
         if (policyPaths == null) {
             throw new IllegalStateException("policyPaths should not be null");
         } else if (pathsExpected == null) {

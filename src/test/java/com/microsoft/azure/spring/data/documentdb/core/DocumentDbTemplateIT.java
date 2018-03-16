@@ -154,7 +154,7 @@ public class DocumentDbTemplateIT {
         Assert.isTrue(policy.getIndexingMode() == TestConstants.DEFAULT_INDEXINGPOLICY_MODE,
                 "class Person collection policy should be default indexing mode");
 
-        TestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
-        TestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
     }
 }
