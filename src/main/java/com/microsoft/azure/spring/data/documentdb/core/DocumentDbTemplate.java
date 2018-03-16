@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -187,7 +188,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public void deleteAll(String collectionName) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("execute deleteCollection in database {} collection {} with id {}",
+            LOGGER.debug("execute deleteCollection in database {} collection {}",
                     this.databaseName, collectionName);
         }
 
@@ -235,9 +236,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 if (resource instanceof Database) {
                     return (Database) resource;
                 } else {
-                    LOGGER.error("create database {} get unexpected result: {}" + resource.getSelfLink());
-                    throw new DatabaseCreationException(
-                            "create database {} get unexpected result: " + resource.getSelfLink());
+                    final String errorMessage = MessageFormat.format(
+                            "create database {0} and get unexpected result: {1}", dbName, resource.getSelfLink());
+
+                    LOGGER.error(errorMessage);
+                    throw new DatabaseCreationException(errorMessage);
                 }
             }
         } catch (DocumentClientException ex) {

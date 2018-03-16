@@ -8,6 +8,10 @@ package com.microsoft.azure.spring.data.documentdb;
 import com.microsoft.azure.documentdb.IndexingMode;
 
 public class Constants {
+    private Constants() {
+        // Hide the implicit public one
+    }
+
     public static final String DEFAULT_COLLECTION_NAME = "";
     public static final String DEFAULT_REQUEST_UNIT = "4000";
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
