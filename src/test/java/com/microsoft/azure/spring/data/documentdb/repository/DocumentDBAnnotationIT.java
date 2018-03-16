@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
@@ -78,8 +79,8 @@ public class DocumentDBAnnotationIT {
         Assert.isTrue(policy.getIndexingMode() == TestConstants.INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
 
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
     }
 }
 
