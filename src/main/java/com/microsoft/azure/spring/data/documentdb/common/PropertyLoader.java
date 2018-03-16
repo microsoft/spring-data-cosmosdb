@@ -12,6 +12,10 @@ import java.util.Properties;
 public class PropertyLoader {
     private static final String PROJECT_PROPERTY_FILE = "/META-INF/project.properties";
 
+    private PropertyLoader() {
+        // Hide the implicit public one
+    }
+
     public static String getProjectVersion() {
         String version = "unknown";
         InputStream inputStream = null;
