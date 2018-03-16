@@ -8,10 +8,10 @@ package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
-import com.microsoft.azure.spring.data.documentdb.repository.DocumentDBTestUtils;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import org.junit.After;
@@ -154,7 +154,7 @@ public class DocumentDbTemplateIT {
         Assert.isTrue(policy.getIndexingMode() == TestConstants.DEFAULT_INDEXINGPOLICY_MODE,
                 "class Person collection policy should be default indexing mode");
 
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
-        DocumentDBTestUtils.testIndexingPolicyPaths(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
+        TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
     }
 }
