@@ -180,7 +180,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation == null || annotation.includePaths() == null || annotation.includePaths().length == 0) {
-            return null;
+            return null; // Align the default value of IndexingPolicy
         }
 
         final String[] rawPaths = annotation.includePaths();
@@ -197,7 +197,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation == null || annotation.excludePaths() == null || annotation.excludePaths().length == 0) {
-            return null;
+            return null; // Align the default value of IndexingPolicy
         }
 
         final String[] rawPaths = annotation.excludePaths();

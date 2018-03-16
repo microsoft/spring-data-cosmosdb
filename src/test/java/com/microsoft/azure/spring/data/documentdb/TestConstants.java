@@ -13,6 +13,10 @@ import java.util.List;
 
 public class TestConstants {
 
+    private TestConstants() {
+        // Hide the implicit public one
+    }
+
     private static final Address      ADDRESS_1       = new Address("201107", "Zixing Road", "Shanghai");
     private static final Address      ADDRESS_2       = new Address("200000", "Xuhui", "Shanghai");
     public static final List<String>  HOBBIES         = Arrays.asList("photography", "fishing");
