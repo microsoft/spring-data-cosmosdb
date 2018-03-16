@@ -20,7 +20,7 @@ public @interface DocumentIndexingPolicy {
 
     IndexingMode mode() default IndexingMode.Consistent; // Enum is not really compile time constant
 
-    String[] includePaths();
+    String[] includePaths() default {};
 
-    String[] excludePaths();
+    String[] excludePaths() default {};
 }
