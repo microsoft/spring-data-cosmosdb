@@ -6,14 +6,13 @@
 package com.microsoft.azure.spring.data.documentdb.exception;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 public class DocumentDBAccessException extends DataAccessException {
     public DocumentDBAccessException(String msg) {
         super(msg);
     }
 
-    public DocumentDBAccessException(@Nullable String msg, @Nullable Throwable cause) {
+    public DocumentDBAccessException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }

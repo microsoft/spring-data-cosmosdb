@@ -6,14 +6,13 @@
 package com.microsoft.azure.spring.data.documentdb.exception;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 public class IllegalQueryException extends DataAccessException {
     public IllegalQueryException(String msg) {
         super(msg);
     }
 
-    public IllegalQueryException(@Nullable String msg, @Nullable Throwable cause) {
+    public IllegalQueryException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }
