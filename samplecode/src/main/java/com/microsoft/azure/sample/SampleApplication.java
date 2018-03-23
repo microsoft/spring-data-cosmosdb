@@ -35,7 +35,8 @@ public class SampleApplication implements CommandLineRunner {
         repository.deleteAll();
         repository.save(testUser);
 
-        final List<User> results = repository.findByEmailAddressAndLastName(testUser.getEmailAddress(), testUser.getLastName());
+        final List<User> results = repository.findByEmailAddressAndLastName(testUser.getEmailAddress(),
+                testUser.getLastName());
         Assert.isTrue(results.size() == 1, "Result size should be 1");
 
         final User result1 = results.get(0);
