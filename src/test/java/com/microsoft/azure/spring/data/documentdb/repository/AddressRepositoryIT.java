@@ -93,7 +93,7 @@ public class AddressRepositoryIT {
         expectedException.expect(UnsupportedOperationException.class);
         expectedException.expectMessage("PartitionKey value must be supplied for this operation.");
 
-        repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode());
+        repository.delete(TEST_ADDRESS1_PARTITION1.getPostalCode());
     }
 
     @Test

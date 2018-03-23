@@ -21,7 +21,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.model.MappingException;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -50,8 +50,6 @@ public class MappingDocumentDbConverter
         }
 
         final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(type);
-        Assert.notNull(entity, "Entity is null.");
-
         return readInternal(entity, type, sourceDocument);
     }
 
@@ -138,8 +136,6 @@ public class MappingDocumentDbConverter
 
     private ConvertingPropertyAccessor getPropertyAccessor(Object entity) {
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
-
-        Assert.notNull(entityInformation, "EntityInformation should not be null.");
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
     }

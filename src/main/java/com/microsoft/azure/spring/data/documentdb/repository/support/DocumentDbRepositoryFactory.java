@@ -23,7 +23,6 @@ import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 
 public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
@@ -48,14 +47,14 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
     }
 
     @Override
-    public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-        return new DocumentDbEntityInformation<>(domainClass);
+    public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+        return new DocumentDbEntityInformation<T, ID>(domainClass);
     }
 
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
-                                                               EvaluationContextProvider evaluationContextProvider) {
-        return Optional.of(new DocumentDbQueryLookupStrategy(dbOperations, evaluationContextProvider));
+    protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key,
+                                                         EvaluationContextProvider evaluationContextProvider) {
+        return new DocumentDbQueryLookupStrategy(dbOperations, evaluationContextProvider);
     }
 
     private static class DocumentDbQueryLookupStrategy implements QueryLookupStrategy {
