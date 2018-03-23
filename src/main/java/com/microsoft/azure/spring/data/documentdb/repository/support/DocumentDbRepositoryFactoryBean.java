@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.support;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.context.MappingContext;
@@ -28,13 +29,11 @@ public class DocumentDbRepositoryFactoryBean<T extends Repository<S, ID>, S, ID 
     private boolean mappingContextConfigured = false;
 
 
-    public DocumentDbRepositoryFactoryBean(Class<? extends T> repositoryInterface,
-                                           DocumentDbOperations operations) {
-
+    public DocumentDbRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
         super(repositoryInterface);
-        this.operations = operations;
     }
 
+    @Autowired
     public void setDocumentDbOperations(DocumentDbOperations operations) {
         this.operations = operations;
     }
