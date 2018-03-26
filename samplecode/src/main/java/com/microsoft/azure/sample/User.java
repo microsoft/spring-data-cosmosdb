@@ -9,10 +9,13 @@ package com.microsoft.azure.sample;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
+import com.microsoft.azure.documentdb.IndexingMode;
 import org.springframework.data.annotation.Id;
 
 @Document(collection = "mycollection")
+@DocumentIndexingPolicy(mode = IndexingMode.Lazy, automatic = false, includePaths = {}, excludePaths = {})
 public class User {
     @Id
     private String emailAddress;
