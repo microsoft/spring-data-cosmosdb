@@ -10,12 +10,15 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
+import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+
 import com.microsoft.azure.spring.data.documentdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.documentdb.exception.IllegalCollectionException;
-import org.apache.commons.lang3.StringUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -25,12 +28,33 @@ import org.springframework.util.Assert;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
+
+    private static final Map<CriteriaType, String> operatorLookup;
+    static {
+        final Map<CriteriaType, String> init = new HashMap<>();
+        init.put(CriteriaType.IS_EQUAL,                 "r.@?=@@");
+        init.put(CriteriaType.IS_LESS_THAN,             "r.@?<=@@");
+        init.put(CriteriaType.IS_LESS_THAN_OR_EQUAL,    "r.@?<@@");
+        init.put(CriteriaType.IS_GREATER_THAN,          "r.@?<=@@");
+        init.put(CriteriaType.IS_GREATER_THAN_OR_EQUAL, "r.@?<@@");
+        init.put(CriteriaType.BETWEEN,                  "r.@? BETWEEN @@ AND @@");
+        init.put(CriteriaType.CONTAINING,               "CONTAINS(r.@?, @@)");
+        init.put(CriteriaType.ENDING_WITH,              "ENDSWITH(r.@?, @@)");
+        init.put(CriteriaType.EXISTS,                   "IS_DEFINED(r.@?)");
+        init.put(CriteriaType.IS_EMPTY,                 "LENGTH(r.@?)=0");
+        init.put(CriteriaType.IS_NULL,                  "IS_NULL(r.@?)");
+        init.put(CriteriaType.STARTING_WITH,            "STARTSWITH(r.@?, @@)");
+        operatorLookup = Collections.unmodifiableMap(init);
+    }    
 
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
@@ -404,36 +428,25 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
+
         String queryStr = "SELECT * FROM ROOT r WHERE ";
 
         final SqlParameterCollection parameterCollection = new SqlParameterCollection();
 
-        for (final Map.Entry<String, Object> entry : query.getCriteria().entrySet()) {
-            if (queryStr.contains("=@")) {
-                queryStr += " AND ";
-            }
+        final CriteriaProcessor criteriaWriter = new CriteriaProcessor(
+                new DocumentDbEntityInformation(entityClass).getId().getName());
+        
+        query.getCriteria().accept(criteriaWriter);
+        
+        queryStr += criteriaWriter.getConstraintString();
+        
+        for (final Map.Entry<String, Object> entry : criteriaWriter.getParameterMap().entrySet()) {
 
-            String fieldName = entry.getKey();
-            if (isIdField(fieldName, entityClass)) {
-                fieldName = "id";
-            }
-
-            queryStr += "r." + fieldName + "=@" + entry.getKey();
-
-            parameterCollection.add(new SqlParameter("@" + entry.getKey(),
+            parameterCollection.add(new SqlParameter(entry.getKey(),
                     mappingDocumentDbConverter.mapToDocumentDBValue(entry.getValue())));
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);
-    }
-
-    private static <T> boolean isIdField(String fieldName, Class<T> entityClass) {
-        if (StringUtils.isEmpty(fieldName)) {
-            return false;
-        }
-
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(entityClass);
-        return fieldName.equals(entityInfo.getId().getName());
     }
 
     @Override
@@ -475,25 +488,28 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private <T> Optional<Object> getPartitionKeyValue(Query query, Class<T> domainClass) {
+
         if (query == null) {
             return Optional.empty();
         }
 
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+
         if (!partitionKeyName.isPresent()) {
             return Optional.empty();
         }
 
-        final Map<String, Object> criteria = query.getCriteria();
-        // TODO (wepa) Only one partition key value is supported now
-        final Optional<String> matchedKey = criteria.keySet().stream()
-                .filter(key -> partitionKeyName.get().equals(key)).findFirst();
-
-        if (!matchedKey.isPresent()) {
+        final CriteriaKeyFinder finder = new CriteriaKeyFinder(partitionKeyName.get());
+        
+        query.getCriteria().accept(finder);
+        
+        final Criteria matched = finder.matchedCriteria();
+        
+        if (matched == null || matched.getConditionValues().size() != 1) {
             return Optional.empty();
         }
 
-        return Optional.of(criteria.get(matchedKey.get()));
+        return Optional.of(matched.getConditionValues().get(0));
     }
 
     private <T> Optional<String> getPartitionKeyField(Class<T> domainClass) {
@@ -503,5 +519,151 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return Optional.of(entityInfo.getPartitionKeyFieldName());
+    }
+
+    private static class CriteriaKeyFinder implements Criteria.Visitor {
+
+        private String keyToFind;
+        private Criteria matchedCriteria = null;
+        
+        CriteriaKeyFinder(String keyToFind) {
+            this.keyToFind = keyToFind;
+        }
+        
+        @Override
+        public void visitCriteria(Criteria criteria) {
+
+            if (criteria.getConditionSubject().equals(keyToFind)) {
+                matchedCriteria = criteria;
+            }
+            
+            criteria.getCriteriaList().get(0).accept(this);
+        }
+        
+        public Criteria matchedCriteria() {
+            return matchedCriteria;
+        }
+        
+    }
+    
+    private static class CriteriaProcessor implements Criteria.Visitor {
+
+        private final String entityClassIdFieldName;
+        private final List<String> constraint = new ArrayList<>();
+        private final Map<String, Object> parameterMap = new HashMap<>();
+        private int parameterCount = 1;
+
+        public CriteriaProcessor(String entityClassIdFieldName) {
+            this.entityClassIdFieldName =  entityClassIdFieldName;
+        }
+        
+        @Override
+        public void visitCriteria(Criteria criteria) {
+
+            switch(criteria.getCriteriaType()) {
+                
+                case AND_CONDITION:
+    
+                    criteria.getCriteriaList().get(0).accept(this);
+                    constraint.add(" AND ");
+                    criteria.getCriteriaList().get(1).accept(this);
+                    
+                    return;
+                    
+                case OR_CONDITION:
+                
+                    constraint.add("(");
+                    criteria.getCriteriaList().get(0).accept(this);
+                    constraint.add(") OR (");
+                    criteria.getCriteriaList().get(1).accept(this);
+                    constraint.add(")");
+                    
+                    return;
+
+
+                case IN:
+                {
+                    if (criteria.getConditionValues().size() != 1 ||
+                            !(criteria.getConditionValues().get(0) instanceof List<?>)) {
+
+                        throw new IllegalArgumentException("value provided for IN parameter is not a list value");
+                    }
+
+                    final List<?> listItems = (List<?>) criteria.getConditionValues().get(0);
+
+                    final String template = "r.@? IN (" + 
+                            String.join(",", Collections.nCopies(listItems.size(), "@@")) + ")";
+
+                    processTemplate(template, criteria, listItems);
+                    
+                    return;
+                }
+                    
+                default:
+                {
+                    
+                    if (operatorLookup.containsKey(criteria.getCriteriaType())) {
+
+                        final String template = operatorLookup.get(criteria.getCriteriaType());
+                        
+                        final List<Object> values = criteria.getConditionValues();
+
+                        processTemplate(template, criteria, values);
+                        
+                        return;
+                    }
+                }
+            }
+            
+            throw new IllegalArgumentException("Unsupported condition");
+        }
+
+        public String getConstraintString() {
+            
+            return String.join("", constraint);
+        }
+        
+        public Map<String, Object> getParameterMap() {
+            
+            return parameterMap;
+        }
+        
+        private void processTemplate(String template, Criteria criteria, List<?> values) {
+
+            String workingTemplate = template;
+            
+            if (criteria.shouldIgnoreCase()) {
+                
+                workingTemplate = workingTemplate.replaceAll("@\\?", "LOWER(@\\?)");
+                workingTemplate = workingTemplate.replaceAll("@@", "LOWER(@@)");
+            }
+            
+            workingTemplate = workingTemplate.replaceAll("@\\?", 
+                    criteria.getConditionSubject()
+                        .equals(entityClassIdFieldName) ? "id" : criteria.getConditionSubject());
+            
+            int index = 0;
+            while (workingTemplate.indexOf("@@") != -1 && index < values.size()) {
+                final String parameterName = "@p" + parameterCount++;
+                workingTemplate = workingTemplate.replaceFirst("@@", parameterName);
+                parameterMap.put(parameterName, values.get(index));
+                ++index;
+            }
+            
+            if (index != values.size()) {
+                
+                throw new IllegalArgumentException(
+                        "incorrect number of values for " + criteria.getCriteriaType() + " operation ");
+            }                    
+
+            // If the operator is inverted then reverse the boolean outcome of the test
+            
+            if (criteria.isNegated()) {
+                workingTemplate = "NOT (" + template + ")";
+            }
+            constraint.add(workingTemplate);
+            
+            return;            
+        }
     }
 }

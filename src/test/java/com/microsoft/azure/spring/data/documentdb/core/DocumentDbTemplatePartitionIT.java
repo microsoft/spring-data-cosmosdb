@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -83,9 +85,11 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindAllByPartition() {
-        final Criteria criteria = new Criteria(TestConstants.PROPERTY_LAST_NAME);
-        criteria.is(TEST_PERSON.getLastName());
-        final Query query = new Query(criteria);
+//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_LAST_NAME);
+//        criteria.is(TEST_PERSON.getLastName());
+        final Query query = new Query(
+                Criteria.value(TestConstants.PROPERTY_LAST_NAME, 
+                        CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TEST_PERSON.getLastName()})), null);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
         assertThat(result.size()).isEqualTo(1);
@@ -94,11 +98,19 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByIdWithPartition() {
-        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
-        criteria.is(TEST_PERSON.getId());
-        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
-        final Query query = new Query(criteria);
+//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
+//        criteria.is(TEST_PERSON.getId());
+//        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
+//        final Query query = new Query(criteria);
+        final Query query = new Query(
+                Criteria.and(
+                        Criteria.value(TestConstants.PROPERTY_ID,
+                                CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TEST_PERSON.getId()})),
+                        Criteria.value(TestConstants.PROPERTY_LAST_NAME,
+                                CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TEST_PERSON.getLastName()}))
+                ), null);
 
+        
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).equals(TEST_PERSON));
@@ -106,10 +118,17 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByNonExistIdWithPartition() {
-        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
-        criteria.is(TestConstants.NOT_EXIST_ID);
-        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
-        final Query query = new Query(criteria);
+//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
+//        criteria.is(TestConstants.NOT_EXIST_ID);
+//        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
+//        final Query query = new Query(criteria);
+        final Query query = new Query(
+                Criteria.and(
+                        Criteria.value(TestConstants.PROPERTY_ID,
+                                CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TestConstants.NOT_EXIST_ID})),
+                        Criteria.value(TestConstants.PROPERTY_LAST_NAME,
+                                CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TEST_PERSON.getLastName()}))
+                ), null);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
         assertThat(result.size()).isEqualTo(0);

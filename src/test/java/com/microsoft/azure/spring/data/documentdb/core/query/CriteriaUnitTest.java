@@ -15,12 +15,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CriteriaUnitTest {
 
-    @Test
-    public void testSimpleCriteria() {
-        final Criteria c = new Criteria(new ArrayList<>(), TestConstants.CRITERIA_KEY);
-        c.is(TestConstants.CRITERIA_OBJECT);
-
-        assertThat(c.getKey()).isEqualTo(TestConstants.CRITERIA_KEY);
-        assertThat(c.getCriteriaObject()).isEqualTo(TestConstants.CRITERIA_OBJECT);
-    }
+//    @Test
+//    public void testSimpleCriteria() {
+//        final Criteria c = new Criteria(new ArrayList<>(), TestConstants.CRITERIA_KEY);
+//        c.is(TestConstants.CRITERIA_OBJECT);
+//
+//        assertThat(c.getKey()).isEqualTo(TestConstants.CRITERIA_KEY);
+//        assertThat(c.getCriteriaObject()).isEqualTo(TestConstants.CRITERIA_OBJECT);
+//    }
 }

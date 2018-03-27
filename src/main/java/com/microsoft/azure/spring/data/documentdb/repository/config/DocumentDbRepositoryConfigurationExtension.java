@@ -48,7 +48,6 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
         return Collections.emptyList();
     }
 
-
     @Override
     public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource config) {
         super.registerBeansForRoot(registry, config);
@@ -67,3 +66,4 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
         super.postProcess(builder, source);
     }
 }
+
