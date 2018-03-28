@@ -10,14 +10,11 @@ import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
