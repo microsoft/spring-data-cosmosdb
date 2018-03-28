@@ -20,6 +20,7 @@ public class Criteria {
         IS_GREATER_THAN,
         IS_GREATER_THAN_OR_EQUAL,
         BETWEEN,
+        WITHIN,
         CONTAINING,
         ENDING_WITH,
         EXISTS,

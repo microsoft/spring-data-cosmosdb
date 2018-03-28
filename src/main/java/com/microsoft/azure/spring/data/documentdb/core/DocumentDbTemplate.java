@@ -48,6 +48,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         init.put(CriteriaType.IS_GREATER_THAN_OR_EQUAL, "r.@?<@@");
         init.put(CriteriaType.BETWEEN,                  "r.@? BETWEEN @@ AND @@");
         init.put(CriteriaType.CONTAINING,               "CONTAINS(r.@?, @@)");
+        init.put(CriteriaType.WITHIN,                   "CONTAINS(@@, r.@?)");
         init.put(CriteriaType.ENDING_WITH,              "ENDSWITH(r.@?, @@)");
         init.put(CriteriaType.EXISTS,                   "IS_DEFINED(r.@?)");
         init.put(CriteriaType.IS_EMPTY,                 "LENGTH(r.@?)=0");

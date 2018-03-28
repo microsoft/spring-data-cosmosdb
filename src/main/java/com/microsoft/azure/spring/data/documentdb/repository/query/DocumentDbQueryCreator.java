@@ -49,12 +49,8 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
         init.put(Part.Type.IS_NULL, new Pair<>(CriteriaType.IS_NULL, Boolean.FALSE));
         init.put(Part.Type.LESS_THAN, new Pair<>(CriteriaType.IS_LESS_THAN, Boolean.FALSE));
         init.put(Part.Type.LESS_THAN_EQUAL, new Pair<>(CriteriaType.IS_LESS_THAN_OR_EQUAL, Boolean.FALSE));
-        init.put(Part.Type.LIKE, new Pair<>(CriteriaType.LIKE, Boolean.FALSE));
-        init.put(Part.Type.NEAR, new Pair<>(CriteriaType.NEAR, Boolean.FALSE));
-        init.put(Part.Type.NOT_LIKE, new Pair<>(CriteriaType.LIKE, Boolean.TRUE));
-        init.put(Part.Type.REGEX, new Pair<>(CriteriaType.REGEX, Boolean.FALSE));
         init.put(Part.Type.STARTING_WITH, new Pair<>(CriteriaType.STARTING_WITH, Boolean.FALSE));
-        init.put(Part.Type.WITHIN, new Pair<>(CriteriaType.BETWEEN, Boolean.FALSE));
+        init.put(Part.Type.WITHIN, new Pair<>(CriteriaType.WITHIN, Boolean.FALSE));
         init.put(Part.Type.IN, new Pair<>(CriteriaType.IN, Boolean.FALSE));
         init.put(Part.Type.NOT_IN, new Pair<>(CriteriaType.IN, Boolean.TRUE));
         init.put(Part.Type.SIMPLE_PROPERTY, new Pair<>(CriteriaType.IS_EQUAL, Boolean.FALSE));
