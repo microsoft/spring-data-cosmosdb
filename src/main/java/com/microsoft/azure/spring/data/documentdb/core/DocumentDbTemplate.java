@@ -537,7 +537,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 matchedCriteria = criteria;
             }
             
-            criteria.getCriteriaList().forEach(val -> { val.accept(this); });
+            criteria.getCriteriaList().forEach(val -> {
+                val.accept(this);
+            });
         }
         
         public Criteria matchedCriteria() {
