@@ -533,11 +533,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         @Override
         public void visitCriteria(Criteria criteria) {
 
-            if (criteria.getCriteriaSubject().equals(keyToFind)) {
+            if (criteria.getCriteriaSubject() != null && criteria.getCriteriaSubject().equals(keyToFind)) {
                 matchedCriteria = criteria;
             }
             
-            criteria.getCriteriaList().get(0).accept(this);
+            criteria.getCriteriaList().forEach(val -> { val.accept(this); });
         }
         
         public Criteria matchedCriteria() {
@@ -639,8 +639,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
             
             workingTemplate = workingTemplate.replaceAll("@\\?", 
-                    criteria.getCriteriaSubject()
-                        .equals(entityClassIdFieldName) ? "id" : criteria.getCriteriaSubject());
+                    criteria.getCriteriaSubject() != null && 
+                            criteria.getCriteriaSubject()
+                                .equals(entityClassIdFieldName) ? "id" : criteria.getCriteriaSubject());
             
             int index = 0;
             while (workingTemplate.indexOf("@@") != -1 && index < values.size()) {
