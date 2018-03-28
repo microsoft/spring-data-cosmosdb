@@ -505,11 +505,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         
         final Criteria matched = finder.matchedCriteria();
         
-        if (matched == null || matched.getConditionValues().size() != 1) {
+        if (matched == null || matched.getCriteriaValues().size() != 1) {
             return Optional.empty();
         }
 
-        return Optional.of(matched.getConditionValues().get(0));
+        return Optional.of(matched.getCriteriaValues().get(0));
     }
 
     private <T> Optional<String> getPartitionKeyField(Class<T> domainClass) {
@@ -533,7 +533,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         @Override
         public void visitCriteria(Criteria criteria) {
 
-            if (criteria.getConditionSubject().equals(keyToFind)) {
+            if (criteria.getCriteriaSubject().equals(keyToFind)) {
                 matchedCriteria = criteria;
             }
             
@@ -583,13 +583,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
                 case IN:
                 {
-                    if (criteria.getConditionValues().size() != 1 ||
-                            !(criteria.getConditionValues().get(0) instanceof List<?>)) {
+                    if (criteria.getCriteriaValues().size() != 1 ||
+                            !(criteria.getCriteriaValues().get(0) instanceof List<?>)) {
 
                         throw new IllegalArgumentException("value provided for IN parameter is not a list value");
                     }
 
-                    final List<?> listItems = (List<?>) criteria.getConditionValues().get(0);
+                    final List<?> listItems = (List<?>) criteria.getCriteriaValues().get(0);
 
                     final String template = "r.@? IN (" + 
                             String.join(",", Collections.nCopies(listItems.size(), "@@")) + ")";
@@ -606,7 +606,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
                         final String template = operatorLookup.get(criteria.getCriteriaType());
                         
-                        final List<Object> values = criteria.getConditionValues();
+                        final List<Object> values = criteria.getCriteriaValues();
 
                         processTemplate(template, criteria, values);
                         
@@ -639,8 +639,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
             
             workingTemplate = workingTemplate.replaceAll("@\\?", 
-                    criteria.getConditionSubject()
-                        .equals(entityClassIdFieldName) ? "id" : criteria.getConditionSubject());
+                    criteria.getCriteriaSubject()
+                        .equals(entityClassIdFieldName) ? "id" : criteria.getCriteriaSubject());
             
             int index = 0;
             while (workingTemplate.indexOf("@@") != -1 && index < values.size()) {

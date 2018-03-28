@@ -35,8 +35,8 @@ public class Criteria {
     private final CriteriaType criteriaType;
     private final List<Criteria> criteriaList = new ArrayList<>();
 
-    private String conditionSubject;
-    private List<Object> conditionValues;
+    private String criteriaSubject;
+    private List<Object> criteriaValues = new ArrayList<>();
     private boolean shouldIgnoreCase;
     private boolean negated;
 
@@ -52,7 +52,7 @@ public class Criteria {
         
         criteria.criteriaList.add(left);
         criteria.criteriaList.add(right);
-        
+
         return criteria;
     }
 
@@ -80,8 +80,8 @@ public class Criteria {
 
         final Criteria criteria = new Criteria(condition);
         
-        criteria.conditionSubject = conditionSubject;
-        criteria.conditionValues = conditionValues;
+        criteria.criteriaSubject = conditionSubject;
+        criteria.criteriaValues = conditionValues;
         criteria.shouldIgnoreCase = ignoreCase;
         
         return criteria;
@@ -92,12 +92,12 @@ public class Criteria {
         return criteriaList;
     }
     
-    public String getConditionSubject() {
-        return conditionSubject;
+    public String getCriteriaSubject() {
+        return criteriaSubject;
     }
 
-    public List<Object> getConditionValues() {
-        return conditionValues;
+    public List<Object> getCriteriaValues() {
+        return criteriaValues;
     }
 
     public boolean shouldIgnoreCase() {
