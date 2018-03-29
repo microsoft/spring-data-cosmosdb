@@ -5,6 +5,8 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository;
 
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import org.junit.After;
 import org.junit.Before;
@@ -16,19 +18,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ContactRepositoryConfig.class)
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class AddressRepositoryIT {
 
-    private static final Address TEST_ADDRESS1_PARTITION1 = new Address("111", "111st avenue", "redmond");
-    private static final Address TEST_ADDRESS2_PARTITION1 = new Address("222", "98th street", "redmond");
-    private static final Address TEST_ADDRESS1_PARTITION2 = new Address("333", "103rd street", "bellevue");
-    private static final Address TEST_ADDRESS4_PARTITION3 = new Address("111", "100rd street", "new york");
+    private static final Address TEST_ADDRESS1_PARTITION1 = new Address(
+            TestConstants.POSTAL_CODE, TestConstants.STREET, TestConstants.CITY);
+    private static final Address TEST_ADDRESS2_PARTITION1 = new Address(
+            TestConstants.POSTAL_CODE_0, TestConstants.STREET_0, TestConstants.CITY);
+    private static final Address TEST_ADDRESS1_PARTITION2 = new Address(
+            TestConstants.POSTAL_CODE_1, TestConstants.STREET_1, TestConstants.CITY_0);
+    private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
+            TestConstants.POSTAL_CODE, TestConstants.STREET_2, TestConstants.CITY_1);
 
     @Autowired
     AddressRepository repository;
@@ -52,24 +57,24 @@ public class AddressRepositoryIT {
     @Test
     public void testFindAll() {
         // findAll cross partition
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(4);
     }
 
     @Test
     public void testFindByIdForPartitionedCollection() {
-        final List<Address> addresses = repository.findByPostalCode("111");
+        final List<Address> addresses = repository.findByPostalCode(TestConstants.POSTAL_CODE);
 
         assertThat(addresses.size()).isEqualTo(2);
-        assertThat(addresses.get(0).getPostalCode().equals("111"));
-        assertThat(addresses.get(1).getPostalCode().equals("111"));
+        assertThat(addresses.get(0).getPostalCode().equals(TestConstants.POSTAL_CODE));
+        assertThat(addresses.get(1).getPostalCode().equals(TestConstants.POSTAL_CODE));
     }
 
     @Test
     public void testFindByPartitionedCity() {
         final String city = TEST_ADDRESS1_PARTITION1.getCity();
-        final List<Address> result = toList(repository.findByCity(city));
+        final List<Address> result = TestUtils.toList(repository.findByCity(city));
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isEqualTo(city);
@@ -99,7 +104,7 @@ public class AddressRepositoryIT {
         repository.deleteByPostalCodeAndCity(
                 TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(3);
     }
@@ -111,7 +116,7 @@ public class AddressRepositoryIT {
 
         repository.deleteByCity(TEST_ADDRESS1_PARTITION1.getCity());
 
-        final List<Address> result = toList(repository.findAll());
+        final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
@@ -119,7 +124,7 @@ public class AddressRepositoryIT {
 
     @Test
     public void testUpdateEntity() {
-        final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), "new street",
+        final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), TestConstants.NEW_STREET,
                 TEST_ADDRESS1_PARTITION1.getCity());
 
         repository.save(updatedAddress);
@@ -130,14 +135,5 @@ public class AddressRepositoryIT {
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getStreet()).isEqualTo(updatedAddress.getStreet());
         assertThat(results.get(0).getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
-    }
-
-    private <T> List<T> toList(Iterable<T> iterable) {
-        if (iterable != null) {
-            final List<T> list = new ArrayList<>();
-            iterable.forEach(list::add);
-            return list;
-        }
-        return null;
     }
 }

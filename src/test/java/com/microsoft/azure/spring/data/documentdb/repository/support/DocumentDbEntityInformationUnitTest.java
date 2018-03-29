@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
-import com.microsoft.azure.spring.data.documentdb.Constants;
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
@@ -19,8 +19,8 @@ public class DocumentDbEntityInformationUnitTest {
     private static final String ID = "entity_info_test_id";
     private static final String FIRST_NAME = "first name";
     private static final String LAST_NAME = "last name";
-    private static final List<String> HOBBIES = Constants.HOBBIES;
-    private static final List<Address> ADDRESSES = Constants.ADDRESSES;
+    private static final List<String> HOBBIES = TestConstants.HOBBIES;
+    private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
 
     @Test
     public void testGetId() {

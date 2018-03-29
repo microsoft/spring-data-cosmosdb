@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.documentdb.repository.config;
 
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.repository.DocumentDbRepository;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbRepositoryFactoryBean;
@@ -25,12 +26,12 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
 
     @Override
     public String getModuleName() {
-        return "documentdb";
+        return Constants.DOCUMENTDB_MODULE_NAME;
     }
 
     @Override
     public String getModulePrefix() {
-        return "documentdb";
+        return Constants.DOCUMENTDB_MODULE_PREFIX;
     }
 
     public String getRepositoryFactoryBeanClassName() {
@@ -57,12 +58,12 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
     public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource config) {
         super.registerBeansForRoot(registry, config);
 
-        if (!registry.containsBeanDefinition("documentDbMappingContext")) {
+        if (!registry.containsBeanDefinition(Constants.DOCUMENTDB_MAPPING_CONTEXT_NAME)) {
             final RootBeanDefinition definition = new RootBeanDefinition(DocumentDbMappingContext.class);
             definition.setRole(AbstractBeanDefinition.ROLE_INFRASTRUCTURE);
             definition.setSource(config.getSource());
 
-            registry.registerBeanDefinition("documentDbMappingContext", definition);
+            registry.registerBeanDefinition(Constants.DOCUMENTDB_MAPPING_CONTEXT_NAME, definition);
         }
     }
 

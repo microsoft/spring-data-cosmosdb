@@ -1,5 +1,5 @@
 [![Travis CI](https://travis-ci.org/Microsoft/spring-data-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-documentdb)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/ms9i54axmxa7jg9d/branch/master?svg=true)](https://ci.appveyor.com/project/yungez/spring-data-documentdb)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/enki19t5yu8viqfu?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-documentdb)
 [![codecov](https://codecov.io/gh/Microsoft/spring-data-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-documentdb)
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-documentdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-documentdb%22)
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
@@ -14,6 +14,7 @@
 ## TOC
 
 * [Sample Code](#sample-codes)
+* [Spring data version support](#spring-data-version-support)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
 * [Query Partitioned Collection](QueryPartitionedCollection.md)
@@ -23,6 +24,9 @@
 
 ## Sample Code
 Please refer to [sample project here](./samplecode).
+
+## Spring data version support
+This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-documentdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
@@ -38,6 +42,14 @@ Please refer to [sample project here](./samplecode).
   - set name of this field to `id`, this field will be mapped to document `id` in Cosmos DB.
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
+- Custom IndexingPolicy
+  By default, IndexingPolicy will be set by azure service. To customize it add annotation `@DocumentIndexingPolicy` to domain class. This annotation has 4 attributes to customize, see following:
+```java
+   boolean automatic;     // Indicate if indexing policy use automatic or not
+   IndexingMode mode;     // Indexing policy mode, option Consistent|Lazy|None.
+   String[] includePaths; // Included paths for indexing
+   String[] excludePaths; // Excluded paths for indexing
+```
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField
 - Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
@@ -93,7 +105,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 ```
 
 
-### Define en entity
+### Define an entity
 Define a simple entity as Document in DocumentDB.
 
 ```
@@ -107,6 +119,8 @@ public class User {
     ... // setters and getters
     
     public User() {
+        // If you do not want to create a default constructor, 
+        // use annotation @JsonCreator and @JsonProperty in the full args constructor
     }
     
     public User(String id, String firstName, String lastName) {

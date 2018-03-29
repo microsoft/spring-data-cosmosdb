@@ -45,10 +45,12 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public <S extends T> S save(S entity) {
         Assert.notNull(entity, "entity must not be null");
+
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
-                entityInformation.getRequestUint());
+                entityInformation.getRequestUnit(),
+                entityInformation.getIndexingPolicy());
 
         // save entity
         if (entityInformation.isNew(entity)) {
@@ -85,7 +87,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(entityInformation.getCollectionName(),
                 entityInformation.getPartitionKeyFieldName(),
-                entityInformation.getRequestUint());
+                entityInformation.getRequestUnit(),
+                entityInformation.getIndexingPolicy());
 
         for (final S entity : entities) {
             save(entity);

@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.core.convert;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import org.json.JSONObject;
@@ -16,13 +17,16 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Date;
 
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
@@ -60,7 +64,7 @@ public class MappingDocumentDbConverter
             final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
             if (idProperty != null) {
                 // Replace the key id to the actual id field name in domain
-                jsonObject.remove("id");
+                jsonObject.remove(Constants.ID_PROPERTY_NAME);
                 jsonObject.put(idProperty.getName(), idValue);
             }
 
@@ -103,8 +107,11 @@ public class MappingDocumentDbConverter
             if (null != idProperty && field.getName().equals(idProperty.getName())) {
                 continue;
             }
-            targetDocument.set(field.getName(),
-                    accessor.getProperty(entityInformation.getPersistentProperty(field.getName())));
+
+            final PersistentProperty property = entityInformation.getPersistentProperty(field.getName());
+            Assert.notNull(property, "Property is null.");
+
+            targetDocument.set(field.getName(), mapToDocumentDBValue(accessor.getProperty(property)));
         }
     }
 
@@ -131,5 +138,22 @@ public class MappingDocumentDbConverter
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
+    }
+
+    /**
+     * Convert a property value to the value stored in DocumentDB
+     * @param fromPropertyValue
+     * @return
+     */
+    public Object mapToDocumentDBValue(Object fromPropertyValue) {
+        if (fromPropertyValue == null) {
+            return null;
+        }
+
+        if (fromPropertyValue instanceof Date) {
+            fromPropertyValue = ((Date) fromPropertyValue).getTime();
+        }
+
+        return fromPropertyValue;
     }
 }

@@ -24,17 +24,13 @@ import java.util.Iterator;
 
 public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbQueryCreator.class);
-    private final DocumentDbParameterAccessor accessor;
     private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
 
     public DocumentDbQueryCreator(PartTree tree, DocumentDbParameterAccessor accessor,
                                   MappingContext<?, DocumentDbPersistentProperty> mappingContext) {
         super(tree, accessor);
 
-        this.accessor = accessor;
         this.mappingContext = mappingContext;
-
     }
 
     @Override

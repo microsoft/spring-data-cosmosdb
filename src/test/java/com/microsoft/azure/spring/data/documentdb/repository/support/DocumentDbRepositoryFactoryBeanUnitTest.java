@@ -23,7 +23,7 @@ public class DocumentDbRepositoryFactoryBeanUnitTest {
     @Test
     public void testCreateRepositoryFactory() {
         final DocumentDbRepositoryFactoryBean factoryBean =
-                new DocumentDbRepositoryFactoryBean(PersonRepository.class, dbTemplate);
+                new DocumentDbRepositoryFactoryBean(PersonRepository.class);
         final RepositoryFactorySupport factory = factoryBean.createRepositoryFactory();
         assertThat(factory).isNotNull();
     }

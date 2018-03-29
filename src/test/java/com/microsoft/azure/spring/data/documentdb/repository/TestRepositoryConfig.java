@@ -17,7 +17,7 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
 @EnableDocumentDbRepositories
-public class ContactRepositoryConfig extends AbstractDocumentDbConfiguration {
+public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     @Value("${documentdb.uri}")
     String dbUri;
 

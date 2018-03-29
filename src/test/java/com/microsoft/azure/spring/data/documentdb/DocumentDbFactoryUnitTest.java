@@ -13,15 +13,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DocumentDbFactoryUnitTest {
-
     @Test(expected = IllegalArgumentException.class)
     public void testNullKey() throws Exception {
-        new DocumentDbFactory("https://fakeuri", null);
+        new DocumentDbFactory(TestConstants.DOCUMENTDB_FAKE_HOST, null);
     }
 
     @Test
     public void testInvalidEndpoint() {
-        final DocumentDbFactory factory = new DocumentDbFactory("https://fakeuri", "fakekey");
+        final DocumentDbFactory factory = new DocumentDbFactory(TestConstants.DOCUMENTDB_FAKE_HOST,
+                TestConstants.DOCUMENTDB_FAKE_KEY);
         assertThat(factory).isNotNull();
     }
 }

@@ -10,11 +10,12 @@ import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.documentdb.common.GetHashMac;
+import com.microsoft.azure.spring.data.documentdb.common.PropertyLoader;
 import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
-    private static final String USER_AGENT_SUFFIX = "spring-data/0.1.5-SNAPSHOT";
+    private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
     private DocumentClient documentClient;
 

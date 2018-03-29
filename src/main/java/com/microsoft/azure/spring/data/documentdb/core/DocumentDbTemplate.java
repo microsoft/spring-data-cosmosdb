@@ -12,6 +12,9 @@ import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.documentdb.exception.DatabaseCreationException;
+import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.documentdb.exception.IllegalCollectionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +85,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                             getRequestOptions(partitionKey, null), false);
             return objectToSave;
         } catch (DocumentClientException e) {
-            throw new RuntimeException("insert exception", e);
+            throw new DocumentDBAccessException("insert exception", e);
         }
     }
 
@@ -98,7 +102,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
-                    .readDocument(getDocumentLink(this.databaseName, collectionName, (String) id),
+                    .readDocument(getDocumentLink(this.databaseName, collectionName, id),
                             new RequestOptions()).getResource();
 
             if (resource instanceof Document) {
@@ -112,7 +116,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 return null;
             }
 
-            throw new RuntimeException("findById exception", e);
+            throw new DocumentDBAccessException("findById exception", e);
         }
     }
 
@@ -140,7 +144,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     originalDoc,
                     getRequestOptions(partitionKey, null), false);
         } catch (DocumentClientException ex) {
-            throw new RuntimeException("Failed to upsert document to database.", ex);
+            throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
         }
     }
 
@@ -159,7 +163,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .getQueryIterable().toList();
 
         if (collections.size() != 1) {
-            throw new RuntimeException("expect only one collection: " + collectionName
+            throw new IllegalCollectionException("expect only one collection: " + collectionName
                     + " in database: " + this.databaseName + ", but found " + collections.size());
         }
 
@@ -184,7 +188,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public void deleteAll(String collectionName) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("execute deleteCollection in database {} collection {} with id {}",
+            LOGGER.debug("execute deleteCollection in database {} collection {}",
                     this.databaseName, collectionName);
         }
 
@@ -199,7 +203,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 LOGGER.warn("deleteAll in database {} collection {} met NOTFOUND error {}",
                         this.databaseName, collectionName, ex.getMessage());
             } else {
-                throw new RuntimeException("deleteAll exception", ex);
+                throw new DocumentDBAccessException("deleteAll exception", ex);
             }
         }
     }
@@ -232,29 +236,37 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 if (resource instanceof Database) {
                     return (Database) resource;
                 } else {
-                    LOGGER.error("create database {} get unexpected result: {}" + resource.getSelfLink());
-                    throw new RuntimeException("create database {} get unexpected result: " + resource.getSelfLink());
+                    final String errorMessage = MessageFormat.format(
+                            "create database {0} and get unexpected result: {1}", dbName, resource.getSelfLink());
+
+                    LOGGER.error(errorMessage);
+                    throw new DatabaseCreationException(errorMessage);
                 }
             }
         } catch (DocumentClientException ex) {
-            throw new RuntimeException("createOrGetDatabase exception", ex);
+            throw new DocumentDBAccessException("createOrGetDatabase exception", ex);
         }
     }
 
     public DocumentCollection createCollection(String dbName,
                                                String collectionName,
                                                RequestOptions collectionOptions,
-                                               String partitionKeyFieldName) {
+                                               String partitionKeyFieldName,
+                                               IndexingPolicy policy) {
         DocumentCollection collection = new DocumentCollection();
         collection.setId(collectionName);
 
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            final ArrayList<String> paths = new ArrayList<String>();
+            final ArrayList<String> paths = new ArrayList<>();
 
             paths.add(getPartitionKeyPath(partitionKeyFieldName));
             partitionKeyDefinition.setPaths(paths);
             collection.setPartitionKey(partitionKeyDefinition);
+        }
+
+        if (policy != null) {
+            collection.setIndexingPolicy(policy);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -270,14 +282,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
             return collection;
         } catch (DocumentClientException e) {
-            throw new RuntimeException("createCollection exception", e);
+            throw new DocumentDBAccessException("createCollection exception", e);
         }
 
     }
 
     public DocumentCollection createCollectionIfNotExists(String collectionName,
                                                           String partitionKeyFieldName,
-                                                          Integer requestUnit) {
+                                                          Integer requestUnit,
+                                                          IndexingPolicy policy) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
@@ -292,7 +305,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return collectionList.get(0);
         } else {
             final RequestOptions requestOptions = getRequestOptions(null, requestUnit);
-            return createCollection(this.databaseName, collectionName, requestOptions, partitionKeyFieldName);
+            return createCollection(this.databaseName, collectionName, requestOptions, partitionKeyFieldName, policy);
         }
     }
 
@@ -310,7 +323,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     getRequestOptions(partitionKey, null));
 
         } catch (DocumentClientException ex) {
-            throw new RuntimeException("deleteById exception", ex);
+            throw new DocumentDBAccessException("deleteById exception", ex);
         }
     }
 
@@ -383,14 +396,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .getQueryIterable().toList();
 
         if (collections.size() != 1) {
-            throw new RuntimeException("expect only one collection: " + collectionName
+            throw new IllegalCollectionException("expect only one collection: " + collectionName
                     + " in database: " + this.databaseName + ", but found " + collections.size());
         }
 
         return collections.get(0);
     }
 
-    private static <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
+    private <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
         String queryStr = "SELECT * FROM ROOT r WHERE ";
 
         final SqlParameterCollection parameterCollection = new SqlParameterCollection();
@@ -406,7 +419,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             queryStr += "r." + fieldName + "=@" + entry.getKey();
-            parameterCollection.add(new SqlParameter("@" + entry.getKey(), entry.getValue()));
+
+            parameterCollection.add(new SqlParameter("@" + entry.getKey(),
+                    mappingDocumentDbConverter.mapToDocumentDBValue(entry.getValue())));
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);
@@ -451,7 +466,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 documentDbFactory.getDocumentClient().deleteDocument((document).getSelfLink(), options);
                 deletedResult.add(getConverter().read(entityClass, document));
             } catch (DocumentClientException e) {
-                throw new IllegalStateException(
+                throw new DocumentDBAccessException(
                         String.format("Failed to delete document [%s]", (document).getSelfLink()), e);
             }
         }
