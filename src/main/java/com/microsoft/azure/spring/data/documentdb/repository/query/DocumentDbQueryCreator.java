@@ -9,7 +9,6 @@ import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersist
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
-
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +18,11 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +66,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
         this.mappingContext = mappingContext;
     }
 
+
     @Override
     protected Criteria create(Part part, Iterator<Object> iterator) {
 
@@ -86,7 +86,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
     @Override
     protected Criteria or(Criteria base, Criteria criteria) {
 
-        logger.debug("Combining existing criteria {} with {} using AND condition", base, criteria);
+        logger.debug("Combining existing criteria {} with {} using OR condition", base, criteria);
 
         return Criteria.or(base, criteria);
     }
