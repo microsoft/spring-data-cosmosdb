@@ -85,8 +85,6 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindAllByPartition() {
-//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_LAST_NAME);
-//        criteria.is(TEST_PERSON.getLastName());
         final Query query = new Query(
                 Criteria.value(TestConstants.PROPERTY_LAST_NAME, 
                         CriteriaType.IS_EQUAL, Arrays.asList(new Object[] {TEST_PERSON.getLastName()})), null);
@@ -98,10 +96,6 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByIdWithPartition() {
-//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
-//        criteria.is(TEST_PERSON.getId());
-//        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
-//        final Query query = new Query(criteria);
         final Query query = new Query(
                 Criteria.and(
                         Criteria.value(TestConstants.PROPERTY_ID,
@@ -118,10 +112,6 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByNonExistIdWithPartition() {
-//        final Criteria criteria = new Criteria(TestConstants.PROPERTY_ID);
-//        criteria.is(TestConstants.NOT_EXIST_ID);
-//        criteria.and(TestConstants.PROPERTY_LAST_NAME).is(TEST_PERSON.getLastName());
-//        final Query query = new Query(criteria);
         final Query query = new Query(
                 Criteria.and(
                         Criteria.value(TestConstants.PROPERTY_ID,
