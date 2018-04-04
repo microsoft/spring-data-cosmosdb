@@ -17,6 +17,7 @@ import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -71,6 +72,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return this.requestUnit;
     }
 
+    @NonNull
     public IndexingPolicy getIndexingPolicy() {
         return this.indexingPolicy;
     }

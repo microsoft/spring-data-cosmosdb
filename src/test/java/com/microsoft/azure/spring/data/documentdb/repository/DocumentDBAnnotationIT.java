@@ -59,9 +59,7 @@ public class DocumentDBAnnotationIT {
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
         dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, TestConstants.DB_NAME);
 
-        final IndexingPolicy policy = roleInfo.getIndexingPolicy();
-
-        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo.getCollectionName(), null, null, policy);
+        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo, null);
         dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }
 
