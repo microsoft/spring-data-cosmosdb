@@ -43,3 +43,4 @@ target
 !.mvn/wrapper/maven-wrapper.jar
 
 *.dll
+/.apt_generated/
