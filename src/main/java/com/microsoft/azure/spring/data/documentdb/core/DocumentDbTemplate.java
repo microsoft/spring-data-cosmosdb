@@ -254,10 +254,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         DocumentCollection collection = new DocumentCollection();
         final String collectionName = information.getCollectionName();
         final IndexingPolicy policy = information.getIndexingPolicy();
+        final Integer timeToLive = information.getTimeToLive();
         final RequestOptions requestOptions = getRequestOptions(null, information.getRequestUnit());
 
         collection.setId(collectionName);
         collection.setIndexingPolicy(policy);
+
+        if (information.getIndexingPolicy().getAutomatic()) {
+            collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
+        }
 
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();

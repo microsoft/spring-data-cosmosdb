@@ -19,4 +19,6 @@ public @interface Document {
     String collection() default Constants.DEFAULT_COLLECTION_NAME;
 
     String ru() default Constants.DEFAULT_REQUEST_UNIT;
+
+    int timeToLive() default Constants.DEFAULT_TIME_TO_LIVE;
 }

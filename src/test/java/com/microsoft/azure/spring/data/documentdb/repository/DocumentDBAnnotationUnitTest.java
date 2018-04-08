@@ -29,7 +29,7 @@ public class DocumentDBAnnotationUnitTest {
     }
 
     @Test
-    public void testNoDocumentDBAnnotation() {
+    public void testDefaultIndexingPolicyAnnotation() {
         final IndexingPolicy policy = personInfo.getIndexingPolicy();
         final Document documentAnnotation = Person.class.getAnnotation(Document.class);
         final DocumentIndexingPolicy policyAnnotation = Person.class.getAnnotation(DocumentIndexingPolicy.class);
@@ -58,7 +58,7 @@ public class DocumentDBAnnotationUnitTest {
     }
 
     @Test
-    public void testDocumentDBAnnotation() {
+    public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = roleInfo.getIndexingPolicy();
         final Document documentAnnotation = Role.class.getAnnotation(Document.class);
         final DocumentIndexingPolicy policyAnnotation = Role.class.getAnnotation(DocumentIndexingPolicy.class);
@@ -80,6 +80,22 @@ public class DocumentDBAnnotationUnitTest {
         // IncludedPaths and ExcludedPaths
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
+    }
+
+    @Test
+    public void testDefaultDocumentAnnotationTimeToLive() {
+        final Integer timeToLive = personInfo.getTimeToLive();
+
+        Assert.notNull(timeToLive, "timeToLive should not be null");
+        Assert.isTrue(timeToLive == TestConstants.DEFAULT_TIME_TO_LIVE, "should be default time to live");
+    }
+
+    @Test
+    public void testDocumentAnnotationTimeToLive() {
+        final Integer timeToLive = roleInfo.getTimeToLive();
+
+        Assert.notNull(timeToLive, "timeToLive should not be null");
+        Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same time to live");
     }
 }
 

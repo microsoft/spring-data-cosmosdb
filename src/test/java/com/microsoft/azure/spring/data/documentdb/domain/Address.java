@@ -5,13 +5,14 @@
  */
 package com.microsoft.azure.spring.data.documentdb.domain;
 
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-@Document(ru = "1000")
+@Document(ru = "1000", timeToLive = TestConstants.TIME_TO_LIVE)
 @Data
 @AllArgsConstructor
 public class Address {

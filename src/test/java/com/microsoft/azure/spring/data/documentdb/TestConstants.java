@@ -23,6 +23,7 @@ public class TestConstants {
     public static final List<String> UPDATED_HOBBIES = Arrays.asList("updatedPhotography", "updatedFishing");
     public static final List<Address> ADDRESSES = Arrays.asList(ADDRESS_1, ADDRESS_2);
 
+    public static final int DEFAULT_TIME_TO_LIVE = -1;
     public static final String DEFAULT_COLLECTION_NAME = "Person";
     public static final int DEFAULT_REQUEST_UNIT = 4000;
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
@@ -37,6 +38,7 @@ public class TestConstants {
 
     public static final String ROLE_COLLECTION_NAME = "RoleCollectionName";
     public static final int REQUEST_UNIT = 1000;
+    public static final int TIME_TO_LIVE = 24 * 60 * 60;
     public static final String REQUEST_UNIT_STRING = "1000";
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;
