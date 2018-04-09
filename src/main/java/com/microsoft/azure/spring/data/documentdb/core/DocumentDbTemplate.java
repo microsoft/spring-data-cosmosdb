@@ -384,7 +384,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-  public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
+    public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
         final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, domainClass);
 
         // TODO (wepa) Collection link should be created locally without accessing database,
@@ -450,6 +450,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return new SqlQuerySpec(queryStr, parameterCollection);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> boolean isIdField(String fieldName, Class<T> entityClass) {
+        if (StringUtils.isEmpty(fieldName)) {
+            return false;
+        }
+
+        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(entityClass);
+        return fieldName.equals(entityInfo.getId().getName());
+    }
+
     @Override
     public MappingDocumentDbConverter getConverter() {
         return this.mappingDocumentDbConverter;
@@ -469,7 +479,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final List<Document> results = documentDbFactory.getDocumentClient()
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
 
-        final  RequestOptions options = new RequestOptions();
+        final RequestOptions options = new RequestOptions();
         if (partitionKeyValue.isPresent()) {
             options.setPartitionKey(new PartitionKey(partitionKeyValue.get()));
         }
@@ -513,6 +523,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return Optional.of(matched.getCriteriaValues().get(0));
     }
 
+    @SuppressWarnings("unchecked")
     private <T> Optional<String> getPartitionKeyField(Class<T> domainClass) {
         final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
         if (entityInfo.getPartitionKeyFieldName() == null) {
