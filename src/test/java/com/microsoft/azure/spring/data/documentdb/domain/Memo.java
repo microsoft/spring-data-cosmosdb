@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.domain;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -17,6 +18,7 @@ import java.util.Date;
 @Document
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Memo {
     private String id;
     private String message;
