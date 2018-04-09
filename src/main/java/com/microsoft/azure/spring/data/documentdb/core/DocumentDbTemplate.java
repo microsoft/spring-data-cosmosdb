@@ -25,7 +25,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -540,9 +539,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 matchedCriteria = criteria;
             }
             
-            criteria.getCriteriaList().forEach(val -> {
+            for (final Criteria val : criteria.getCriteriaList()) {
                 val.accept(this);
-            });
+            }
         }
         
         public Criteria matchedCriteria() {
