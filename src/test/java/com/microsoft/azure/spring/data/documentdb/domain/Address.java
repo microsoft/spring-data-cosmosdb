@@ -9,11 +9,13 @@ import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
 @Document(ru = "1000")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Address {
     @Id
     String postalCode;

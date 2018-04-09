@@ -7,10 +7,12 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Contact {
     @Id
     private String logicId;
