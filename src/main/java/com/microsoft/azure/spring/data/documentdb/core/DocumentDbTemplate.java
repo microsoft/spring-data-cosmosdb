@@ -25,6 +25,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -450,16 +451,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return new SqlQuerySpec(queryStr, parameterCollection);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> boolean isIdField(String fieldName, Class<T> entityClass) {
-        if (StringUtils.isEmpty(fieldName)) {
-            return false;
-        }
-
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(entityClass);
-        return fieldName.equals(entityInfo.getId().getName());
-    }
-
     @Override
     public MappingDocumentDbConverter getConverter() {
         return this.mappingDocumentDbConverter;
@@ -651,6 +642,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 workingTemplate = workingTemplate.replaceAll("@\\?", "LOWER(@\\?)");
                 workingTemplate = workingTemplate.replaceAll("@@", "LOWER(@@)");
             }
+
+            // If the field name used in any of the criteria parameters matches the id field specified for
+            // entity (with @Id) then replace the field name with "id"
             
             workingTemplate = workingTemplate.replaceAll("@\\?", 
                     criteria.getCriteriaSubject() != null && 
