@@ -5,11 +5,11 @@
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
 
 
-# Spring Data for Azure DocumentDB 
+# Spring Data for Azure Cosmos DB 
 
-[Azure DocumentDB](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) helps manage JSON data through well-defined database resources. It is a key part of [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction), which is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as DocumentDB, MongoDB, Graph, and Table. 
+[Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as SQL, MongoDB, Cassandra, Graph, and Table.
 
-**Spring Data DocumentDB** provides initial Spring Data support for [Azure DocumentDB API](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) based on Spring Data framework, the other APIs are not supported in this package. 
+**Spring Data Azure Cosmos DB** provides initial Spring Data support for Azure Cosmos DB using the [SQL API](https://docs.microsoft.com/en-us/azure/cosmos-db/sql-api-introduction), based on Spring Data framework; the other APIs are not supported in this package. 
 
 ## TOC
 
@@ -39,7 +39,7 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
 - Spring Data [@Id](https://github.com/spring-projects/spring-data-commons/blob/db62390de90c93a78743c97cc2cc9ccd964994a5/src/main/java/org/springframework/data/annotation/Id.java) annotation.
   There're 2 ways to map a field in domain class to `id` field of Azure Cosmos DB document.
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
-  - set name of this field to `id`, this field will be mapped to document `id` in Cosmos DB.
+  - set name of this field to `id`, this field will be mapped to document `id` in Azure Cosmos DB.
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
 - Custom IndexingPolicy
@@ -106,7 +106,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 
 
 ### Define an entity
-Define a simple entity as Document in DocumentDB.
+Define a simple entity as Document in Azure Cosmos DB.
 
 ```
 @Document(collection = "mycollection")
@@ -193,7 +193,7 @@ public class SampleApplication implements CommandLineRunner {
     }
 }
 ```
-Autowired UserRepository interface, then can do save, delete and find operations. Azure Cosmos DB DocumentDB Spring Data uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
+Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
 
 ## Filing Issues
 
