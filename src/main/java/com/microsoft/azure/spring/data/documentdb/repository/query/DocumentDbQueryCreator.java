@@ -34,14 +34,14 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
     // Below table maps the criteria operation indicated by the part of the method name to an actual operation
     // that will be performed by the query.  The Pair<CriteriaType,Boolean> indicates the CriteriaType the Part.Type
     // maps to with the boolean indicating if the logic should be inverted.
-    
+
     private static final Map<Part.Type, Pair<CriteriaType, Boolean>> criteriaLookup;
     static {
         final Map<Part.Type, Pair<CriteriaType, Boolean>> init = new HashMap<>();
         init.put(Part.Type.BEFORE, new Pair<>(CriteriaType.IS_LESS_THAN, Boolean.FALSE));
-        init.put(Part.Type.AFTER, new Pair<>(CriteriaType.IS_LESS_THAN_OR_EQUAL, Boolean.TRUE));
-        init.put(Part.Type.GREATER_THAN, new Pair<>(CriteriaType.IS_GREATER_THAN_OR_EQUAL, Boolean.FALSE));
-        init.put(Part.Type.GREATER_THAN_EQUAL, new Pair<>(CriteriaType.IS_GREATER_THAN, Boolean.FALSE));
+        init.put(Part.Type.AFTER, new Pair<>(CriteriaType.IS_GREATER_THAN, Boolean.FALSE));
+        init.put(Part.Type.GREATER_THAN, new Pair<>(CriteriaType.IS_GREATER_THAN, Boolean.FALSE));
+        init.put(Part.Type.GREATER_THAN_EQUAL, new Pair<>(CriteriaType.IS_GREATER_THAN_OR_EQUAL, Boolean.FALSE));
         init.put(Part.Type.LESS_THAN, new Pair<>(CriteriaType.IS_LESS_THAN, Boolean.FALSE));
         init.put(Part.Type.LESS_THAN_EQUAL, new Pair<>(CriteriaType.IS_LESS_THAN_OR_EQUAL, Boolean.FALSE));
         init.put(Part.Type.BETWEEN, new Pair<>(CriteriaType.BETWEEN, Boolean.FALSE));
