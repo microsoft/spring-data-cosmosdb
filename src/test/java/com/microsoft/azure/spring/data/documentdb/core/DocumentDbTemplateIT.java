@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
     private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
-            TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+            TestConstants.LAST_NAME, TestConstants.AGE_10, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${documentdb.uri}")
     private String documentDbUri;
@@ -108,7 +108,8 @@ public class DocumentDbTemplateIT {
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class, null);
 
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
-        final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
+        final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME,
+                TestConstants.AGE_10, null, null);
 
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, null);
 
@@ -121,7 +122,8 @@ public class DocumentDbTemplateIT {
     @Test
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
-                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+                TEST_PERSON.getLastName(), TestConstants.AGE_10, TEST_PERSON.getHobbies(),
+                TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
@@ -133,7 +135,8 @@ public class DocumentDbTemplateIT {
     @Test
     public void testDeleteById() {
         final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+                TestConstants.NEW_LAST_NAME, TestConstants.AGE_10,
+                TestConstants.HOBBIES, TestConstants.ADDRESSES);
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
@@ -143,7 +146,6 @@ public class DocumentDbTemplateIT {
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).equals(person2));
     }
-
 
     @Test
     public void testDocumentDBAnnotation() {

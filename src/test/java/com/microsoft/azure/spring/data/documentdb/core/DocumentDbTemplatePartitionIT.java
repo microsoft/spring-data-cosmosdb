@@ -46,7 +46,7 @@ public class DocumentDbTemplatePartitionIT {
     private static final List<String> HOBBIES = TestConstants.HOBBIES;
     private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
     private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
-            TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+            TestConstants.LAST_NAME, TestConstants.AGE_10, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${documentdb.uri}")
     private String documentDbUri;
@@ -127,7 +127,8 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testUpsertNewDocumentPartition() {
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
-        final Person newPerson = new Person(null, firstName, TestConstants.NEW_LAST_NAME, null, null);
+        final Person newPerson = new Person(null, firstName, TestConstants.NEW_LAST_NAME,
+                TestConstants.AGE_10, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, new PartitionKey(partitionKeyValue));
@@ -144,7 +145,8 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testUpdatePartition() {
         final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
-                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+                TEST_PERSON.getLastName(), TEST_PERSON.getAge(), TEST_PERSON.getHobbies(),
+                TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(),
                 new PartitionKey(updated.getLastName()));
 
@@ -158,7 +160,8 @@ public class DocumentDbTemplatePartitionIT {
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
         final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
+                TEST_PERSON.getLastName(), TestConstants.AGE_10,
+                TestConstants.HOBBIES, TestConstants.ADDRESSES);
         dbTemplate.insert(Person.class.getSimpleName(), person2, new PartitionKey(person2.getLastName()));
 
         final List<Person> inserted = dbTemplate.findAll(Person.class);

@@ -34,7 +34,7 @@ public class DocumentDbConverterUnitTest {
     @Test
     public void testConvertFromEntityToDocument() {
         final Person person = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
-                TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+                TestConstants.LAST_NAME, TestConstants.AGE_10, TestConstants.HOBBIES, TestConstants.ADDRESSES);
         final Document document = dbConverter.convertToDocument(person);
 
         assertTrue(document.has(TestConstants.PROPERTY_ID));
@@ -60,6 +60,7 @@ public class DocumentDbConverterUnitTest {
         json.put(TestConstants.PROPERTY_ID, TestConstants.ID);
         json.put(TestConstants.PROPERTY_FIRST_NAME, TestConstants.FIRST_NAME);
         json.put(TestConstants.PROPERTY_LAST_NAME, TestConstants.LAST_NAME);
+        json.put(TestConstants.PROPERTY_AGE, TestConstants.AGE_10);
         json.put(TestConstants.PROPERTY_HOBBIES, TestConstants.HOBBIES);
         json.put(TestConstants.PROPERTY_SHIPPING_ADDRESSES, TestConstants.ADDRESSES);
 
@@ -68,6 +69,7 @@ public class DocumentDbConverterUnitTest {
         assertThat(person.getId()).isEqualTo(TestConstants.ID);
         assertThat(person.getFirstName()).isEqualTo(TestConstants.FIRST_NAME);
         assertThat(person.getLastName()).isEqualTo(TestConstants.LAST_NAME);
+        assertThat(person.getAge()).isEqualTo(TestConstants.AGE_10);
         assertThat(person.getHobbies()).isEqualTo(TestConstants.HOBBIES);
         assertThat(person.getShippingAddresses()).isEqualTo(TestConstants.ADDRESSES);
     }
