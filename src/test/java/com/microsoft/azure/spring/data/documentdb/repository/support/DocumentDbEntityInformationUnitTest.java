@@ -19,12 +19,13 @@ public class DocumentDbEntityInformationUnitTest {
     private static final String ID = "entity_info_test_id";
     private static final String FIRST_NAME = "first name";
     private static final String LAST_NAME = "last name";
+    private static final int AGE_10 = 10;
     private static final List<String> HOBBIES = TestConstants.HOBBIES;
     private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
 
     @Test
     public void testGetId() {
-        final Person testPerson = new Person(ID, FIRST_NAME, LAST_NAME, HOBBIES, ADDRESSES);
+        final Person testPerson = new Person(ID, FIRST_NAME, LAST_NAME, AGE_10, HOBBIES, ADDRESSES);
         final DocumentDbEntityInformation<Person, String> entityInformation =
                 new DocumentDbEntityInformation<Person, String>(Person.class);
 

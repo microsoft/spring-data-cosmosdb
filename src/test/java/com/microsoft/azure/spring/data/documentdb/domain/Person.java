@@ -17,6 +17,7 @@ public class Person {
     private String id;
     private String firstName;
     private String lastName;
+    private int age;
     private List<String> hobbies;
     private List<Address> shippingAddresses;
 }

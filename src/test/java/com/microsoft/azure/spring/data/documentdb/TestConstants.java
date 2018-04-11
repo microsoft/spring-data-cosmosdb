@@ -80,6 +80,10 @@ public class TestConstants {
     public static final String ROLE_NAME = "Developer";
     public static final String NOT_EXIST_ID = "non_exist_id";
 
+    public static final int AGE_0 = 0;
+    public static final int AGE_10 = 10;
+    public static final int AGE_20 = 20;
+
     public static final String DATE_STRING = "1/1/2000";
     public static final String NEW_DATE_STRING = "1/1/2001";
     public static final String DATE_FORMAT = "dd/MM/yyyy";
@@ -112,6 +116,7 @@ public class TestConstants {
     public static final String PROPERTY_ID = "id";
     public static final String PROPERTY_FIRST_NAME = "firstName";
     public static final String PROPERTY_LAST_NAME = "lastName";
+    public static final String PROPERTY_AGE = "age";
     public static final String PROPERTY_HOBBIES = "hobbies";
     public static final String PROPERTY_SHIPPING_ADDRESSES = "shippingAddresses";
 
