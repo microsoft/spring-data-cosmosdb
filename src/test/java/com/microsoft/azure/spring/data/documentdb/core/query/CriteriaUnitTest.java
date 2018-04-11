@@ -6,7 +6,6 @@
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
-import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
 
 import org.junit.Test;
 

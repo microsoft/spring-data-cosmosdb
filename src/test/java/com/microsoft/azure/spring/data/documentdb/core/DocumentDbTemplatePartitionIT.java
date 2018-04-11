@@ -14,7 +14,7 @@ import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
-import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
+import com.microsoft.azure.spring.data.documentdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
