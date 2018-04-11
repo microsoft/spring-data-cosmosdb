@@ -42,10 +42,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     static {
         final Map<CriteriaType, String> init = new HashMap<>();
         init.put(CriteriaType.IS_EQUAL,                 "r.@?=@@");
-        init.put(CriteriaType.IS_LESS_THAN,             "r.@?<=@@");
-        init.put(CriteriaType.IS_LESS_THAN_OR_EQUAL,    "r.@?<@@");
-        init.put(CriteriaType.IS_GREATER_THAN,          "r.@?<=@@");
-        init.put(CriteriaType.IS_GREATER_THAN_OR_EQUAL, "r.@?<@@");
+        init.put(CriteriaType.IS_LESS_THAN,             "r.@?<@@");
+        init.put(CriteriaType.IS_LESS_THAN_OR_EQUAL,    "r.@?<=@@");
+        init.put(CriteriaType.IS_GREATER_THAN,          "r.@?>@@");
+        init.put(CriteriaType.IS_GREATER_THAN_OR_EQUAL, "r.@?>=@@");
         init.put(CriteriaType.BETWEEN,                  "r.@? BETWEEN @@ AND @@");
         init.put(CriteriaType.CONTAINING,               "CONTAINS(r.@?, @@)");
         init.put(CriteriaType.WITHIN,                   "CONTAINS(@@, r.@?)");
