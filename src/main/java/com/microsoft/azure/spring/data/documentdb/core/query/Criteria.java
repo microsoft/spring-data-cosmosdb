@@ -10,28 +10,6 @@ import java.util.List;
 
 
 public class Criteria {
-
-    public enum CriteriaType {
-        AND_CONDITION,
-        OR_CONDITION,
-        IS_EQUAL,
-        IS_LESS_THAN,
-        IS_LESS_THAN_OR_EQUAL,
-        IS_GREATER_THAN,
-        IS_GREATER_THAN_OR_EQUAL,
-        BETWEEN,
-        WITHIN,
-        CONTAINING,
-        ENDING_WITH,
-        EXISTS,
-        IS_EMPTY,
-        IS_NULL,
-        LIKE,
-        NEAR,
-        REGEX,
-        STARTING_WITH,
-        IN
-    };
     
     private final CriteriaType criteriaType;
     private final List<Criteria> criteriaList = new ArrayList<>();

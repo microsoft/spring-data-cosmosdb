@@ -7,7 +7,7 @@ package com.microsoft.azure.spring.data.documentdb.repository.query;
 
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
-import com.microsoft.azure.spring.data.documentdb.core.query.Criteria.CriteriaType;
+import com.microsoft.azure.spring.data.documentdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
