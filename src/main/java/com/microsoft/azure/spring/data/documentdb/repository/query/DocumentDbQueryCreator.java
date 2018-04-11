@@ -31,6 +31,10 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentDbQueryCreator.class);
 
+    // Below table maps the criteria operation indicated by the part of the method name to an actual operation
+    // that will be performed by the query.  The Pair<CriteriaType,Boolean> indicates the CriteriaType the Part.Type
+    // maps to with the boolean indicating if the logic should be inverted.
+    
     private static final Map<Part.Type, Pair<CriteriaType, Boolean>> criteriaLookup;
     static {
         final Map<Part.Type, Pair<CriteriaType, Boolean>> init = new HashMap<>();
