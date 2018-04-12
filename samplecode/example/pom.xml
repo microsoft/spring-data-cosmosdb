@@ -3,8 +3,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-data-documentdb-example</artifactId>
-	<name>Spring Data DocumentDb - Example</name>
+	<artifactId>spring-data-cosmosdb-example</artifactId>
+	<name>Spring Data Cosmosdb - Example</name>
 
 	<parent>
 		<groupId>pli.spring.data.documentdb.examples</groupId>

@@ -9,8 +9,8 @@ This instruction is guideline for building and code contribution.
 To build the project, run maven commands.
 
 ```bash
-git clone https://github.com/Microsoft/spring-data-documentdb.git 
-cd spring-data-documentdb
+git clone https://github.com/Microsoft/spring-data-cosmosdb.git 
+cd spring-data-cosmosdb
 mvnw clean install
 ```
 
