@@ -1,8 +1,8 @@
-[![Travis CI](https://travis-ci.org/Microsoft/spring-data-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-documentdb)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/enki19t5yu8viqfu?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-documentdb)
-[![codecov](https://codecov.io/gh/Microsoft/spring-data-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-documentdb)
+[![Travis CI](https://travis-ci.org/Microsoft/spring-data-cosmosdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-cosmosdb)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/enki19t5yu8viqfu?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-cosmosdb)
+[![codecov](https://codecov.io/gh/Microsoft/spring-data-cosmosdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-cosmosdb)
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-documentdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-documentdb%22)
-[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
+[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE)
 
 
 # Spring Data for Azure DocumentDB 
