@@ -13,7 +13,7 @@
 
 ## TOC
 
-* [Sample Code](#sample-codes)
+* [Sample Code](#sample-code)
 * [Spring data version support](#spring-data-version-support)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
