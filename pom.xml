@@ -5,17 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>spring-data-documentdb</artifactId>
+    <artifactId>spring-data-cosmosdb</artifactId>
     <version>2.0.3-SNAPSHOT</version>
 
-    <name>Spring Data for Azure Cosmos DB DocumentDB API</name>
-    <description>Spring Data for Azure Cosmos DB DocumentDB API</description>
-    <url>https://github.com/Microsoft/spring-data-documentdb</url>
+    <name>Spring Data for Azure Cosmos DB SQL API</name>
+    <description>Spring Data for Azure Cosmos DB SQL API</description>
+    <url>https://github.com/Microsoft/spring-data-cosmosdb</url>
 
     <licenses>
         <license>
             <name>MIT</name>
-            <url>https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE</url>
+            <url>https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -34,10 +34,10 @@
     </organization>
 
     <scm>
-        <connection>scm:git:git://github.com/Microsoft/spring-data-documentdb.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-documentdb.git
+        <connection>scm:git:git://github.com/Microsoft/spring-data-cosmosdb.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-cosmosdb.git
         </developerConnection>
-        <url>https://github.com/Microsoft/spring-data-documentdb/tree/master</url>
+        <url>https://github.com/Microsoft/spring-data-cosmosdb/tree/master</url>
     </scm>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

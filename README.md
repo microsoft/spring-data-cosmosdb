@@ -2,7 +2,7 @@
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/enki19t5yu8viqfu?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-documentdb)
 [![codecov](https://codecov.io/gh/Microsoft/spring-data-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-documentdb)
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-documentdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-documentdb%22)
-[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
+[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE)
 
 
 # Spring Data for Azure Cosmos DB 
@@ -26,7 +26,7 @@
 Please refer to [sample project here](./samplecode).
 
 ## Spring data version support
-This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-documentdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
+This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
@@ -58,14 +58,14 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
 ## Quick Start
 
 ### Add the dependency
-`spring-data-documentdb` is published on Maven Central Repository.  
+`spring-data-cosmosdb` is published on Maven Central Repository.  
 If you are using Maven, add the following dependency.  
 
 ```xml
 <dependency>
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>spring-data-documentdb</artifactId>
-    <version>0.1.3</version>
+    <artifactId>spring-data-cosmosdb</artifactId>
+    <version>2.0.3</version>
 </dependency>
 ```
 
@@ -197,7 +197,7 @@ Autowired UserRepository interface, then can do save, delete and find operations
 
 ## Filing Issues
 
-If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-documentdb/issues/new).
+If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-cosmosdb/issues/new).
 
 To suggest a new feature or changes that could be made, file an issue the same way you would for a bug.
 
