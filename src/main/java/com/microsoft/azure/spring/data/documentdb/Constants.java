@@ -25,5 +25,12 @@ public class Constants {
     public static final String DOCUMENTDB_MAPPING_CONTEXT_NAME = "documentDbMappingContext";
 
     public static final String USER_AGENT_SUFFIX = "spring-data/2.0.2-SNAPSHOT";
+
+    public static final String CRITERIA_AND = " AND ";
+    public static final String CRITERIA_OR = ") OR (";
+    public static final String CRITERIA_LEFT_BRACKET = "(";
+    public static final String CRITERIA_RIGHT_BRACKET = ")";
+
+    public static final String IS_EQUAL = "r.@?=@@";
 }
 
