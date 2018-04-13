@@ -52,6 +52,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         this.indexingPolicy = getIndexingPolicy(domainClass);
     }
 
+    @SuppressWarnings("unchecked")
     public ID getId(T entity) {
         return (ID) ReflectionUtils.getField(id, entity);
     }
@@ -60,6 +61,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return this.id;
     }
 
+    @SuppressWarnings("unchecked")
     public Class<ID> getIdType() {
         return (Class<ID>) id.getType();
     }
