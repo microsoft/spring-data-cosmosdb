@@ -8,46 +8,95 @@ package com.microsoft.azure.spring.data.documentdb.core.query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Criteria implements CriteriaDefinition {
 
-    private String key;
-    private Object value;
-    private List<Criteria> criteriaChain;
+public class Criteria {
+    
+    private final CriteriaType criteriaType;
+    private final List<Criteria> criteriaList = new ArrayList<>();
 
-    public Criteria(String key) {
-        this.criteriaChain = new ArrayList<>();
-        this.criteriaChain.add(this);
-        this.key = key;
+    private String criteriaSubject;
+    private List<Object> criteriaValues = new ArrayList<>();
+    private boolean shouldIgnoreCase;
+    private boolean negated;
+
+    private Criteria(CriteriaType criteriaType) {
+        this.criteriaType = criteriaType;
+        this.shouldIgnoreCase = false;
+        this.negated = false;
     }
 
-    protected Criteria(List<Criteria> criteriaChain, String key) {
-        this.criteriaChain = criteriaChain;
-        this.criteriaChain.add(this);
-        this.key = key;
+    public static Criteria and(Criteria left, Criteria right) {
+
+        final Criteria criteria = new Criteria(CriteriaType.AND_CONDITION);
+        
+        criteria.criteriaList.add(left);
+        criteria.criteriaList.add(right);
+
+        return criteria;
     }
 
-    public Object getCriteriaObject() {
-        return value;
+    public static Criteria or(Criteria left, Criteria right) {
+
+        final Criteria criteria = new Criteria(CriteriaType.OR_CONDITION);
+        
+        criteria.criteriaList.add(left);
+        criteria.criteriaList.add(right);
+        
+        return criteria;
     }
 
-    public String getKey() {
-        return key;
+    public static Criteria value(String conditionSubject, CriteriaType condition, List<Object> conditionValues) {
+        return value(conditionSubject, condition, conditionValues, false, false);
     }
 
-    public static Criteria where(String key) {
-        return new Criteria(key);
+    public static Criteria value(String conditionSubject, CriteriaType condition,
+            List<Object> conditionValues, boolean ignoreCase) {
+        return value(conditionSubject, condition, conditionValues, ignoreCase, false);
+    }
+    
+    public static Criteria value(String conditionSubject, CriteriaType condition,
+            List<Object> conditionValues, boolean ignoreCase, boolean negated) {
+
+        final Criteria criteria = new Criteria(condition);
+        
+        criteria.criteriaSubject = conditionSubject;
+        criteria.criteriaValues = conditionValues;
+        criteria.shouldIgnoreCase = ignoreCase;
+        
+        return criteria;
     }
 
-    public Criteria is(Object o) {
-        this.value = o;
-        return this;
+    
+    public List<Criteria> getCriteriaList() {
+        return criteriaList;
+    }
+    
+    public String getCriteriaSubject() {
+        return criteriaSubject;
     }
 
-    public Criteria and(String key) {
-        return new Criteria(this.criteriaChain, key);
+    public List<Object> getCriteriaValues() {
+        return criteriaValues;
     }
 
-    public List<Criteria> getCriteriaChain() {
-        return criteriaChain;
+    public boolean shouldIgnoreCase() {
+        return shouldIgnoreCase;
+    }
+
+    public CriteriaType getCriteriaType() {
+        return criteriaType;
+    }
+    
+    public boolean isNegated() {
+        return negated;
+    }
+
+    public void accept(Visitor visitor) {
+        
+        visitor.visitCriteria(this);
+    }
+    
+    public interface Visitor {
+        public void visitCriteria(Criteria criteria);
     }
 }
