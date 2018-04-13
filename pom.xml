@@ -145,7 +145,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${org.projectlombok.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
