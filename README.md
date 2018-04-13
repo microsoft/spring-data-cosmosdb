@@ -9,7 +9,7 @@
 
 [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as SQL, MongoDB, Cassandra, Graph, and Table.
 
-**Spring Data Azure Cosmos DB** provides initial Spring Data support for Azure Cosmos DB using the [SQL API](https://docs.microsoft.com/en-us/azure/cosmos-db/sql-api-introduction), based on Spring Data framework; the other APIs are not supported in this package. 
+**Spring Data Azure Cosmos DB** provides initial Spring Data support for Azure Cosmos DB using the [SQL API](https://docs.microsoft.com/en-us/azure/cosmos-db/sql-api-introduction), based on Spring Data framework. Currently it only supports SQL API, the other APIs are in the plan. 
 
 ## TOC
 
@@ -26,7 +26,7 @@
 Please refer to [sample project here](./samplecode).
 
 ## Spring data version support
-This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
+This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about more details and corresponding branch mapping. 
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
