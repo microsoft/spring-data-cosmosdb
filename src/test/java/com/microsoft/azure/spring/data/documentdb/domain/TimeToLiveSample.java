@@ -5,19 +5,16 @@
  */
 package com.microsoft.azure.spring.data.documentdb.domain;
 
+import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.springframework.data.annotation.Id;
+import lombok.Getter;
+import lombok.Setter;
 
-@Document(ru = "1000")
-@Data
 @AllArgsConstructor
-public class Address {
-    @Id
-    String postalCode;
-    String street;
-    @PartitionKey
-    String city;
+@Getter
+@Setter
+@Document(timeToLive = TestConstants.TIME_TO_LIVE)
+public class TimeToLiveSample {
+    private String id;
 }

@@ -38,7 +38,7 @@ public class TestConstants {
 
     public static final String ROLE_COLLECTION_NAME = "RoleCollectionName";
     public static final int REQUEST_UNIT = 1000;
-    public static final int TIME_TO_LIVE = 24 * 60 * 60;
+    public static final int TIME_TO_LIVE = 5;
     public static final String REQUEST_UNIT_STRING = "1000";
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;

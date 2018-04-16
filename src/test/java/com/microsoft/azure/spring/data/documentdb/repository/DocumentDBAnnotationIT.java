@@ -11,9 +11,10 @@ import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
-import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Role;
+import com.microsoft.azure.spring.data.documentdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,13 +28,13 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.util.concurrent.TimeUnit;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
     private static final Role TEST_ROLE = new Role(TestConstants.ID, TestConstants.LEVEL,
             TestConstants.ROLE_NAME);
-    private static final Address TEST_ADDRESS = new Address(TestConstants.POSTAL_CODE, TestConstants.STREET,
-            TestConstants.CITY);
 
     @Value("${documentdb.uri}")
     private String dbUri;
@@ -47,16 +48,16 @@ public class DocumentDBAnnotationIT {
     private DocumentClient dbClient;
     private DocumentDbTemplate dbTemplate;
     private DocumentCollection collectionRole;
-    private DocumentCollection collectionAddress;
+    private DocumentCollection collectionExample;
     private DocumentDbMappingContext dbContext;
     private MappingDocumentDbConverter mappingConverter;
     private DocumentDbEntityInformation<Role, String> roleInfo;
-    private DocumentDbEntityInformation<Address, String> addressInfo;
+    private DocumentDbEntityInformation<TimeToLiveSample, String> sampleInfo;
 
     @Before
     public void setUp() throws ClassNotFoundException {
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
-        addressInfo = new DocumentDbEntityInformation<>(Address.class);
+        sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
         dbContext = new DocumentDbMappingContext();
 
         dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
@@ -66,16 +67,14 @@ public class DocumentDBAnnotationIT {
         dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, TestConstants.DB_NAME);
 
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo, null);
-        collectionAddress = dbTemplate.createCollectionIfNotExists(addressInfo, null);
+        collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo, null);
 
         dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
-        dbTemplate.insert(addressInfo.getCollectionName(), TEST_ADDRESS, null);
     }
 
     @After
     public void cleanUp() {
         dbTemplate.deleteAll(roleInfo.getCollectionName());
-        dbTemplate.deleteAll(addressInfo.getCollectionName());
     }
 
     @Test
@@ -92,11 +91,25 @@ public class DocumentDBAnnotationIT {
     }
 
     @Test
+    @SneakyThrows
     public void testDocumentAnnotationTimeToLive() {
-        final Integer timeToLive = collectionAddress.getDefaultTimeToLive();
+        final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID);
+        final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
 
         Assert.notNull(timeToLive, "timeToLive should not be null");
         Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");
+
+        dbTemplate.insert(sampleInfo.getCollectionName(), sample, null);
+
+        // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
+        TimeToLiveSample found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        Assert.notNull(found, "Address should not be null");
+
+        TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
+        TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
+
+        found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        Assert.isNull(found, "Timeout Address should be null");
     }
 }
 
