@@ -68,9 +68,7 @@ public class DocumentDbTemplateIT {
 
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
 
-        final IndexingPolicy policy = personInfo.getIndexingPolicy();
-
-        collectionPerson = dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), null, null, policy);
+        collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo, null);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }
 
