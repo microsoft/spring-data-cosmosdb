@@ -17,6 +17,7 @@ import com.microsoft.azure.spring.data.documentdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
+import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +57,7 @@ public class DocumentDbTemplatePartitionIT {
 
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
+    private DocumentDbEntityInformation<Person, String> personInfo;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -70,9 +72,9 @@ public class DocumentDbTemplatePartitionIT {
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
+        personInfo = new DocumentDbEntityInformation<>(Person.class);
 
-        dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), TestConstants.PROPERTY_LAST_NAME,
-                1000, null);
+        dbTemplate.createCollectionIfNotExists(this.personInfo, TestConstants.PROPERTY_LAST_NAME);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, new PartitionKey(TEST_PERSON.getLastName()));
     }
 
