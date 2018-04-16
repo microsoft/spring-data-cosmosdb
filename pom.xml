@@ -5,17 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>spring-data-documentdb</artifactId>
+    <artifactId>spring-data-cosmosdb</artifactId>
     <version>2.0.3-SNAPSHOT</version>
 
-    <name>Spring Data for Azure Cosmos DB DocumentDB API</name>
-    <description>Spring Data for Azure Cosmos DB DocumentDB API</description>
-    <url>https://github.com/Microsoft/spring-data-documentdb</url>
+    <name>Spring Data for Azure Cosmos DB SQL API</name>
+    <description>Spring Data for Azure Cosmos DB SQL API</description>
+    <url>https://github.com/Microsoft/spring-data-cosmosdb</url>
 
     <licenses>
         <license>
             <name>MIT</name>
-            <url>https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE</url>
+            <url>https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -34,21 +34,24 @@
     </organization>
 
     <scm>
-        <connection>scm:git:git://github.com/Microsoft/spring-data-documentdb.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-documentdb.git
+        <connection>scm:git:git://github.com/Microsoft/spring-data-cosmosdb.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Microsoft/spring-data-cosmosdb.git
         </developerConnection>
-        <url>https://github.com/Microsoft/spring-data-documentdb/tree/master</url>
+        <url>https://github.com/Microsoft/spring-data-cosmosdb/tree/master</url>
     </scm>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring.springframework.version>5.0.1.RELEASE</spring.springframework.version>
+        <spring.springframework.version>5.0.5.RELEASE</spring.springframework.version>
         <spring.data.version>2.0.1.RELEASE</spring.data.version>
+        <google.gson.version>2.8.2</google.gson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
         <powermock.version>1.7.1</powermock.version>
+        <spring.boot.starter.test.version>1.5.11.RELEASE</spring.boot.starter.test.version>
+        <org.projectlombok.version>1.16.18</org.projectlombok.version>
 
         <azure.documentdb.version>1.15.2</azure.documentdb.version>
         <azure.test.resourcegroup>documentdbtest</azure.test.resourcegroup>
@@ -110,7 +113,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.2</version>
+            <version>${google.gson.version}</version>
         </dependency>
 
         <!-- Test -->
@@ -135,13 +138,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>1.5.8.RELEASE</version>
+            <version>${spring.boot.starter.test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
+            <version>${org.projectlombok.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

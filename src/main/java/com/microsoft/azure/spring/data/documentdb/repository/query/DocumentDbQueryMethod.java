@@ -22,13 +22,13 @@ public class DocumentDbQueryMethod extends QueryMethod {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EntityMetadata<?> getEntityInformation() {
-        final Class<?> domainClass = getDomainClass();
-        final DocumentDbEntityInformation<Object, String> entityInformation =
-                new DocumentDbEntityInformation(domainClass);
+        final Class<Object> domainClass = (Class<Object>) getDomainClass();
+        final DocumentDbEntityInformation entityInformation =
+                new DocumentDbEntityInformation<Object, String>(domainClass);
 
-        this.metadata = new SimpleDocumentDbEntityMetadata<Object>((Class<Object>) domainClass, entityInformation);
+        this.metadata = new SimpleDocumentDbEntityMetadata<Object>(domainClass, entityInformation);
         return this.metadata;
     }
-
 }

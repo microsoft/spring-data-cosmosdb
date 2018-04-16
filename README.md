@@ -1,19 +1,19 @@
-[![Travis CI](https://travis-ci.org/Microsoft/spring-data-documentdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-documentdb)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/enki19t5yu8viqfu?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-documentdb)
-[![codecov](https://codecov.io/gh/Microsoft/spring-data-documentdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-documentdb)
-[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-documentdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-documentdb%22)
-[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-documentdb/blob/master/LICENSE)
+[![Travis CI](https://travis-ci.org/Microsoft/spring-data-cosmosdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-cosmosdb)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/r1v9vglr7prkq271/branch/master?svg=true)](https://ci.appveyor.com/project/sophiaso/spring-data-cosmosdb)
+[![codecov](https://codecov.io/gh/Microsoft/spring-data-cosmosdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-cosmosdb)
+[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-cosmosdb%22)
+[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE)
 
 
-# Spring Data for Azure DocumentDB 
+# Spring Data for Azure Cosmos DB 
 
-[Azure DocumentDB](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) helps manage JSON data through well-defined database resources. It is a key part of [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction), which is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as DocumentDB, MongoDB, Graph, and Table. 
+[Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction) is a globally-distributed database service that allows developers to work with data using a variety of standard APIs, such as SQL, MongoDB, Cassandra, Graph, and Table.
 
-**Spring Data DocumentDB** provides initial Spring Data support for [Azure DocumentDB API](https://docs.microsoft.com/en-us/azure/cosmos-db/documentdb-introduction) based on Spring Data framework, the other APIs are not supported in this package. 
+**Spring Data Azure Cosmos DB** provides initial Spring Data support for Azure Cosmos DB using the [SQL API](https://docs.microsoft.com/en-us/azure/cosmos-db/sql-api-introduction), based on Spring Data framework. Currently it only supports SQL API, the other APIs are in the plan. 
 
 ## TOC
 
-* [Sample Code](#sample-codes)
+* [Sample Code](#sample-code)
 * [Spring data version support](#spring-data-version-support)
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
@@ -26,7 +26,7 @@
 Please refer to [sample project here](./samplecode).
 
 ## Spring data version support
-This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-documentdb/wiki/Spring-Data-dependency-version-management) about detail and corresponding branch mapping. 
+This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about more details and corresponding branch mapping. 
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
@@ -39,7 +39,7 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
 - Spring Data [@Id](https://github.com/spring-projects/spring-data-commons/blob/db62390de90c93a78743c97cc2cc9ccd964994a5/src/main/java/org/springframework/data/annotation/Id.java) annotation.
   There're 2 ways to map a field in domain class to `id` field of Azure Cosmos DB document.
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
-  - set name of this field to `id`, this field will be mapped to document `id` in Cosmos DB.
+  - set name of this field to `id`, this field will be mapped to document `id` in Azure Cosmos DB.
 - Custom collection Name.
   By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
 - Custom IndexingPolicy
@@ -58,14 +58,14 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
 ## Quick Start
 
 ### Add the dependency
-`spring-data-documentdb` is published on Maven Central Repository.  
+`spring-data-cosmosdb` is published on Maven Central Repository.  
 If you are using Maven, add the following dependency.  
 
 ```xml
 <dependency>
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>spring-data-documentdb</artifactId>
-    <version>0.1.3</version>
+    <artifactId>spring-data-cosmosdb</artifactId>
+    <version>2.0.3</version>
 </dependency>
 ```
 
@@ -106,7 +106,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 
 
 ### Define an entity
-Define a simple entity as Document in DocumentDB.
+Define a simple entity as Document in Azure Cosmos DB.
 
 ```
 @Document(collection = "mycollection")
@@ -193,11 +193,11 @@ public class SampleApplication implements CommandLineRunner {
     }
 }
 ```
-Autowired UserRepository interface, then can do save, delete and find operations. Azure Cosmos DB DocumentDB Spring Data uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
+Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
 
 ## Filing Issues
 
-If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-documentdb/issues/new).
+If you encounter any bug, please file an issue [here](https://github.com/Microsoft/spring-data-cosmosdb/issues/new).
 
 To suggest a new feature or changes that could be made, file an issue the same way you would for a bug.
 

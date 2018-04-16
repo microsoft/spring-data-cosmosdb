@@ -9,8 +9,8 @@ This instruction is guideline for building and code contribution.
 To build the project, run maven commands.
 
 ```bash
-git clone https://github.com/Microsoft/spring-data-documentdb.git 
-cd spring-data-documentdb
+git clone https://github.com/Microsoft/spring-data-cosmosdb.git 
+cd spring-data-cosmosdb
 mvnw clean install
 ```
 
@@ -55,7 +55,7 @@ mvnw clean install -DskipTests
 Developing version naming convention is like `0.1.2-SNAPSHOT`. Release version naming convention is like `0.1.2`. 
 
 ## CI
-Both [travis](https://travis-ci.org/Microsoft/spring-data-documentdb) and [appveyor](https://ci.appveyor.com/project/yungez/spring-data-documentdb) CI is enabled.
+Both [travis](https://travis-ci.org/Microsoft/spring-data-cosmosdb) and [appveyor](https://ci.appveyor.com/project/yungez/spring-data-cosmosdb) CI is enabled.
 
 ## Contribute to code
 Code contribution is welcome. To contribute to this module, please make sure below check list are checked.

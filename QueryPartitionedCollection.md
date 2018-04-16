@@ -1,6 +1,6 @@
-### How to Query Partitioned DocumentDB Collection
+### How to Query Partitioned Azure Cosmos DB Collection
 
-With DocumentDB, you can configure [partition key](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data) for your collection.
+With Azure Cosmos DB, you can configure [partition key](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data) for your collection.
 
 Below is an example about how to query partitioned collection with this spring data module.
 
