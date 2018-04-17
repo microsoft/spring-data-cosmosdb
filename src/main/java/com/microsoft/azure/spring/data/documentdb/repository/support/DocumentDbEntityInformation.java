@@ -32,6 +32,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Field partitionKeyField;
     private String collectionName;
     private Integer requestUnit;
+    private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
 
     public DocumentDbEntityInformation(Class<T> domainClass) {
@@ -49,6 +50,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         this.requestUnit = getRequestUnit(domainClass);
+        this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
     }
 
@@ -72,6 +74,10 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
     public Integer getRequestUnit() {
         return this.requestUnit;
+    }
+
+    public Integer getTimeToLive() {
+        return this.timeToLive;
     }
 
     @NonNull
@@ -156,6 +162,18 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
         return ru;
     }
+
+    private Integer getTimeToLive(Class<T> domainClass) {
+        Integer ttl = Constants.DEFAULT_TIME_TO_LIVE;
+        final Document annotation = domainClass.getAnnotation(Document.class);
+
+        if (annotation != null) {
+            ttl = annotation.timeToLive();
+        }
+
+        return ttl;
+    }
+
 
     private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
         Boolean isAutomatic = Boolean.valueOf(Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC);
