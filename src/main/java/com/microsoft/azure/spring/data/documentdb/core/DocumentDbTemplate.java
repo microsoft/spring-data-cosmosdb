@@ -15,13 +15,13 @@ import com.microsoft.azure.spring.data.documentdb.exception.DatabaseCreationExce
 import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.documentdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.text.MessageFormat;

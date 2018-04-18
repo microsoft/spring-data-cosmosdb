@@ -14,10 +14,10 @@ import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.PartitionKey;
+import lombok.NonNull;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
-import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.Serializable;
