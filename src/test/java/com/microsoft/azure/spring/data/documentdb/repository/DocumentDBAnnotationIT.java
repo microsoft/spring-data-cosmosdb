@@ -12,7 +12,9 @@ import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Role;
+import com.microsoft.azure.spring.data.documentdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +27,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+
+import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
@@ -44,13 +48,16 @@ public class DocumentDBAnnotationIT {
     private DocumentClient dbClient;
     private DocumentDbTemplate dbTemplate;
     private DocumentCollection collectionRole;
+    private DocumentCollection collectionExample;
     private DocumentDbMappingContext dbContext;
     private MappingDocumentDbConverter mappingConverter;
     private DocumentDbEntityInformation<Role, String> roleInfo;
+    private DocumentDbEntityInformation<TimeToLiveSample, String> sampleInfo;
 
     @Before
     public void setUp() throws ClassNotFoundException {
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
+        sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
         dbContext = new DocumentDbMappingContext();
 
         dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
@@ -61,7 +68,11 @@ public class DocumentDBAnnotationIT {
 
         final IndexingPolicy policy = roleInfo.getIndexingPolicy();
 
-        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo.getCollectionName(), null, null, policy);
+        collectionRole = dbTemplate.createCollectionIfNotExists(
+                roleInfo.getCollectionName(), null, null, policy, null);
+        collectionExample = dbTemplate.createCollectionIfNotExists(
+                roleInfo.getCollectionName(), null, null, policy, 300);
+
         dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }
 
@@ -71,7 +82,7 @@ public class DocumentDBAnnotationIT {
     }
 
     @Test
-    public void testDocumentDBAnnotationIT() {
+    public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
         Assert.isTrue(policy.getAutomatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
@@ -81,6 +92,28 @@ public class DocumentDBAnnotationIT {
 
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testDocumentAnnotationTimeToLive() {
+        final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID);
+        final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
+
+        Assert.notNull(timeToLive, "timeToLive should not be null");
+        Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");
+
+        dbTemplate.insert(sampleInfo.getCollectionName(), sample, null);
+
+        // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
+        TimeToLiveSample found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        Assert.notNull(found, "Address should not be null");
+
+        TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
+        TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
+
+        found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        Assert.isNull(found, "Timeout Address should be null");
     }
 }
 

@@ -252,7 +252,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                                                String collectionName,
                                                RequestOptions collectionOptions,
                                                String partitionKeyFieldName,
-                                               IndexingPolicy policy) {
+                                               IndexingPolicy policy,
+                                               Integer timeToLive) {
         DocumentCollection collection = new DocumentCollection();
         collection.setId(collectionName);
 
@@ -267,6 +268,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         if (policy != null) {
             collection.setIndexingPolicy(policy);
+
+            if (policy.getAutomatic() && timeToLive != null) {
+                collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
+            }
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -290,7 +295,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public DocumentCollection createCollectionIfNotExists(String collectionName,
                                                           String partitionKeyFieldName,
                                                           Integer requestUnit,
-                                                          IndexingPolicy policy) {
+                                                          IndexingPolicy policy,
+                                                          Integer timeToLive) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
@@ -305,7 +311,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return collectionList.get(0);
         } else {
             final RequestOptions requestOptions = getRequestOptions(null, requestUnit);
-            return createCollection(this.databaseName, collectionName, requestOptions, partitionKeyFieldName, policy);
+            return createCollection(
+                    this.databaseName, collectionName, requestOptions, partitionKeyFieldName, policy, timeToLive);
         }
     }
 

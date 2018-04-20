@@ -72,7 +72,7 @@ public class DocumentDbTemplatePartitionIT {
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
 
         dbTemplate.createCollectionIfNotExists(Person.class.getSimpleName(), TestConstants.PROPERTY_LAST_NAME,
-                1000, null);
+                1000, null, null);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, new PartitionKey(TEST_PERSON.getLastName()));
     }
 

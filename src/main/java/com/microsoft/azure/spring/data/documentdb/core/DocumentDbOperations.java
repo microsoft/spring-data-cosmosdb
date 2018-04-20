@@ -21,7 +21,8 @@ public interface DocumentDbOperations {
     DocumentCollection createCollectionIfNotExists(String collectionName,
                                                    String partitionKeyFieldName,
                                                    Integer requestUnit,
-                                                   IndexingPolicy policy);
+                                                   IndexingPolicy policy,
+                                                   Integer timeToLive);
 
     <T> List<T> findAll(Class<T> entityClass);
 
