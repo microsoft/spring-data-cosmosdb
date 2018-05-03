@@ -7,10 +7,10 @@
 package com.microsoft.azure.spring.data.documentdb.core;
 
 import com.microsoft.azure.documentdb.DocumentCollection;
-import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
+import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 
 import java.util.List;
 
@@ -18,10 +18,8 @@ public interface DocumentDbOperations {
 
     String getCollectionName(Class<?> entityClass);
 
-    DocumentCollection createCollectionIfNotExists(String collectionName,
-                                                   String partitionKeyFieldName,
-                                                   Integer requestUnit,
-                                                   IndexingPolicy policy);
+    DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information,
+                                                   String partitionKeyFieldName);
 
     <T> List<T> findAll(Class<T> entityClass);
 
