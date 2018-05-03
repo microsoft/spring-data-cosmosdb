@@ -25,6 +25,6 @@ public class Constants {
     public static final String DOCUMENTDB_MODULE_PREFIX = "documentdb";
     public static final String DOCUMENTDB_MAPPING_CONTEXT_NAME = "documentDbMappingContext";
 
-    public static final String USER_AGENT_SUFFIX = "spring-data/2.0.2-SNAPSHOT";
+    public static final String USER_AGENT_SUFFIX = "spring-data/";
 }
 

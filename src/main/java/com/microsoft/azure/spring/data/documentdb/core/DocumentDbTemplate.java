@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbE
 import com.microsoft.azure.spring.data.documentdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.documentdb.exception.IllegalCollectionException;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,14 +249,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public DocumentCollection createCollection(String dbName,
-                                               String collectionName,
-                                               RequestOptions collectionOptions,
-                                               String partitionKeyFieldName,
-                                               IndexingPolicy policy,
-                                               Integer timeToLive) {
+    public DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
+                                               @NonNull DocumentDbEntityInformation information) {
         DocumentCollection collection = new DocumentCollection();
+        final String collectionName = information.getCollectionName();
+        final IndexingPolicy policy = information.getIndexingPolicy();
+        final Integer timeToLive = information.getTimeToLive();
+        final RequestOptions requestOptions = getRequestOptions(null, information.getRequestUnit());
+
         collection.setId(collectionName);
+        collection.setIndexingPolicy(policy);
+
+        if (information.getIndexingPolicy().getAutomatic()) {
+            collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
+        }
 
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
@@ -266,21 +273,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             collection.setPartitionKey(partitionKeyDefinition);
         }
 
-        if (policy != null) {
-            collection.setIndexingPolicy(policy);
-
-            if (policy.getAutomatic() && timeToLive != null) {
-                collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
-            }
-        }
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute createCollection in database {} collection {}", dbName, collectionName);
         }
 
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
-                    .createCollection(getDatabaseLink(dbName), collection, collectionOptions)
+                    .createCollection(getDatabaseLink(dbName), collection, requestOptions)
                     .getResource();
             if (resource instanceof DocumentCollection) {
                 collection = (DocumentCollection) resource;
@@ -289,17 +288,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         } catch (DocumentClientException e) {
             throw new DocumentDBAccessException("createCollection exception", e);
         }
-
     }
 
-    public DocumentCollection createCollectionIfNotExists(String collectionName,
-                                                          String partitionKeyFieldName,
-                                                          Integer requestUnit,
-                                                          IndexingPolicy policy,
-                                                          Integer timeToLive) {
+    @Override
+    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information,
+                                                          String partitionKeyFieldName) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
+
+        final String collectionName = information.getCollectionName();
 
         final List<DocumentCollection> collectionList = documentDbFactory.getDocumentClient()
                 .queryCollections(getDatabaseLink(this.databaseName),
@@ -310,9 +308,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (!collectionList.isEmpty()) {
             return collectionList.get(0);
         } else {
-            final RequestOptions requestOptions = getRequestOptions(null, requestUnit);
-            return createCollection(
-                    this.databaseName, collectionName, requestOptions, partitionKeyFieldName, policy, timeToLive);
+            return createCollection(this.databaseName, partitionKeyFieldName, information);
         }
     }
 
