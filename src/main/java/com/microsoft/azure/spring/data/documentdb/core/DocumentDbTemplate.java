@@ -11,10 +11,10 @@ import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
+import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.documentdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.documentdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.documentdb.exception.IllegalCollectionException;
-import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -254,10 +254,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         DocumentCollection collection = new DocumentCollection();
         final String collectionName = information.getCollectionName();
         final IndexingPolicy policy = information.getIndexingPolicy();
+        final Integer timeToLive = information.getTimeToLive();
         final RequestOptions requestOptions = getRequestOptions(null, information.getRequestUnit());
 
         collection.setId(collectionName);
         collection.setIndexingPolicy(policy);
+
+        if (information.getIndexingPolicy().getAutomatic()) {
+            collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
+        }
 
         if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
             final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();

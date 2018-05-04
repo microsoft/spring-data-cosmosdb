@@ -20,7 +20,7 @@ import org.springframework.data.annotation.Id;
 @NoArgsConstructor
 @DocumentIndexingPolicy(
         mode = IndexingMode.Lazy,
-        automatic = false,
+        automatic = TestConstants.INDEXINGPOLICY_AUTOMATIC,
         includePaths = {
                 TestConstants.INCLUDEDPATH_0,
                 TestConstants.INCLUDEDPATH_1,
