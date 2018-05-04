@@ -9,9 +9,11 @@ import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Document(timeToLive = TestConstants.TIME_TO_LIVE)
