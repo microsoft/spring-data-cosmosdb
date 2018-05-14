@@ -83,6 +83,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
+        Assert.notNull(entities, "Iterable entities should not be null");
+
         // create collection if not exists
         documentDbOperations.createCollectionIfNotExists(this.entityInformation,
                 this.entityInformation.getPartitionKeyFieldName());
@@ -112,6 +114,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public List<T> findAllById(Iterable<ID> ids) {
+        Assert.notNull(ids, "Iterable ids should not be null");
+
         final List<T> entities = new ArrayList<T>();
 
         for (final ID id : ids) {
@@ -156,6 +160,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void deleteById(ID id) {
+        Assert.notNull(id, "id to be deleted should not be null");
+
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
                 id,
                 entityInformation.getJavaType(),
@@ -169,6 +175,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void delete(T entity) {
+        Assert.notNull(entity, "entity to be deleted should not be null");
+
         final String paritionKeyValue = entityInformation.getPartitionKeyFieldValue(entity);
 
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
@@ -192,6 +200,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void deleteAll(Iterable<? extends T> entities) {
+        Assert.notNull(entities, "Iterable entities should not be null");
+
         for (final T entity : entities) {
             delete(entity);
         }
@@ -205,6 +215,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public boolean existsById(ID primaryKey) {
+        Assert.notNull(primaryKey, "primaryKey should not be null");
+
         return findById(primaryKey).isPresent();
     }
 }
