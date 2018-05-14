@@ -162,10 +162,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                null);
+        documentDbOperations.deleteById(entityInformation.getCollectionName(), id, null);
     }
 
     /**
@@ -181,7 +178,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
         documentDbOperations.deleteById(entityInformation.getCollectionName(),
                 entityInformation.getId(entity),
-                entityInformation.getJavaType(),
                 paritionKeyValue == null ? null : new PartitionKey(paritionKeyValue));
     }
 

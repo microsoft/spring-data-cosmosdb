@@ -339,11 +339,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public <T> void deleteById(String collectionName,
                                Object id,
-                               Class<T> domainClass,
                                PartitionKey partitionKey) {
         assertValidId(id);
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(domainClass, "domainClass should not be null");
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
