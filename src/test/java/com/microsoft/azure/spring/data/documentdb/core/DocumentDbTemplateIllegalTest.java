@@ -70,20 +70,17 @@ public class DocumentDbTemplateIllegalTest {
     @Test
     public void deleteByIdIllegalArgsShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getDeclaredMethod("deleteById", String.class, Object.class,
-                Class.class, PartitionKey.class);
+                PartitionKey.class);
 
         // Test argument collectionName
-        checkIllegalArgument(method, null, DUMMY_ID, Person.class, DUMMY_KEY);
-        checkIllegalArgument(method, EMPTY_STR, DUMMY_ID, Person.class, DUMMY_KEY);
-        checkIllegalArgument(method, WHITESPACES_STR, DUMMY_ID, Person.class, DUMMY_KEY);
+        checkIllegalArgument(method, null, DUMMY_ID, DUMMY_KEY);
+        checkIllegalArgument(method, EMPTY_STR, DUMMY_ID, DUMMY_KEY);
+        checkIllegalArgument(method, WHITESPACES_STR, DUMMY_ID, DUMMY_KEY);
 
         // Test argument id
-        checkIllegalArgument(method, DUMMY_COLL, null, Person.class, DUMMY_KEY);
-        checkIllegalArgument(method, DUMMY_COLL, EMPTY_STR, Person.class, DUMMY_KEY);
-        checkIllegalArgument(method, DUMMY_COLL, WHITESPACES_STR, Person.class, DUMMY_KEY);
-
-        // Test argument domainClass
-        checkIllegalArgument(method, DUMMY_COLL, DUMMY_ID, null, DUMMY_KEY);
+        checkIllegalArgument(method, DUMMY_COLL, null, DUMMY_KEY);
+        checkIllegalArgument(method, DUMMY_COLL, EMPTY_STR, DUMMY_KEY);
+        checkIllegalArgument(method, DUMMY_COLL, WHITESPACES_STR, DUMMY_KEY);
     }
 
     @Test
