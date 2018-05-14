@@ -58,9 +58,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                     createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
             documentDbOperations.upsert(entityInformation.getCollectionName(),
-                    entity,
-                    entityInformation.getId(entity),
-                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+                    entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         }
 
         return entity;

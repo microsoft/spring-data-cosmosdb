@@ -123,7 +123,7 @@ public class DocumentDbTemplatePartitionIT {
         final Person newPerson = new Person(null, firstName, TestConstants.NEW_LAST_NAME, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, new PartitionKey(partitionKeyValue));
+        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
 
         final List<Person> result = dbTemplate.findAll(Person.class);
 
@@ -138,8 +138,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testUpdatePartition() {
         final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(),
-                new PartitionKey(updated.getLastName()));
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, new PartitionKey(updated.getLastName()));
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         final Person person = result.stream().filter(p -> TEST_PERSON.getId().equals(p.getId())).findFirst().get();

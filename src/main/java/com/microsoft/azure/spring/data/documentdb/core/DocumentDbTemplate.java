@@ -121,12 +121,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void upsert(T object, Object id, PartitionKey partitionKey) {
-        upsert(getCollectionName(object.getClass()), object, id, partitionKey);
+    public <T> void upsert(T object, PartitionKey partitionKey) {
+        upsert(getCollectionName(object.getClass()), object, partitionKey);
     }
 
 
-    public <T> void upsert(String collectionName, T object, Object id, PartitionKey partitionKey) {
+    public <T> void upsert(String collectionName, T object, PartitionKey partitionKey) {
         try {
             Document originalDoc = new Document();
             if (object instanceof Document) {
@@ -136,8 +136,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("execute upsert document in database {} collection {} with id {}",
-                        this.databaseName, collectionName, id);
+                LOGGER.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
             }
 
             documentDbFactory.getDocumentClient().upsertDocument(

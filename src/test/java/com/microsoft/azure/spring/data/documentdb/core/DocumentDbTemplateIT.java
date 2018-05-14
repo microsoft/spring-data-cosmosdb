@@ -108,7 +108,7 @@ public class DocumentDbTemplateIT {
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
         final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
 
-        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null, null);
+        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null);
 
         final List<Person> result = dbTemplate.findAll(Person.class);
 
@@ -120,7 +120,7 @@ public class DocumentDbTemplateIT {
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
