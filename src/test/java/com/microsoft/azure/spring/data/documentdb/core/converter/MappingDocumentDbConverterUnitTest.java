@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
@@ -31,6 +32,7 @@ public class MappingDocumentDbConverterUnitTest {
 
     MappingDocumentDbConverter dbConverter;
     DocumentDbMappingContext mappingContext;
+    ObjectMapper objectMapper;
 
     @Mock
     ApplicationContext applicationContext;
@@ -38,12 +40,13 @@ public class MappingDocumentDbConverterUnitTest {
     @Before
     public void setup() {
         mappingContext = new DocumentDbMappingContext();
+        objectMapper = new ObjectMapper();
 
         mappingContext.setApplicationContext(applicationContext);
         mappingContext.afterPropertiesSet();
         mappingContext.getPersistentEntity(Address.class);
 
-        dbConverter = new MappingDocumentDbConverter(mappingContext);
+        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
     }
 
     @Test

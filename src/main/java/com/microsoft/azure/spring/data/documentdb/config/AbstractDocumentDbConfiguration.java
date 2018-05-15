@@ -6,10 +6,12 @@
 
 package com.microsoft.azure.spring.data.documentdb.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,6 +21,9 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     public abstract String getDatabase();
 
     public abstract DocumentClient documentClient();
+
+    @Autowired(required = false)
+    private ObjectMapper objectMapper;
 
     @Bean
     public DocumentDbFactory documentDbFactory() {
@@ -32,7 +37,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
 
     @Bean
     public MappingDocumentDbConverter mappingDocumentDbConverter() throws ClassNotFoundException {
-        return new MappingDocumentDbConverter(this.documentDbMappingContext());
+        return new MappingDocumentDbConverter(this.documentDbMappingContext(), objectMapper);
     }
 
     protected String getMappingBasePackage() {

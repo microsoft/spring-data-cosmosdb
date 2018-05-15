@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.documentdb.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
@@ -14,7 +15,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
 
@@ -32,6 +35,23 @@ public class AbstractDocumentDbConfiguratinUnitTest {
         Assertions.assertThat(context.getBean(DocumentDbFactory.class)).isNotNull();
     }
 
+    @Test(expected = NoSuchBeanDefinitionException.class)
+    public void defaultObjectMapperBeanNotExists() {
+        final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
+                TestDocumentDbConfiguration.class);
+
+        context.getBean(ObjectMapper.class);
+    }
+
+    @Test
+    public void objectMapperIsConfigurable() {
+        final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
+                ObjectMapperConfiguration.class);
+
+        Assertions.assertThat(context.getBean(ObjectMapper.class)).isNotNull();
+    }
+
+
     @Configuration
     static class TestDocumentDbConfiguration extends AbstractDocumentDbConfiguration {
         @Mock
@@ -45,6 +65,14 @@ public class AbstractDocumentDbConfiguratinUnitTest {
         @Override
         public DocumentClient documentClient() {
             return mockClient;
+        }
+    }
+
+    @Configuration
+    static class ObjectMapperConfiguration extends TestDocumentDbConfiguration {
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new ObjectMapper();
         }
     }
 }
