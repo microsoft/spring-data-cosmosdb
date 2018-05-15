@@ -1,5 +1,14 @@
 language: java
 jdk:
   - oraclejdk8
+sudo: required
 
-script: "./mvnw clean install"
+jobs:
+  include:
+    - stage: build
+      script: mvn clean package
+      if: type = push AND branch != master
+    - stage: test
+      script: chmod +x install.sh && ./install.sh && mvn -P integration-test-azure clean cobertura:cobertura-integration-test && bash <(curl -s https://codecov.io/bash)
+      if: type = pull_request OR (type = push AND branch = master)
+
