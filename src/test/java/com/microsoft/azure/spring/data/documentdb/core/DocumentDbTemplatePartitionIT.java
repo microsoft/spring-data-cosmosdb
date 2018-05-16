@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.documentdb.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
@@ -57,6 +58,7 @@ public class DocumentDbTemplatePartitionIT {
 
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
+    private ObjectMapper objectMapper;
     private DocumentDbEntityInformation<Person, String> personInfo;
 
     @Autowired
@@ -65,9 +67,10 @@ public class DocumentDbTemplatePartitionIT {
     @Before
     public void setup() throws ClassNotFoundException {
         mappingContext = new DocumentDbMappingContext();
+        objectMapper = new ObjectMapper();
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        dbConverter = new MappingDocumentDbConverter(mappingContext);
+        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
