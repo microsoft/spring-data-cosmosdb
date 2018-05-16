@@ -68,7 +68,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 partitionKey);
     }
 
-
     public <T> T insert(String collectionName,
                         T objectToSave,
                         PartitionKey partitionKey) {
@@ -81,10 +80,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         try {
-            documentDbFactory.getDocumentClient()
+            final Resource result = documentDbFactory.getDocumentClient()
                     .createDocument(getCollectionLink(this.databaseName, collectionName), document,
-                            getRequestOptions(partitionKey, null), false);
-            return objectToSave;
+                            getRequestOptions(partitionKey, null),
+                            false).getResource();
+
+            if (result instanceof Document) {
+                final Document documentInserted = (Document) result;
+                @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) objectToSave.getClass();
+
+                return mappingDocumentDbConverter.read(domainClass, documentInserted);
+            } else {
+                return null;
+            }
         } catch (DocumentClientException e) {
             throw new DocumentDBAccessException("insert exception", e);
         }
