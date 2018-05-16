@@ -26,5 +26,7 @@ public class Constants {
     public static final String DOCUMENTDB_MAPPING_CONTEXT_NAME = "documentDbMappingContext";
 
     public static final String USER_AGENT_SUFFIX = "spring-data/";
+
+    public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
 }
 

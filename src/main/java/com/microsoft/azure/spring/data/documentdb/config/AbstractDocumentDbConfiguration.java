@@ -8,10 +8,12 @@ package com.microsoft.azure.spring.data.documentdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,6 +24,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
 
     public abstract DocumentClient documentClient();
 
+    @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
     @Autowired(required = false)
     private ObjectMapper objectMapper;
 
