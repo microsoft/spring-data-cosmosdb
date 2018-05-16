@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.documentdb.Constants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.TestConstants;
 import org.assertj.core.api.Assertions;
@@ -23,12 +24,13 @@ import org.springframework.context.support.AbstractApplicationContext;
 
 
 public class AbstractDocumentDbConfiguratinUnitTest {
+    private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void containsDocumentDbFactory() throws ClassNotFoundException {
+    public void containsDocumentDbFactory() {
         final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
                 TestDocumentDbConfiguration.class);
 
@@ -49,6 +51,7 @@ public class AbstractDocumentDbConfiguratinUnitTest {
                 ObjectMapperConfiguration.class);
 
         Assertions.assertThat(context.getBean(ObjectMapper.class)).isNotNull();
+        Assertions.assertThat(context.getBean(OBJECTMAPPER_BEAN_NAME)).isNotNull();
     }
 
 
@@ -70,7 +73,7 @@ public class AbstractDocumentDbConfiguratinUnitTest {
 
     @Configuration
     static class ObjectMapperConfiguration extends TestDocumentDbConfiguration {
-        @Bean
+        @Bean(name = OBJECTMAPPER_BEAN_NAME)
         public ObjectMapper objectMapper() {
             return new ObjectMapper();
         }
