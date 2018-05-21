@@ -53,7 +53,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
         // save entity
         if (entityInformation.isNew(entity)) {
-            documentDbOperations.insert(entityInformation.getCollectionName(),
+            return documentDbOperations.insert(entityInformation.getCollectionName(),
                     entity,
                     createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
@@ -61,9 +61,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                     entity,
                     entityInformation.getId(entity),
                     createKey(entityInformation.getPartitionKeyFieldValue(entity)));
-        }
 
-        return entity;
+            return entity;
+        }
     }
 
     private PartitionKey createKey(String partitionKeyValue) {
