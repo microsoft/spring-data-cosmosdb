@@ -50,7 +50,6 @@ public interface DocumentDbOperations {
 
     <T> void deleteById(String collectionName,
                         Object id,
-                        Class<T> domainClass,
                         PartitionKey partitionKey);
 
     void deleteAll(String collectionName);

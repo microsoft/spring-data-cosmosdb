@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 import com.microsoft.azure.spring.data.documentdb.TestUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -134,5 +135,14 @@ public class ContactRepositoryIT {
         assertThat(result.get(0).getLogicId()).isEqualTo(TEST_CONTACT.getLogicId());
         assertThat(result.get(0).getTitle()).isEqualTo(TEST_CONTACT.getTitle());
 
+    }
+
+    @Test
+    public void testNullIdContact() {
+        final Contact nullIdContact = new Contact(null, "testTitile");
+        final Contact savedContact = this.repository.save(nullIdContact);
+
+        Assert.assertNotNull(savedContact.getLogicId());
+        Assert.assertEquals(nullIdContact.getTitle(), savedContact.getTitle());
     }
 }
