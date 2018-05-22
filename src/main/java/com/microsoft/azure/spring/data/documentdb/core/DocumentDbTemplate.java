@@ -63,6 +63,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
+        Assert.notNull(objectToSave, "entityClass should not be null");
+
         return insert(getCollectionName(objectToSave.getClass()),
                 objectToSave,
                 partitionKey);
@@ -71,6 +73,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public <T> T insert(String collectionName,
                         T objectToSave,
                         PartitionKey partitionKey) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(objectToSave, "objectToSave should not be null");
+
         final Document document = new Document();
         mappingDocumentDbConverter.write(objectToSave, document);
 
@@ -100,6 +105,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public <T> T findById(Object id,
                           Class<T> entityClass) {
+        assertValidId(id);
+        Assert.notNull(entityClass, "entityClass should not be null");
+
         return findById(getCollectionName(entityClass),
                 id,
                 entityClass);
@@ -108,6 +116,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public <T> T findById(String collectionName,
                           Object id,
                           Class<T> entityClass) {
+        assertValidId(id);
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(entityClass, "entityClass should not be null");
 
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
@@ -130,11 +141,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public <T> void upsert(T object, Object id, PartitionKey partitionKey) {
+        Assert.notNull(object, "Upsert object should not be null");
+
         upsert(getCollectionName(object.getClass()), object, id, partitionKey);
     }
 
 
     public <T> void upsert(String collectionName, T object, Object id, PartitionKey partitionKey) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(object, "Upsert object should not be null");
+
         try {
             Document originalDoc = new Document();
             if (object instanceof Document) {
@@ -158,12 +174,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public <T> List<T> findAll(Class<T> entityClass) {
+        Assert.notNull(entityClass, "entityClass should not be null");
+
         return findAll(getCollectionName(entityClass), entityClass);
     }
 
 
     public <T> List<T> findAll(String collectionName,
                                final Class<T> entityClass) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(entityClass, "entityClass should not be null");
+
         final List<DocumentCollection> collections = documentDbFactory.getDocumentClient().
                 queryCollections(
                         getDatabaseLink(this.databaseName),
@@ -196,6 +217,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public void deleteAll(String collectionName) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute deleteCollection in database {} collection {}",
                     this.databaseName, collectionName);
@@ -218,6 +241,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public String getCollectionName(Class<?> entityClass) {
+        Assert.notNull(entityClass, "entityClass should not be null");
+
         return entityClass.getSimpleName();
     }
 
@@ -257,7 +282,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
+    private DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
                                                @NonNull DocumentDbEntityInformation information) {
         DocumentCollection collection = new DocumentCollection();
         final String collectionName = information.getCollectionName();
@@ -322,8 +347,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public <T> void deleteById(String collectionName,
                                Object id,
-                               Class<T> domainClass,
                                PartitionKey partitionKey) {
+        assertValidId(id);
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
         }
@@ -371,6 +398,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
+        Assert.notNull(query, "query should not be null");
+        Assert.notNull(domainClass, "domainClass should not be null");
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+
         final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, domainClass);
 
         // TODO (wepa) Collection link should be created locally without accessing database,
@@ -455,6 +486,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     @Override
     public <T> List<T> delete(Query query, Class<T> entityClass, String collectionName) {
+        Assert.notNull(query, "query should not be null");
+        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+
         final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, entityClass);
         final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, entityClass);
 
@@ -516,5 +551,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return Optional.of(entityInfo.getPartitionKeyFieldName());
+    }
+
+    private void assertValidId(Object id) {
+        Assert.notNull(id, "id should not be null");
+        if (id instanceof String) {
+            Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
+        }
     }
 }

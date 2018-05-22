@@ -163,7 +163,7 @@ public class DocumentDbTemplatePartitionIT {
         assertThat(inserted.get(1).getLastName()).isEqualTo(TEST_PERSON.getLastName());
 
         dbTemplate.deleteById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, new PartitionKey(TEST_PERSON.getLastName()));
+                TEST_PERSON.getId(), new PartitionKey(TEST_PERSON.getLastName()));
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
