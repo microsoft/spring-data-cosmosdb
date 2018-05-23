@@ -103,7 +103,7 @@ public class DocumentDbTemplateIT {
     @Test
     public void testUpsertNewDocument() {
         // Delete first as was inserted in setup
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class, null);
+        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
 
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
         final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
@@ -135,7 +135,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null, null);
+        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
