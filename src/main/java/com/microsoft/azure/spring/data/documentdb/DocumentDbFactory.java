@@ -39,22 +39,22 @@ public class DocumentDbFactory {
         Assert.hasText(host, "host must not be empty!");
         Assert.hasText(key, "key must not be empty!");
 
-        final boolean isBiEnabled = this.isTelemetryAllowed();
+        final boolean isAllowed = this.isTelemetryAllowed();
         final ConnectionPolicy policy = ConnectionPolicy.GetDefault();
 
-        policy.setUserAgentSuffix(getUserAgentSuffix(isBiEnabled));
+        policy.setUserAgentSuffix(getUserAgentSuffix(isAllowed));
 
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
-        this.telemetryProxy = new TelemetryProxy(isBiEnabled);
+        this.telemetryProxy = new TelemetryProxy(isAllowed);
 
         this.trackCustomEvent();
     }
 
     public DocumentDbFactory(DocumentClient client) {
-        final boolean isBiEnabled = this.isTelemetryAllowed();
+        final boolean isAllowed = this.isTelemetryAllowed();
 
         if (client != null && client.getConnectionPolicy() != null) {
-            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(isBiEnabled));
+            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(isAllowed));
         }
 
         this.documentClient = client;

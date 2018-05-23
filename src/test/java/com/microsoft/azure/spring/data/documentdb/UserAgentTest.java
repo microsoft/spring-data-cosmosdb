@@ -28,5 +28,9 @@ public class UserAgentTest {
         BDDMockito.given(PropertyLoader.getProjectVersion()).willReturn(TEST_VERSION);
 
         assertThat(PropertyLoader.getProjectVersion()).isEqualTo(TEST_VERSION);
+
+        final DocumentDbFactory factory = new DocumentDbFactory("https://fakeuri", "fakekey");
+        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
     }
+
 }
