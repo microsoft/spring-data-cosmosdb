@@ -9,6 +9,8 @@ package com.microsoft.azure.spring.data.documentdb;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.documentdb.common.GetHashMac;
+import com.microsoft.azure.spring.data.documentdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.documentdb.common.TelemetryProperties;
 import com.microsoft.azure.spring.data.documentdb.common.TelemetryProxy;
 import org.springframework.util.Assert;
@@ -21,23 +23,42 @@ public class DocumentDbFactory {
 
     private DocumentClient documentClient;
     private final TelemetryProxy telemetryProxy;
+    private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
+
+    private String getUserAgentSuffix(boolean isBiEnabled) {
+        String suffix = ";" + USER_AGENT_SUFFIX;
+
+        if (isBiEnabled && GetHashMac.getHashMac() != null) {
+            suffix += ";" + GetHashMac.getHashMac();
+        }
+
+        return suffix;
+    }
 
     public DocumentDbFactory(String host, String key) {
         Assert.hasText(host, "host must not be empty!");
         Assert.hasText(key, "key must not be empty!");
 
+        final boolean isBiEnabled = this.isTelemetryAllowed();
         final ConnectionPolicy policy = ConnectionPolicy.GetDefault();
 
+        policy.setUserAgentSuffix(getUserAgentSuffix(isBiEnabled));
+
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
-        this.telemetryProxy = new TelemetryProxy(this.isTelemetryAllowed());
+        this.telemetryProxy = new TelemetryProxy(isBiEnabled);
 
         this.trackCustomEvent();
     }
 
     public DocumentDbFactory(DocumentClient client) {
+        final boolean isBiEnabled = this.isTelemetryAllowed();
+
+        if (client != null && client.getConnectionPolicy() != null) {
+            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(isBiEnabled));
+        }
+
         this.documentClient = client;
         this.telemetryProxy = new TelemetryProxy(this.isTelemetryAllowed());
-
         this.trackCustomEvent();
     }
 
