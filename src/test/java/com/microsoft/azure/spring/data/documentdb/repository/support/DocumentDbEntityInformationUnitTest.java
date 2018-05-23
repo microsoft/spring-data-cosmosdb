@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository.support;
 
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;

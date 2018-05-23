@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.domain;
 
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

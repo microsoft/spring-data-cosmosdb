@@ -63,8 +63,13 @@ public class DocumentDbFactory {
     }
 
     private boolean isTelemetryAllowed() {
-        // panli: will allow user to disable this from application.properties in another PR.
-        return true;
+        final String telemetryAllowed = PropertyLoader.getApplicationTelemetryAllowed();
+
+        if (telemetryAllowed == null) {
+            return true;
+        } else {
+            return telemetryAllowed.equalsIgnoreCase("false") ? false : true;
+        }
     }
 
     public DocumentClient getDocumentClient() {

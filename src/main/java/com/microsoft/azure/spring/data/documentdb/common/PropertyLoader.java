@@ -5,40 +5,55 @@
  */
 package com.microsoft.azure.spring.data.documentdb.common;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PropertyLoader {
-    private static final String PROJECT_PROPERTY_FILE = "/META-INF/project.properties";
 
-    private PropertyLoader() {
-        // Hide the implicit public one
-    }
+    private static final String PROJECT_PROPERTY_FILE = "/META-INF/project.properties";
+    private static final String APPLICATION_PROPERTY_FILE = "/application.properties";
+    private static final String APPLICATION_YML_FILE = "/application.yml";
 
     public static String getProjectVersion() {
-        String version = "unknown";
-        InputStream inputStream = null;
-        try {
-            inputStream = PropertyLoader.class.getResourceAsStream(PROJECT_PROPERTY_FILE);
-            if (inputStream != null) {
-                final Properties properties = new Properties();
-                properties.load(inputStream);
+        return getPropertyByName("project.version", PROJECT_PROPERTY_FILE);
+    }
 
-                version = properties.getProperty("project.version");
-            }
+    public static String getApplicationTelemetryAllowed() {
+        String allowed = getPropertyByName("documentdb.telemetryAllowed", APPLICATION_PROPERTY_FILE);
+
+        if (allowed == null) {
+            allowed = getPropertyByName("telemetryAllowed", APPLICATION_YML_FILE);
+        }
+
+        return allowed;
+    }
+
+    private static String getPropertyByName(@NonNull String name, @NonNull String filename) {
+        final Properties properties = new Properties();
+        final InputStream inputStream = PropertyLoader.class.getResourceAsStream(filename);
+
+        if (inputStream == null) {
+            return null;
+        }
+
+        try {
+            properties.load(inputStream);
         } catch (IOException e) {
             // Omitted
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    // Omitted
-                }
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // Omitted
             }
         }
 
-        return version;
+        return properties.getProperty(name);
     }
 }
