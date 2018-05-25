@@ -24,14 +24,18 @@ public class PropertyLoader {
         return getPropertyByName("project.version", PROJECT_PROPERTY_FILE);
     }
 
-    public static String getApplicationTelemetryAllowed() {
+    public static boolean isApplicationTelemetryAllowed() {
         String allowed = getPropertyByName("documentdb.telemetryAllowed", APPLICATION_PROPERTY_FILE);
 
         if (allowed == null) {
             allowed = getPropertyByName("telemetryAllowed", APPLICATION_YML_FILE);
         }
 
-        return allowed;
+        if (allowed == null) {
+            return true;
+        } else {
+            return allowed.equalsIgnoreCase("false") ? false : true;
+        }
     }
 
     private static String getPropertyByName(@NonNull String name, @NonNull String filename) {

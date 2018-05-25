@@ -20,9 +20,8 @@ public class PropertyLoaderUnitTest {
 
     @Test
     public void testGetApplicationTelemetryAllowed() {
-        final String allowed = PropertyLoader.getApplicationTelemetryAllowed();
+        final boolean isAllowed = PropertyLoader.isApplicationTelemetryAllowed();
 
-        Assert.assertNotNull(allowed);
-        Assert.assertEquals(allowed, "true");
+        Assert.assertTrue(isAllowed);
     }
 }

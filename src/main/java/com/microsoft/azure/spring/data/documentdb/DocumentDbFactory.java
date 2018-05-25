@@ -23,12 +23,13 @@ public class DocumentDbFactory {
 
     private DocumentClient documentClient;
     private final TelemetryProxy telemetryProxy;
+    private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
     private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
-    private String getUserAgentSuffix(boolean isBiEnabled) {
+    private String getUserAgentSuffix(boolean isTelemetryAllowed) {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
-        if (isBiEnabled && GetHashMac.getHashMac() != null) {
+        if (isTelemetryAllowed && GetHashMac.getHashMac() != null) {
             suffix += ";" + GetHashMac.getHashMac();
         }
 
@@ -39,37 +40,24 @@ public class DocumentDbFactory {
         Assert.hasText(host, "host must not be empty!");
         Assert.hasText(key, "key must not be empty!");
 
-        final boolean isAllowed = this.isTelemetryAllowed();
         final ConnectionPolicy policy = ConnectionPolicy.GetDefault();
 
-        policy.setUserAgentSuffix(getUserAgentSuffix(isAllowed));
+        policy.setUserAgentSuffix(getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
 
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
-        this.telemetryProxy = new TelemetryProxy(isAllowed);
+        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
 
         this.trackCustomEvent();
     }
 
     public DocumentDbFactory(DocumentClient client) {
-        final boolean isAllowed = this.isTelemetryAllowed();
-
         if (client != null && client.getConnectionPolicy() != null) {
-            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(isAllowed));
+            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
         }
 
         this.documentClient = client;
-        this.telemetryProxy = new TelemetryProxy(this.isTelemetryAllowed());
+        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
         this.trackCustomEvent();
-    }
-
-    private boolean isTelemetryAllowed() {
-        final String telemetryAllowed = PropertyLoader.getApplicationTelemetryAllowed();
-
-        if (telemetryAllowed == null) {
-            return true;
-        } else {
-            return telemetryAllowed.equalsIgnoreCase("false") ? false : true;
-        }
     }
 
     public DocumentClient getDocumentClient() {
