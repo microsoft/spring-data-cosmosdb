@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.core.converter;
 
 
 import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.DocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import com.microsoft.azure.spring.data.documentdb.domain.Person;
@@ -16,9 +16,7 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;

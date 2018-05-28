@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.documentdb.config;
 
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
