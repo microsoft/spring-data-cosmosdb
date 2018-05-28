@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.repository;
 
-import com.microsoft.azure.spring.data.documentdb.TestUtils;
+import com.microsoft.azure.spring.data.documentdb.common.TestUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;

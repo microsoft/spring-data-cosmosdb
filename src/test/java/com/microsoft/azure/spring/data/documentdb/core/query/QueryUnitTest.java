@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb.core.query;
 
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import org.junit.Test;
 
 import java.util.ArrayList;

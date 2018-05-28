@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.documentdb;
 
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

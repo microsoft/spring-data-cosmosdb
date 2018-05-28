@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.documentdb.core.converter;
 
 import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.spring.data.documentdb.TestConstants;
+import com.microsoft.azure.spring.data.documentdb.common.TestConstants;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
