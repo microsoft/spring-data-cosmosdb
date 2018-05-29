@@ -9,6 +9,10 @@ jobs:
       script: mvn clean package
       if: type = push AND branch != master
     - stage: test
-      script: chmod +x install.sh && ./install.sh && mvn -P integration-test-azure clean cobertura:cobertura-integration-test && bash <(curl -s https://codecov.io/bash)
+      script:
+        - chmod +x install.sh && ./install.sh > /dev/null
+        - mvn -P integration-test-azure clean cobertura:cobertura-integration-test > tmp.log
+        - grep -v -E "Generating|Download|Loading|http-outgoing" tmp.log
+        - bash <(curl -s https://codecov.io/bash)
       if: type = pull_request OR (type = push AND branch = master)
 
