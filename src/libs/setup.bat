@@ -26,11 +26,11 @@ goto :noSetup
 call az login --service-principal -u %clientId% -p %clientKey% --tenant %tenantId% >> null
 set createcmd='az cosmosdb create --name %dbname% --resource-group %resourcegroup% --kind GlobalDocumentDB --query documentEndpoint'
 
-for /f "tokens=*" %%a in (%createcmd%) do (set documentdburi=%%a)
+for /f "tokens=*" %%a in (%createcmd%) do (set cosmosdburi=%%a)
 
 set listcmd='az cosmosdb list-keys --name %dbname% --resource-group %resourcegroup% --query primaryMasterKey'
-for /f "tokens=*" %%a in (%listcmd%) do (set documentdbkey=%%a)
-echo %documentdbkey%
+for /f "tokens=*" %%a in (%listcmd%) do (set cosmosdbkey=%%a)
+echo %cosmosdbkey%
 
 goto :end
 

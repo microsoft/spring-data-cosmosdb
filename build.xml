@@ -7,13 +7,13 @@
             <arg value=".\src\libs\setup.bat"/>
             <arg value="${azure.test.resourcegroup}"/>
             <arg value="${azure.test.dbname}"/>
-            <redirector outputproperty="documentdb.key"/>
+            <redirector outputproperty="cosmosdb.key"/>
         </exec>
         <exec osfamily="unix" executable="bash">
             <arg value="./src/libs/setup.sh"/>
             <arg value="${azure.test.resourcegroup}"/>
             <arg value="${azure.test.dbname}"/>
-            <redirector outputproperty="documentdb.key"/>
+            <redirector outputproperty="cosmosdb.key"/>
         </exec>
         <exec osfamily="unix" executable="az">
             <arg value="--help"/>
@@ -22,8 +22,8 @@
             <arg value="--help"/>
         </exec>
         <propertyfile file="./src/test/resources/application.properties">
-            <entry key="documentdb.key" value="${documentdb.key}"/>
-            <entry key="documentdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
+            <entry key="cosmosdb.key" value="${cosmosdb.key}"/>
+            <entry key="cosmosdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
         </propertyfile>
     </target>
     <target name="cleanup">
