@@ -43,6 +43,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>MM-dd-HH-mm</maven.build.timestamp.format>
 
         <spring.springframework.version>5.0.5.RELEASE</spring.springframework.version>
         <spring.data.version>2.0.1.RELEASE</spring.data.version>
@@ -56,6 +57,7 @@
         <azure.documentdb.version>1.15.2</azure.documentdb.version>
         <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
         <azure.test.dbname>springdocdbtestdb</azure.test.dbname>
+        <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <azure.applicationinsights.version>2.0.1</azure.applicationinsights.version>
         <skip.integration.tests>true</skip.integration.tests>
         <test.on.azure>false</test.on.azure>
