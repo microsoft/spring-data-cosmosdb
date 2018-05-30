@@ -18,6 +18,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -144,5 +145,14 @@ public class ContactRepositoryIT {
 
         Assert.assertNotNull(savedContact.getLogicId());
         Assert.assertEquals(nullIdContact.getTitle(), savedContact.getTitle());
+    }
+
+    @Test
+    public void testFindById() {
+        final Optional<Contact> optional = this.repository.findById(TEST_CONTACT.getLogicId());
+
+        Assert.assertTrue(optional.isPresent());
+        Assert.assertEquals(optional.get(), TEST_CONTACT);
+        Assert.assertFalse(this.repository.findById("").isPresent());
     }
 }
