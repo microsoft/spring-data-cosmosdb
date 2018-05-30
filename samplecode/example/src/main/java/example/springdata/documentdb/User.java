@@ -17,8 +17,8 @@
 package example.springdata.documentdb;
 
 import com.microsoft.azure.documentdb.IndexingMode;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.documentdb.core.mapping.DocumentIndexingPolicy;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

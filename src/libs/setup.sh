@@ -14,7 +14,7 @@ if [ -z "$TENANT_ID" ]; then
 fi
 
 az login --service-principal -u $CLIENT_ID -p $CLIENT_KEY --tenant $TENANT_ID >> tmp.txt
-documentDbUri=$(az cosmosdb create --name $dbname --resource-group $resourcegroup --kind GlobalDocumentDB --query documentEndpoint)
-documentDbKey=$(az cosmosdb list-keys --name $dbname --resource-group $resourcegroup --query primaryMasterKey)
+cosmosDbUri=$(az cosmosdb create --name $dbname --resource-group $resourcegroup --kind GlobalDocumentDB --query documentEndpoint)
+cosmosDbKey=$(az cosmosdb list-keys --name $dbname --resource-group $resourcegroup --query primaryMasterKey)
 
-echo $documentDbKey
+echo $cosmosDbKey
