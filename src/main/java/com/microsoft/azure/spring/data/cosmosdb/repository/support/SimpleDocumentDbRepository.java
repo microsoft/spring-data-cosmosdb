@@ -1,0 +1,216 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
+
+package com.microsoft.azure.spring.data.cosmosdb.repository.support;
+
+
+import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
+
+    private final DocumentDbOperations documentDbOperations;
+    private final DocumentDbEntityInformation<T, ID> entityInformation;
+
+    public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
+                                      ApplicationContext applicationContext) {
+        this.documentDbOperations = applicationContext.getBean(DocumentDbOperations.class);
+        this.entityInformation = metadata;
+    }
+
+    public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
+                                      DocumentDbOperations dbOperations) {
+        this.documentDbOperations = dbOperations;
+        this.entityInformation = metadata;
+    }
+
+    /**
+     * save entity without partition
+     *
+     * @param entity to be saved
+     * @param <S>
+     * @return entity
+     */
+    @Override
+    public <S extends T> S save(S entity) {
+        Assert.notNull(entity, "entity must not be null");
+
+        // create collection if not exists
+        documentDbOperations.createCollectionIfNotExists(this.entityInformation,
+                this.entityInformation.getPartitionKeyFieldName());
+
+        // save entity
+        if (entityInformation.isNew(entity)) {
+            return documentDbOperations.insert(entityInformation.getCollectionName(),
+                    entity,
+                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+        } else {
+            documentDbOperations.upsert(entityInformation.getCollectionName(),
+                    entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+        }
+
+        return entity;
+    }
+
+    private PartitionKey createKey(String partitionKeyValue) {
+        if (StringUtils.isEmpty(partitionKeyValue)) {
+            return null;
+        }
+
+        return new PartitionKey(partitionKeyValue);
+    }
+
+    /**
+     * batch save entities
+     *
+     * @param entities
+     * @param <S>
+     * @return
+     */
+    @Override
+    public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
+        Assert.notNull(entities, "Iterable entities should not be null");
+
+        // create collection if not exists
+        documentDbOperations.createCollectionIfNotExists(this.entityInformation,
+                this.entityInformation.getPartitionKeyFieldName());
+
+        for (final S entity : entities) {
+            save(entity);
+        }
+
+        return entities;
+    }
+
+    /**
+     * find all entities from one collection without configuring partition key value
+     *
+     * @return
+     */
+    @Override
+    public Iterable<T> findAll() {
+        return documentDbOperations.findAll(entityInformation.getCollectionName(), entityInformation.getJavaType());
+    }
+
+    /**
+     * find entities based on id list from one collection without partitions
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public List<T> findAllById(Iterable<ID> ids) {
+        Assert.notNull(ids, "Iterable ids should not be null");
+
+        final List<T> entities = new ArrayList<T>();
+
+        for (final ID id : ids) {
+            final Optional<T> entity = findById(id);
+
+            if (entity.isPresent()) {
+                entities.add(entity.get());
+            }
+        }
+        return entities;
+    }
+
+    /**
+     * find one entity per id without partitions
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Optional<T> findById(ID id) {
+        Assert.notNull(id, "id must not be null");
+        final T result = documentDbOperations.findById(
+                entityInformation.getCollectionName(), id, entityInformation.getJavaType());
+
+        return result == null ? Optional.empty() : Optional.of(result);
+    }
+
+    /**
+     * return count of documents in one collection without partitions
+     *
+     * @return
+     */
+    @Override
+    public long count() {
+        return findAll().spliterator().getExactSizeIfKnown();
+    }
+
+    /**
+     * delete one document per id without configuring partition key value
+     *
+     * @param id
+     */
+    @Override
+    public void deleteById(ID id) {
+        Assert.notNull(id, "id to be deleted should not be null");
+
+        documentDbOperations.deleteById(entityInformation.getCollectionName(), id, null);
+    }
+
+    /**
+     * delete one document per entity
+     *
+     * @param entity
+     */
+    @Override
+    public void delete(T entity) {
+        Assert.notNull(entity, "entity to be deleted should not be null");
+
+        final String paritionKeyValue = entityInformation.getPartitionKeyFieldValue(entity);
+
+        documentDbOperations.deleteById(entityInformation.getCollectionName(),
+                entityInformation.getId(entity),
+                paritionKeyValue == null ? null : new PartitionKey(paritionKeyValue));
+    }
+
+    /**
+     * delete an collection
+     */
+    @Override
+    public void deleteAll() {
+        documentDbOperations.deleteAll(entityInformation.getCollectionName());
+    }
+
+    /**
+     * delete list of entities without partitions
+     *
+     * @param entities
+     */
+    @Override
+    public void deleteAll(Iterable<? extends T> entities) {
+        Assert.notNull(entities, "Iterable entities should not be null");
+
+        for (final T entity : entities) {
+            delete(entity);
+        }
+    }
+
+    /**
+     * check if an entity exists per id without partition
+     *
+     * @param primaryKey
+     * @return
+     */
+    @Override
+    public boolean existsById(ID primaryKey) {
+        Assert.notNull(primaryKey, "primaryKey should not be null");
+
+        return findById(primaryKey).isPresent();
+    }
+}
