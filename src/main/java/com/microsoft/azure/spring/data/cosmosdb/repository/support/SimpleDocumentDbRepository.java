@@ -7,8 +7,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
@@ -58,12 +58,10 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                     createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
             documentDbOperations.upsert(entityInformation.getCollectionName(),
-                    entity,
-                    entityInformation.getId(entity),
-                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
-
-            return entity;
+                    entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         }
+
+        return entity;
     }
 
     private PartitionKey createKey(String partitionKeyValue) {

@@ -140,14 +140,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void upsert(T object, Object id, PartitionKey partitionKey) {
+    public <T> void upsert(T object, PartitionKey partitionKey) {
         Assert.notNull(object, "Upsert object should not be null");
 
-        upsert(getCollectionName(object.getClass()), object, id, partitionKey);
+        upsert(getCollectionName(object.getClass()), object, partitionKey);
     }
 
 
-    public <T> void upsert(String collectionName, T object, Object id, PartitionKey partitionKey) {
+    public <T> void upsert(String collectionName, T object, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(object, "Upsert object should not be null");
 
@@ -160,8 +160,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("execute upsert document in database {} collection {} with id {}",
-                        this.databaseName, collectionName, id);
+                LOGGER.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
             }
 
             documentDbFactory.getDocumentClient().upsertDocument(
