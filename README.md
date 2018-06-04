@@ -76,13 +76,13 @@ Setup configuration class.
 @EnableDocumentDbRepositories
 public class AppConfiguration extends AbstractDocumentDbConfiguration {
 
-    @Value("${azure.documentdb.uri}")
+    @Value("${azure.cosmosdb.uri}")
     private String uri;
 
-    @Value("${azure.documentdb.key}")
+    @Value("${azure.cosmosdb.key}")
     private String key;
 
-    @Value("${azure.documentdb.database}")
+    @Value("${azure.cosmosdb.database}")
     private String dbName;
 
     public DocumentClient documentClient() {
