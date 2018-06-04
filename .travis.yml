@@ -11,7 +11,8 @@ jobs:
     - stage: test
       script:
         - chmod +x install.sh && ./install.sh > /dev/null
-        - mvn -P integration-test-azure clean cobertura:cobertura-integration-test
+        - set -o pipefail
+        - mvn -P integration-test-azure clean cobertura:cobertura-integration-test | grep -v "DEBUG"
         - bash <(curl -s https://codecov.io/bash)
       if: type = pull_request OR (type = push AND branch = master)
 

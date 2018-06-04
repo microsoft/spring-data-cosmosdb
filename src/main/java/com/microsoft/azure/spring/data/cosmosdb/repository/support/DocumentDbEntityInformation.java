@@ -39,9 +39,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         super(domainClass);
 
         this.id = getIdField(domainClass);
-        if (this.id != null) {
-            ReflectionUtils.makeAccessible(this.id);
-        }
+        ReflectionUtils.makeAccessible(this.id);
 
         this.collectionName = getCollectionName(domainClass);
         this.partitionKeyField = getPartitionKeyField(domainClass);
@@ -105,8 +103,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private Field getIdField(Class<?> domainClass) {
-        Field idField = null;
-
+        final Field idField;
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, Id.class);
 
         if (fields.isEmpty()) {
@@ -117,9 +114,13 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
             throw new IllegalArgumentException("only one field with @Id annotation!");
         }
 
-        if (idField != null && idField.getType() != String.class) {
-            throw new IllegalArgumentException("type of id field must be String");
+        if (idField == null) {
+            throw new IllegalArgumentException("domain should contain @Id field or field named id");
+        } else if (idField.getType() != String.class
+                && idField.getType() != Integer.class && idField.getType() != int.class) {
+            throw new IllegalArgumentException("type of id field must be String or Integer");
         }
+
         return idField;
     }
 
