@@ -43,6 +43,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>MM-dd-HH-mm</maven.build.timestamp.format>
 
         <spring.springframework.version>5.0.5.RELEASE</spring.springframework.version>
         <spring.data.version>2.0.1.RELEASE</spring.data.version>
@@ -54,8 +55,9 @@
         <org.projectlombok.version>1.16.18</org.projectlombok.version>
 
         <azure.documentdb.version>1.15.2</azure.documentdb.version>
-        <azure.test.resourcegroup>gremlin-test-4-11</azure.test.resourcegroup>
-        <azure.test.dbname>springdocdbtestdb</azure.test.dbname>
+        <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
+        <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
+        <azure.applicationinsights.version>2.0.1</azure.applicationinsights.version>
         <skip.integration.tests>true</skip.integration.tests>
         <test.on.azure>false</test.on.azure>
         <test.on.emualator>false</test.on.emualator>
@@ -116,6 +118,18 @@
             <version>${google.gson.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>applicationinsights-core</artifactId>
+            <version>${azure.applicationinsights.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${org.projectlombok.version}</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -141,12 +155,6 @@
             <version>${spring.boot.starter.test.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${org.projectlombok.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -155,6 +163,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
+                    <include>ApplicationInsights.xml</include>
                     <include>META-INF/project.properties</include>
                 </includes>
             </resource>
