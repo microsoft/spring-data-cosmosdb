@@ -10,9 +10,9 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -135,6 +135,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public Optional<T> findById(ID id) {
         Assert.notNull(id, "id must not be null");
+
+        if (id instanceof String && !StringUtils.hasText((String) id)) {
+            return Optional.empty();
+        }
+
         final T result = documentDbOperations.findById(
                 entityInformation.getCollectionName(), id, entityInformation.getJavaType());
 
