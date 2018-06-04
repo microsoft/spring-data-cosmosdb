@@ -64,8 +64,8 @@ public class MappingDocumentDbConverter
         try {
             final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
             final Object idValue = sourceDocument.getId();
-
             final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
+
             if (idProperty != null) {
                 // Replace the key id to the actual id field name in domain
                 jsonObject.remove(Constants.ID_PROPERTY_NAME);
@@ -91,28 +91,30 @@ public class MappingDocumentDbConverter
 
     public void writeInternal(final Object entity,
                               final Document targetDocument,
-                              final DocumentDbPersistentEntity<?> entityInformation) {
+                              final DocumentDbPersistentEntity<?> persistentEntity) {
         if (entity == null) {
             return;
         }
 
-        if (entityInformation == null) {
+        if (persistentEntity == null) {
             throw new MappingException("no mapping metadata for entity type: " + entity.getClass().getName());
         }
 
         final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity);
-        final DocumentDbPersistentProperty idProperty = entityInformation.getIdProperty();
+        final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
 
         if (idProperty != null) {
-            targetDocument.setId((String) accessor.getProperty(idProperty));
+            final Object value = accessor.getProperty(idProperty);
+            final String id = value == null ? null : value.toString();
+            targetDocument.setId(id);
         }
 
         for (final Field field : entity.getClass().getDeclaredFields()) {
-            if (null != idProperty && field.getName().equals(idProperty.getName())) {
+            if (idProperty != null && field.getName().equals(idProperty.getName())) {
                 continue;
             }
 
-            final PersistentProperty property = entityInformation.getPersistentProperty(field.getName());
+            final PersistentProperty property = persistentEntity.getPersistentProperty(field.getName());
             Assert.notNull(property, "Property is null.");
 
             targetDocument.set(field.getName(), mapToDocumentDBValue(accessor.getProperty(property)));
