@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
@@ -51,6 +52,7 @@ public class DocumentDBAnnotationIT {
     private DocumentCollection collectionExample;
     private DocumentDbMappingContext dbContext;
     private MappingDocumentDbConverter mappingConverter;
+    private ObjectMapper objectMapper;
     private DocumentDbEntityInformation<Role, String> roleInfo;
     private DocumentDbEntityInformation<TimeToLiveSample, String> sampleInfo;
 
@@ -59,10 +61,11 @@ public class DocumentDBAnnotationIT {
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
         sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
         dbContext = new DocumentDbMappingContext();
+        objectMapper = new ObjectMapper();
 
         dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        mappingConverter = new MappingDocumentDbConverter(dbContext);
+        mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
         dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, TestConstants.DB_NAME);
 

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
@@ -49,6 +50,7 @@ public class DocumentDbTemplateIT {
 
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
+    private ObjectMapper objectMapper;
     private DocumentCollection collectionPerson;
     private DocumentDbEntityInformation<Person, String> personInfo;
 
@@ -58,11 +60,12 @@ public class DocumentDbTemplateIT {
     @Before
     public void setup() throws ClassNotFoundException {
         mappingContext = new DocumentDbMappingContext();
+        objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        dbConverter = new MappingDocumentDbConverter(mappingContext);
+        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         documentClient = new DocumentClient(documentDbUri, documentDbKey,
                 ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 

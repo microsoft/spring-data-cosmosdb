@@ -36,11 +36,14 @@ public class MappingDocumentDbConverter
             DocumentDbPersistentProperty> mappingContext;
     protected GenericConversionService conversionService;
     private ApplicationContext applicationContext;
+    private ObjectMapper objectMapper;
 
     public MappingDocumentDbConverter(
-            MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext) {
+            MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext,
+            ObjectMapper objectMapper) {
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
+        this.objectMapper = objectMapper == null ? new ObjectMapper() : objectMapper;
     }
 
     @Override
@@ -57,7 +60,6 @@ public class MappingDocumentDbConverter
 
     protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
                                                 final Document sourceDocument) {
-        final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
