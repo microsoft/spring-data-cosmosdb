@@ -9,7 +9,7 @@ before_script:
 
 script:
   - set -o pipefail
-  - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -E "INFO|Tests"
+  - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
