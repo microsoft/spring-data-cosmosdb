@@ -357,6 +357,15 @@
             </properties>
         </profile>
         <profile>
+            <id>travis-ci-test</id>
+            <properties>
+                <build.profile.id>travis-ci-test</build.profile.id>
+                <skip.integration.tests>false</skip.integration.tests>
+                <test.on.emulator>false</test.on.emulator>
+                <test.on.emulator>false</test.on.emulator>
+            </properties>
+        </profile>
+        <profile>
             <id>integration-test-emulator</id>
             <properties>
                 <build.profile.id>integration-test-emulator</build.profile.id>
