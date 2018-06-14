@@ -50,9 +50,16 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
    String[] excludePaths; // Excluded paths for indexing
 ```
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/documentdb/repository/AddressRepositoryIT.java)
-- Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField
+- Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField`
 - Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
 - Supports List and nested type in domain class.
+- Configurable ObjectMapper bean with unique name `cosmosdbObjectMapper`, only configure customized ObjectMapper if you really need to. e.g.,
+```java
+   @Bean(name = "cosmosdbObjectMapper")
+   public ObjectMapper objectMapper() {
+      return new ObjectMapper(); // Do configuration to the ObjectMapper if required
+   }
+```
   
 ## Quick Start
 
@@ -76,13 +83,13 @@ Setup configuration class.
 @EnableDocumentDbRepositories
 public class AppConfiguration extends AbstractDocumentDbConfiguration {
 
-    @Value("${azure.documentdb.uri}")
+    @Value("${azure.cosmosdb.uri}")
     private String uri;
 
-    @Value("${azure.documentdb.key}")
+    @Value("${azure.cosmosdb.key}")
     private String key;
 
-    @Value("${azure.documentdb.database}")
+    @Value("${azure.cosmosdb.database}")
     private String dbName;
 
     public DocumentClient documentClient() {

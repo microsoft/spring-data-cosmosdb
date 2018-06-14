@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "azure.documentdb")
+@ConfigurationProperties(prefix = "azure.cosmosdb")
 public class DocumentDbProperties {
 
     private String uri;
