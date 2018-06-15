@@ -8,19 +8,31 @@ package com.microsoft.azure.spring.data.cosmosdb.core.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
 public class NewCriteria {
     
+    @Getter
     private final CriteriaType criteriaType;
+
+    @Getter
     private final List<NewCriteria> criteriaList = new ArrayList<>();
 
+    @Getter
     private String criteriaSubject;
+
+    @Getter
     private List<Object> criteriaValues = new ArrayList<>();
-    private boolean shouldIgnoreCase;
+
+    @Getter
+    private boolean caseSensitive;
+
+    @Getter
     private boolean negated;
 
     private NewCriteria(CriteriaType criteriaType) {
         this.criteriaType = criteriaType;
-        this.shouldIgnoreCase = false;
+        this.caseSensitive = false;
         this.negated = false;
     }
 
@@ -60,33 +72,9 @@ public class NewCriteria {
         
         criteria.criteriaSubject = conditionSubject;
         criteria.criteriaValues = conditionValues;
-        criteria.shouldIgnoreCase = ignoreCase;
+        criteria.caseSensitive = ignoreCase;
         
         return criteria;
     }
-
     
-    public List<NewCriteria> getCriteriaList() {
-        return criteriaList;
-    }
-    
-    public String getCriteriaSubject() {
-        return criteriaSubject;
-    }
-
-    public List<Object> getCriteriaValues() {
-        return criteriaValues;
-    }
-
-    public boolean shouldIgnoreCase() {
-        return shouldIgnoreCase;
-    }
-
-    public CriteriaType getCriteriaType() {
-        return criteriaType;
-    }
-    
-    public boolean isNegated() {
-        return negated;
-    }
 }
