@@ -26,24 +26,24 @@ public class NewCriteria {
 
     public static NewCriteria and(NewCriteria left, NewCriteria right) {
 
-        final NewCriteria criteria = new NewCriteria(CriteriaType.AND_CONDITION);
-        
-        criteria.criteriaList.add(left);
-        criteria.criteriaList.add(right);
-
-        return criteria;
+        return linkingCondition(CriteriaType.AND_CONDITION, left, right);
     }
 
     public static NewCriteria or(NewCriteria left, NewCriteria right) {
 
-        final NewCriteria criteria = new NewCriteria(CriteriaType.OR_CONDITION);
+        return linkingCondition(CriteriaType.OR_CONDITION, left, right);
+    }
+
+    private static NewCriteria linkingCondition(CriteriaType condition, NewCriteria left, NewCriteria right) {
+
+        final NewCriteria criteria = new NewCriteria(condition);
         
         criteria.criteriaList.add(left);
         criteria.criteriaList.add(right);
         
         return criteria;
     }
-
+    
     public static NewCriteria value(String conditionSubject, CriteriaType condition, List<Object> conditionValues) {
         return value(conditionSubject, condition, conditionValues, false, false);
     }
