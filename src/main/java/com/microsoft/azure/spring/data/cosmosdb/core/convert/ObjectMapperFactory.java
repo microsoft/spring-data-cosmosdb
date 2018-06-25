@@ -11,17 +11,17 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-public class JsonSerializableFactory {
-    private static ObjectMapper OBJECTMAPPER = new ObjectMapper();
+public class ObjectMapperFactory {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
-        OBJECTMAPPER.registerModule(new ParameterNamesModule())
+        OBJECT_MAPPER.registerModule(new ParameterNamesModule())
                         .registerModule(new Jdk8Module())
                         .registerModule(new JavaTimeModule());
     }
 
     public static ObjectMapper getObjectMapper() {
-        return OBJECTMAPPER;
+        return OBJECT_MAPPER;
     }
 }
 
