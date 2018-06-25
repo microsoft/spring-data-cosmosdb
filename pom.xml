@@ -47,7 +47,6 @@
 
         <spring.springframework.version>5.0.5.RELEASE</spring.springframework.version>
         <spring.data.version>2.0.1.RELEASE</spring.data.version>
-        <google.gson.version>2.8.2</google.gson.version>
         <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
@@ -113,11 +112,6 @@
             <version>${azure.documentdb.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${google.gson.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-parameter-names</artifactId>
@@ -378,6 +372,15 @@
                 <build.profile.id>integration-test-azure</build.profile.id>
                 <skip.integration.tests>false</skip.integration.tests>
                 <test.on.azure>true</test.on.azure>
+                <test.on.emulator>false</test.on.emulator>
+            </properties>
+        </profile>
+        <profile>
+            <id>travis-ci-test</id>
+            <properties>
+                <build.profile.id>travis-ci-test</build.profile.id>
+                <skip.integration.tests>false</skip.integration.tests>
+                <test.on.emulator>false</test.on.emulator>
                 <test.on.emulator>false</test.on.emulator>
             </properties>
         </profile>
