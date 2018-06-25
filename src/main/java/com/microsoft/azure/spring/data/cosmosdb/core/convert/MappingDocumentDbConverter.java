@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersisten
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
@@ -41,7 +42,7 @@ public class MappingDocumentDbConverter
 
     public MappingDocumentDbConverter(
             MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext,
-            ObjectMapper objectMapper) {
+            @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME) ObjectMapper objectMapper) {
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? JsonSerializableFactory.getObjectMapper() : objectMapper;
