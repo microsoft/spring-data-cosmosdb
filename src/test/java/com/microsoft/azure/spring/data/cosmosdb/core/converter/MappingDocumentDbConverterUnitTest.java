@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.converter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -12,7 +13,9 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbCo
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
+import com.microsoft.azure.spring.data.cosmosdb.domain.MemoType;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -51,10 +54,8 @@ public class MappingDocumentDbConverterUnitTest {
 
     @Test
     public void covertAddressToDocumentCorrectly() {
-        final Document document = new Document();
         final Address testAddress = new Address(TestConstants.POSTAL_CODE, TestConstants.CITY, TestConstants.STREET);
-
-        dbConverter.write(testAddress, document);
+        final Document document = dbConverter.writeDoc(testAddress);
 
         assertThat(document.getId()).isEqualTo(testAddress.getPostalCode());
         assertThat(document.getString(TestConstants.PROPERTY_CITY)).isEqualTo(testAddress.getCity());
@@ -78,9 +79,9 @@ public class MappingDocumentDbConverterUnitTest {
 
     @Test
     public void canWritePojoWithDateToDocument() throws ParseException {
-        final Document document = new Document();
-        final Memo memo = new Memo(TestConstants.ID, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING));
-        dbConverter.write(memo, document);
+        final Memo memo = new Memo(TestConstants.ID, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
+                MemoType.DEFAULT);
+        final Document document = dbConverter.writeDoc(memo);
 
         assertThat(document.getId()).isEqualTo(memo.getId());
         assertThat(document.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(memo.getMessage());
@@ -103,9 +104,9 @@ public class MappingDocumentDbConverterUnitTest {
     }
 
     @Test
-    public void convertDateValueToMilliSeconds() throws ParseException {
+    public void convertDateValueToMilliSeconds() throws ParseException, JsonProcessingException {
         final Date date = TIMEZONE_DATE.parse(TestConstants.DATE_TIMEZONE_STRING);
-        final long time = (Long) dbConverter.mapToDocumentDBValue(date);
+        final Long time = (Long) dbConverter.mapToDocumentDBValue(date);
 
         assertThat(time).isEqualTo(TestConstants.MILLI_SECONDS);
     }

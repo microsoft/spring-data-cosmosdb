@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
+import com.microsoft.azure.spring.data.cosmosdb.domain.MemoType;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -14,4 +15,6 @@ import java.util.List;
 @Repository
 public interface MemoRepository extends DocumentDbRepository<Memo, String> {
     List<Memo> findMemoByDate(Date date);
+
+    List<Memo> findMemoByMemoType(MemoType memoType);
 }

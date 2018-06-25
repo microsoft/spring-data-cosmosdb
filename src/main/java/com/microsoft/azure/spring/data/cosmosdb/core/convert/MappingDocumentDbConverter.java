@@ -5,27 +5,28 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Date;
 
 public class MappingDocumentDbConverter
@@ -43,7 +44,7 @@ public class MappingDocumentDbConverter
             ObjectMapper objectMapper) {
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
-        this.objectMapper = objectMapper == null ? new ObjectMapper() : objectMapper;
+        this.objectMapper = objectMapper == null ? JsonSerializableFactory.getObjectMapper() : objectMapper;
     }
 
     @Override
@@ -81,43 +82,37 @@ public class MappingDocumentDbConverter
 
     @Override
     public void write(Object sourceEntity, Document document) {
-        if (sourceEntity == null) {
-            return;
-        }
-
-        final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(sourceEntity.getClass());
-        writeInternal(sourceEntity, document, entity);
+        // Not used anymore
+        throw new NotImplementedException();
     }
 
-    public void writeInternal(final Object entity,
-                              final Document targetDocument,
-                              final DocumentDbPersistentEntity<?> persistentEntity) {
-        if (entity == null) {
-            return;
+    public Document writeDoc(Object sourceEntity) {
+        if (sourceEntity == null) {
+            return null;
         }
 
-        if (persistentEntity == null) {
-            throw new MappingException("no mapping metadata for entity type: " + entity.getClass().getName());
-        }
+        try {
+            final DocumentDbPersistentEntity<?> persistentEntity =
+                    mappingContext.getPersistentEntity(sourceEntity.getClass());
 
-        final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity);
-        final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
-
-        if (idProperty != null) {
-            final Object value = accessor.getProperty(idProperty);
-            final String id = value == null ? null : value.toString();
-            targetDocument.setId(id);
-        }
-
-        for (final Field field : entity.getClass().getDeclaredFields()) {
-            if (idProperty != null && field.getName().equals(idProperty.getName())) {
-                continue;
+            if (persistentEntity == null) {
+                throw new MappingException("no mapping metadata for entity type: " + sourceEntity.getClass().getName());
             }
 
-            final PersistentProperty property = persistentEntity.getPersistentProperty(field.getName());
-            Assert.notNull(property, "Property is null.");
+            final ConvertingPropertyAccessor accessor = getPropertyAccessor(sourceEntity);
+            final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
 
-            targetDocument.set(field.getName(), mapToDocumentDBValue(accessor.getProperty(property)));
+            final Document document = new Document(objectMapper.writeValueAsString(sourceEntity));
+
+            if (idProperty != null) {
+                final Object value = accessor.getProperty(idProperty);
+                final String id = value == null ? null : value.toString();
+                document.setId(id);
+            }
+
+            return document;
+        } catch (JsonProcessingException e) {
+            throw new DocumentDBAccessException("Failed to map document value.", e);
         }
     }
 
@@ -149,7 +144,7 @@ public class MappingDocumentDbConverter
     }
 
     /**
-     * Convert a property value to the value stored in DocumentDB
+     * Convert a property value to the value stored in CosmosDB
      * @param fromPropertyValue
      * @return
      */
@@ -158,8 +153,11 @@ public class MappingDocumentDbConverter
             return null;
         }
 
+        // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();
+        } else if (fromPropertyValue instanceof Enum) {
+            fromPropertyValue = fromPropertyValue.toString();
         }
 
         return fromPropertyValue;
