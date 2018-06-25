@@ -45,7 +45,7 @@ public class MappingDocumentDbConverter
             @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME) ObjectMapper objectMapper) {
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
-        this.objectMapper = objectMapper == null ? JsonSerializableFactory.getObjectMapper() : objectMapper;
+        this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() : objectMapper;
     }
 
     @Override
@@ -92,29 +92,30 @@ public class MappingDocumentDbConverter
             return null;
         }
 
+        final DocumentDbPersistentEntity<?> persistentEntity =
+                mappingContext.getPersistentEntity(sourceEntity.getClass());
+
+        if (persistentEntity == null) {
+            throw new MappingException("no mapping metadata for entity type: " + sourceEntity.getClass().getName());
+        }
+
+        final ConvertingPropertyAccessor accessor = getPropertyAccessor(sourceEntity);
+        final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
+
+        final Document document;
         try {
-            final DocumentDbPersistentEntity<?> persistentEntity =
-                    mappingContext.getPersistentEntity(sourceEntity.getClass());
-
-            if (persistentEntity == null) {
-                throw new MappingException("no mapping metadata for entity type: " + sourceEntity.getClass().getName());
-            }
-
-            final ConvertingPropertyAccessor accessor = getPropertyAccessor(sourceEntity);
-            final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
-
-            final Document document = new Document(objectMapper.writeValueAsString(sourceEntity));
-
-            if (idProperty != null) {
-                final Object value = accessor.getProperty(idProperty);
-                final String id = value == null ? null : value.toString();
-                document.setId(id);
-            }
-
-            return document;
+            document = new Document(objectMapper.writeValueAsString(sourceEntity));
         } catch (JsonProcessingException e) {
             throw new DocumentDBAccessException("Failed to map document value.", e);
         }
+
+        if (idProperty != null) {
+            final Object value = accessor.getProperty(idProperty);
+            final String id = value == null ? null : value.toString();
+            document.setId(id);
+        }
+
+        return document;
     }
 
     public ApplicationContext getApplicationContext() {
