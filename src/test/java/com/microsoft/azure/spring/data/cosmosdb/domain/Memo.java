@@ -12,7 +12,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * For testing date purpose
+ * For testing date and enum purpose
  */
 @Document
 @Data
