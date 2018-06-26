@@ -21,5 +21,5 @@ public class Memo {
     private String id;
     private String message;
     private Date date;
-    private MemoType memoType;
+    private Importance importance;
 }

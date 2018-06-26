@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
-import com.microsoft.azure.spring.data.cosmosdb.domain.MemoType;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,8 +42,8 @@ public class MemoRepositoryIT {
     public static void init() throws ParseException {
         date1 = DATE_FORMAT.parse(TestConstants.DATE_STRING);
         date2 = DATE_FORMAT.parse(TestConstants.NEW_DATE_STRING);
-        testMemo1 = new Memo(TestConstants.ID, TestConstants.MESSAGE, date1, MemoType.HAPPY);
-        testMemo2 = new Memo(TestConstants.NEW_ID, TestConstants.NEW_MESSAGE, date2, MemoType.SAD);
+        testMemo1 = new Memo(TestConstants.ID, TestConstants.MESSAGE, date1, Importance.HIGH);
+        testMemo2 = new Memo(TestConstants.NEW_ID, TestConstants.NEW_MESSAGE, date2, Importance.LOW);
     }
 
     @Before
@@ -74,7 +74,7 @@ public class MemoRepositoryIT {
 
     @Test
     public void testFindByEnum() {
-        final List<Memo> result = repository.findMemoByMemoType(MemoType.HAPPY);
+        final List<Memo> result = repository.findMemoByImportance(testMemo1.getImportance());
 
         assertThat(result.size()).isEqualTo(1);
         assertMemoEquals(result.get(0), testMemo1);
@@ -84,6 +84,6 @@ public class MemoRepositoryIT {
         assertThat(actual.getId().equals(expected.getId()));
         assertThat(actual.getMessage().equals(expected.getMessage()));
         assertThat(actual.getDate().equals(expected.getDate()));
-        assertThat(actual.getMemoType().equals(expected.getMemoType()));
+        assertThat(actual.getImportance().equals(expected.getImportance()));
     }
 }

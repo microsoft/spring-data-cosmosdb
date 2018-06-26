@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -13,9 +12,8 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbCo
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
-import com.microsoft.azure.spring.data.cosmosdb.domain.MemoType;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -80,7 +78,7 @@ public class MappingDocumentDbConverterUnitTest {
     @Test
     public void canWritePojoWithDateToDocument() throws ParseException {
         final Memo memo = new Memo(TestConstants.ID, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
-                MemoType.DEFAULT);
+                Importance.NORMAL);
         final Document document = dbConverter.writeDoc(memo);
 
         assertThat(document.getId()).isEqualTo(memo.getId());
