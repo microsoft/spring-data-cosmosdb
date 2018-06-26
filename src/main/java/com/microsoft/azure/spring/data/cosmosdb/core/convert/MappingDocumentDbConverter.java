@@ -82,6 +82,7 @@ public class MappingDocumentDbConverter
     }
 
     @Override
+    @Deprecated
     public void write(Object sourceEntity, Document document) {
         // Not used anymore
         throw new NotImplementedException();
