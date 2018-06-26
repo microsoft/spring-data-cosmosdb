@@ -76,8 +76,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        final Document document = new Document();
-        mappingDocumentDbConverter.write(objectToSave, document);
+        final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute createDocument in database {} collection {}",
@@ -152,11 +151,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(object, "Upsert object should not be null");
 
         try {
-            Document originalDoc = new Document();
+            Document originalDoc;
             if (object instanceof Document) {
                 originalDoc = (Document) object;
             } else {
-                mappingDocumentDbConverter.write(object, originalDoc);
+                originalDoc = mappingDocumentDbConverter.writeDoc(object);
             }
 
             if (LOGGER.isDebugEnabled()) {
