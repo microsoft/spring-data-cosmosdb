@@ -47,6 +47,7 @@
 
         <spring.springframework.version>5.0.5.RELEASE</spring.springframework.version>
         <spring.data.version>2.0.1.RELEASE</spring.data.version>
+        <spring.boot.version>2.0.0.RELEASE</spring.boot.version>
         <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
@@ -140,6 +141,12 @@
             <version>${org.projectlombok.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -163,6 +170,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.starter.test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

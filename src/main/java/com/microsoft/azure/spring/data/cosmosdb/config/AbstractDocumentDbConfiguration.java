@@ -12,8 +12,10 @@ import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.telemetry.TelemetryTracker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,6 +29,12 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
     @Autowired(required = false)
     private ObjectMapper objectMapper;
+
+    @Bean
+    @ConditionalOnProperty(name = "cosmosdb.telemetryAllowed", havingValue = "true", matchIfMissing = true)
+    public TelemetryTracker getTelemetryTracker() {
+        return new TelemetryTracker();
+    }
 
     @Bean
     public DocumentDbFactory documentDbFactory() {

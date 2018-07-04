@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -23,6 +24,7 @@ public class UserAgentTest {
     private static final String TEST_VERSION = "1.0.0-FOR-TEST";
 
     @Test
+    @Ignore
     public void testUserAgentSuffixAppended() {
         PowerMockito.mockStatic(PropertyLoader.class);
         BDDMockito.given(PropertyLoader.getProjectVersion()).willReturn(TEST_VERSION);
