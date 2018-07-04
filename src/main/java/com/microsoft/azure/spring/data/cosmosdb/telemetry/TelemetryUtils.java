@@ -14,14 +14,13 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Map;
 
 import static com.microsoft.applicationinsights.core.dependencies.apachecommons.codec.digest.DigestUtils.sha256Hex;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TelemetryUtils {
 
-    private static final String UNKNOWN_MAC = "unknown-Mac-Address";
+    private static final String UNKNOWN_MAC = "Unknown-Mac-Address";
 
     private static String getMacAddress() {
         try {
@@ -44,10 +43,9 @@ public class TelemetryUtils {
         return sha256Hex(mac);
     }
 
-    public static void telemetryTriggerEvent(TelemetryTracker tracker, @NonNull String eventName,
-                                             Map<String, String> properties) {
+    public static void telemetryTriggerEvent(TelemetryTracker tracker, @NonNull String eventName) {
         if (tracker != null) {
-            tracker.trackEvent(eventName, properties);
+            tracker.trackEvent(eventName);
         }
     }
 }

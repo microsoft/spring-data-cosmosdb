@@ -14,11 +14,6 @@ import com.microsoft.azure.spring.data.cosmosdb.telemetry.TelemetryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.microsoft.azure.spring.data.cosmosdb.telemetry.TelemetryProperties.PROPERTY_SERVICE_NAME;
-
 public class DocumentDbFactory {
 
     private DocumentClient documentClient;
@@ -48,7 +43,7 @@ public class DocumentDbFactory {
 
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
 
-        this.trackCustomEvent();
+        TelemetryUtils.telemetryTriggerEvent(telemetryTracker, this.getClass().getSimpleName());
     }
 
     public DocumentDbFactory(DocumentClient client) {
@@ -57,19 +52,11 @@ public class DocumentDbFactory {
         }
 
         this.documentClient = client;
-        this.trackCustomEvent();
+        TelemetryUtils.telemetryTriggerEvent(telemetryTracker, this.getClass().getSimpleName());
     }
 
     public DocumentClient getDocumentClient() {
         return documentClient;
-    }
-
-    private void trackCustomEvent() {
-        final Map<String, String> customProperties = new HashMap<>();
-
-        customProperties.put(PROPERTY_SERVICE_NAME, "cosmosdb");
-
-        TelemetryUtils.telemetryTriggerEvent(telemetryTracker, this.getClass().getSimpleName(), customProperties);
     }
 }
 

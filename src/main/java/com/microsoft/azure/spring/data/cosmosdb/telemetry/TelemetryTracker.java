@@ -20,33 +20,20 @@ public class TelemetryTracker {
 
     private static final String PROJECT_INFO = "spring-data-cosmosdb" + "/" + PROJECT_VERSION;
 
-    private TelemetryClient client;
+    private final TelemetryClient client;
+
+    private final Map<String, String> defaultProperties;
 
     public TelemetryTracker() {
         this.client = new TelemetryClient();
+        this.defaultProperties = new HashMap<>();
+
+        this.defaultProperties.put(PROPERTY_VERSION, PROJECT_INFO);
+        this.defaultProperties.put(PROPERTY_INSTALLATION_ID, TelemetryUtils.getHashMac());
     }
 
-    public void trackEvent(@NonNull String name, Map<String, String> customProperties) {
-        final Map<String, String> properties;
-        final Map<String, String> defaultProperties = this.getDefaultProperties();
-
-        if (customProperties == null) {
-            properties = defaultProperties;
-        } else {
-            defaultProperties.forEach(customProperties::putIfAbsent);
-            properties = customProperties;
-        }
-
-        client.trackEvent(name, properties, null);
-        client.flush();
-    }
-
-    private Map<String, String> getDefaultProperties() {
-        final Map<String, String> properties = new HashMap<>();
-
-        properties.put(PROPERTY_VERSION, PROJECT_INFO);
-        properties.put(PROPERTY_INSTALLATION_ID, TelemetryUtils.getHashMac());
-
-        return properties;
+    public void trackEvent(@NonNull String name) {
+        this.client.trackEvent(name, this.defaultProperties, null);
+        this.client.flush();
     }
 }
