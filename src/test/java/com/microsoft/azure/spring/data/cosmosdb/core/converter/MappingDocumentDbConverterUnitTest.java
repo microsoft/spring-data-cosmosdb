@@ -104,7 +104,7 @@ public class MappingDocumentDbConverterUnitTest {
     @Test
     public void convertDateValueToMilliSeconds() throws ParseException {
         final Date date = TIMEZONE_DATE.parse(TestConstants.DATE_TIMEZONE_STRING);
-        final long time = (Long) dbConverter.mapToDocumentDBValue(date);
+        final long time = (Long) MappingDocumentDbConverter.toDocumentDBValue(date);
 
         assertThat(time).isEqualTo(TestConstants.MILLI_SECONDS);
     }

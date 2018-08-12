@@ -461,7 +461,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             queryStr += "r." + fieldName + "=@" + entry.getKey();
 
             parameterCollection.add(new SqlParameter("@" + entry.getKey(),
-                    mappingDocumentDbConverter.mapToDocumentDBValue(entry.getValue())));
+                    MappingDocumentDbConverter.toDocumentDBValue(entry.getValue())));
         }
 
         return new SqlQuerySpec(queryStr, parameterCollection);
@@ -474,7 +474,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(entityClass);
-        return fieldName.equals(entityInfo.getId().getName());
+        return fieldName.equals(entityInfo.getIdField().getName());
     }
 
     @Override
