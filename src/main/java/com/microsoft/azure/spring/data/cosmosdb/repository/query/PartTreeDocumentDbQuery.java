@@ -6,8 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -27,19 +27,16 @@ public class PartTreeDocumentDbQuery extends AbstractDocumentDbQuery {
         this.mappingContext = operations.getConverter().getMappingContext();
     }
 
-    public PartTree getTree() {
-        return this.tree;
-    }
-
     @Override
-    protected Query createQuery(DocumentDbParameterAccessor accessor) {
+    protected DocumentQuery createQuery(DocumentDbParameterAccessor accessor) {
         final DocumentDbQueryCreator creator = new DocumentDbQueryCreator(tree, accessor, mappingContext);
 
-        final Query query = creator.createQuery();
+        final DocumentQuery query = creator.createQuery();
 
         if (tree.isLimiting()) {
             throw new NotImplementedException("Limiting is not supported.");
         }
+
         return query;
     }
 

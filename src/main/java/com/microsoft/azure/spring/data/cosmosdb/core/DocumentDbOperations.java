@@ -9,7 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public interface DocumentDbOperations {
                    Object id,
                    Class<T> entityClass);
 
-    <T> List<T> find(Query query,
+    <T> List<T> find(DocumentQuery query,
                      Class<T> entityClass,
                      String collectionName);
 
@@ -54,7 +54,7 @@ public interface DocumentDbOperations {
 
     void deleteAll(String collectionName);
 
-    <T> List<T> delete(Query query, Class<T> entityClass, String collectionName);
+    <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     MappingDocumentDbConverter getConverter();
 }

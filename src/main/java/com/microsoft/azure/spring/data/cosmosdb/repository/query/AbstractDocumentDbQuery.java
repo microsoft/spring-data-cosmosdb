@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 
@@ -22,17 +22,17 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
 
     public Object execute(Object[] parameters) {
         final DocumentDbParameterAccessor accessor = new DocumentDbParameterParameterAccessor(method, parameters);
-        final Query query = createQuery(accessor);
+        final DocumentQuery query = createQuery(accessor);
 
         final ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
         final String collection = ((DocumentDbEntityMetadata) method.getEntityInformation()).getCollectionName();
 
-        final DocumentDbQueryExecution execution = getExecution(query, accessor);
+        final DocumentDbQueryExecution execution = getExecution();
         return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
     }
 
 
-    private DocumentDbQueryExecution getExecution(Query query, DocumentDbParameterAccessor accessor) {
+    private DocumentDbQueryExecution getExecution() {
         if (isDeleteQuery()) {
             return new DocumentDbQueryExecution.DeleteExecution(operations);
         } else {
@@ -44,7 +44,7 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
         return method;
     }
 
-    protected abstract Query createQuery(DocumentDbParameterAccessor accessor);
+    protected abstract DocumentQuery createQuery(DocumentDbParameterAccessor accessor);
 
     protected abstract boolean isDeleteQuery();
 
