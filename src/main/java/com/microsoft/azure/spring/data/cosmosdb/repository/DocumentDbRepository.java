@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.io.Serializable;
 
 @NoRepositoryBean
-public interface DocumentDbRepository<T, ID extends Serializable> extends CrudRepository<T, ID> {
+public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
 }
 
