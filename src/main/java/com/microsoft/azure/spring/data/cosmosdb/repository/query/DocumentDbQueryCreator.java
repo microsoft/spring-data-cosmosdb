@@ -5,22 +5,21 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.criteria.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 
-import java.util.Iterator;
+import java.util.*;
 
-
-public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria> {
+public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
     private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
 
@@ -31,89 +30,38 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<Query, Criteria
         this.mappingContext = mappingContext;
     }
 
-    @Override
-    protected Criteria create(Part part, Iterator<Object> iterator) {
-        final PersistentPropertyPath<DocumentDbPersistentProperty> propertyPath =
-                mappingContext.getPersistentPropertyPath(part.getProperty());
-        final DocumentDbPersistentProperty property = propertyPath.getLeafProperty();
-        final Criteria criteria = from(part, property, Criteria.where(propertyPath.toDotPath()), iterator);
-
-        return criteria;
-    }
-
-    @Override
-    protected Criteria and(Part part, Criteria base, Iterator<Object> iterator) {
-        if (base == null) {
-            return create(part, iterator);
-        }
-
-        final PersistentPropertyPath<DocumentDbPersistentProperty> path =
-                mappingContext.getPersistentPropertyPath(part.getProperty());
-        final DocumentDbPersistentProperty property = path.getLeafProperty();
-
-        return from(part, property, base.and(path.toDotPath()), iterator);
-    }
-
-    @Override
-    protected Query complete(Criteria criteria, Sort sort) {
-        final Query query = new Query(criteria);
-        return query;
-    }
-
-    @Override
-    protected Criteria or(Criteria base, Criteria criteria) {
-        // not supported yet
-        throw new NotImplementedException("Criteria or is not supported.");
-    }
-
-    private Criteria from(Part part, DocumentDbPersistentProperty property,
-                          Criteria criteria, Iterator<Object> parameters) {
-
+    @Override // Note (panli): side effect here, this method will change the iterator status of parameters.
+    protected Criteria create(Part part, Iterator<Object> parameters) {
         final Part.Type type = part.getType();
+        final String subject = this.mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
+        final List<Object> values = new ArrayList<>();
 
-        switch (type) {
-            case SIMPLE_PROPERTY:
-
-                return isSimpleComparisionPossible(part) ? criteria.is(parameters.next())
-                        : createLikeRegexCriteriaOrThrow(part, property, criteria, parameters, false);
-            default:
-                throw new IllegalArgumentException("unsupported keyword: " + type);
-        }
-    }
-
-    private boolean isSimpleComparisionPossible(Part part) {
-        switch (part.shouldIgnoreCase()) {
-            case NEVER:
-                return true;
-            case WHEN_POSSIBLE:
-                return part.getProperty().getType() != String.class;
-            case ALWAYS:
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    private Criteria createLikeRegexCriteriaOrThrow(Part part, DocumentDbPersistentProperty property,
-        Criteria criteria, Iterator<Object> parameters, boolean shouldNegateExpression) {
-        final PropertyPath path = part.getProperty().getLeafProperty();
-
-        switch (part.shouldIgnoreCase()) {
-            case ALWAYS:
-                if (path.getType() != String.class) {
-                    throw new IllegalArgumentException("part must be String, but: " + path.getType() + ", " + path);
-                }
-
-                /* fall through */
-            case WHEN_POSSIBLE:
-
-                return criteria;
-
-            case NEVER:
-                break;
+        if (!CriteriaType.getCriteriaMap().containsKey(type)) {
+            throw new UnsupportedOperationException("Unsupported keyword: " + type.toString());
         }
 
-        return null;
+        for (int i = 0; i < part.getNumberOfArguments(); i++) {
+            Assert.isTrue(parameters.hasNext(), "should not reach the end of iterator");
+            values.add(parameters.next());
+        }
+
+        return Criteria.getUnaryInstance(CriteriaType.getCriteriaMap().get(type), subject, values);
     }
 
+    @Override
+    protected Criteria and(@NonNull Part part, @NonNull Criteria base, @NonNull Iterator<Object> parameters) {
+        final Criteria right = this.create(part, parameters);
+
+        return Criteria.getBinaryInstance(CriteriaType.AND, base, right);
+    }
+
+    @Override
+    protected Criteria or(@NonNull Criteria base, @NonNull Criteria criteria) {
+        return Criteria.getBinaryInstance(CriteriaType.OR, base, criteria);
+    }
+
+    @Override
+    protected DocumentQuery complete(@NonNull Criteria criteria, @NonNull Sort sort) {
+        return new DocumentQuery(criteria);
+    }
 }

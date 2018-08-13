@@ -10,6 +10,10 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -29,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
@@ -281,7 +286,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
-                                               @NonNull DocumentDbEntityInformation information) {
+                                                @NonNull DocumentDbEntityInformation information) {
         DocumentCollection collection = new DocumentCollection();
         final String collectionName = information.getCollectionName();
         final IndexingPolicy policy = information.getIndexingPolicy();
@@ -395,6 +400,57 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
+    public <T> List<T> find(@NonNull DocumentQuery query, Class<T> domainClass, @NonNull String collectionName) {
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final FeedOptions feedOptions = new FeedOptions();
+        final DocumentCollection collection = getDocCollection(collectionName);
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
+
+        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
+
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final List<Document> result = documentDbFactory.getDocumentClient()
+                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
+
+        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> List<T> delete(@NonNull DocumentQuery query, Class<T> domainClass, @NonNull String collectionName) {
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final FeedOptions feedOptions = new FeedOptions();
+        final DocumentCollection collection = getDocCollection(collectionName);
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+
+        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
+
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final List<Document> results = documentDbFactory.getDocumentClient()
+                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
+        final RequestOptions options = new RequestOptions();
+
+        partitionCriteria.ifPresent(c -> options.setPartitionKey(new PartitionKey(c.getSubValues().get(0))));
+
+        final List<T> deletedResult = new ArrayList<>();
+
+        for (final Document d : results) {
+            try {
+                documentDbFactory.getDocumentClient().deleteDocument(d.getSelfLink(), options);
+                deletedResult.add(getConverter().read(domainClass, d));
+            } catch (DocumentClientException e) {
+                throw new DocumentDBAccessException(String.format("Failed to delete document %s", d.getSelfLink()), e);
+            }
+        }
+
+        return deletedResult;
+    }
+
     public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
         Assert.notNull(query, "query should not be null");
         Assert.notNull(domainClass, "domainClass should not be null");
@@ -482,7 +538,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.mappingDocumentDbConverter;
     }
 
-    @Override
     public <T> List<T> delete(Query query, Class<T> entityClass, String collectionName) {
         Assert.notNull(query, "query should not be null");
         Assert.notNull(entityClass, "entityClass should not be null");

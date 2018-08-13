@@ -6,10 +6,10 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 
 public interface DocumentDbQueryExecution {
-    Object execute(Query query, Class<?> type, String collection);
+    Object execute(DocumentQuery query, Class<?> type, String collection);
 
     final class CollectionExecution implements DocumentDbQueryExecution {
 
@@ -20,7 +20,7 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
-        public Object execute(Query query, Class<?> type, String collection) {
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
             return operations.getCollectionName(type);
         }
     }
@@ -34,12 +34,13 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
-        public Object execute(Query query, Class<?> type, String collection) {
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
             return operations.find(query, type, collection);
         }
     }
 
     final class DeleteExecution implements DocumentDbQueryExecution {
+
         private final DocumentDbOperations operations;
 
         public DeleteExecution(DocumentDbOperations operations) {
@@ -47,7 +48,7 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
-        public Object execute(Query query, Class<?> type, String collection) {
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
             return operations.delete(query, type, collection);
         }
     }
