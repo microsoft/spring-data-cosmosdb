@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter.toDocumentDBValue;
 
-public class FindQueueSpecGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
+public class FindQuerySpecGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
 
-    public <T> FindQueueSpecGenerator(@NonNull Class<T> domainClass) {
+    public <T> FindQuerySpecGenerator(@NonNull Class<T> domainClass) {
         super(domainClass);
     }
 

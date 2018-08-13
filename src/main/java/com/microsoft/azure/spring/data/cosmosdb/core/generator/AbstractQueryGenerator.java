@@ -66,9 +66,9 @@ public abstract class AbstractQueryGenerator {
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");
 
                 final String left = generateQueryBodyDfs(criteria.getSubCriteria().get(0), parameters);
-                final String string = generateQueryBodyDfs(criteria.getSubCriteria().get(1), parameters);
+                final String right = generateQueryBodyDfs(criteria.getSubCriteria().get(1), parameters);
 
-                return generateBinaryQuery(left, string, type);
+                return generateBinaryQuery(left, right, type);
             default:
                 throw new UnsupportedOperationException("unsupported Criteria type" + type);
         }

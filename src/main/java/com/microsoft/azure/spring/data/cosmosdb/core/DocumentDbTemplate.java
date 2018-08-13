@@ -11,7 +11,7 @@ import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQueueSpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
@@ -406,9 +406,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final FeedOptions feedOptions = new FeedOptions();
         final DocumentCollection collection = getDocCollection(collectionName);
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
-        final QuerySpecGenerator generator = new FindQueueSpecGenerator(domainClass);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
 
-        feedOptions.setEnableCrossPartitionQuery(!query.getSubjectCriteria(partitionKeyName.orElse("")).isPresent());
+        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
 
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
         final List<Document> result = documentDbFactory.getDocumentClient()
@@ -425,7 +426,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final DocumentCollection collection = getDocCollection(collectionName);
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
         final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
-        final QuerySpecGenerator generator = new FindQueueSpecGenerator(domainClass);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
 
         feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
 
