@@ -11,6 +11,9 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -217,5 +220,27 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(primaryKey, "primaryKey should not be null");
 
         return findById(primaryKey).isPresent();
+    }
+
+    /**
+     * Returns all entities sorted by the given options.
+     *
+     * @param sort
+     * @return all entities sorted by the given options
+     */
+    @Override
+    public Iterable<T> findAll(Sort sort) {
+        throw new UnsupportedOperationException("findAll domains sorted is not supported");
+    }
+
+    /**
+     * Returns a Page of entities meeting the paging restriction provided in the Pageable object.
+     *
+     * @param pageable
+     * @return a page of entities
+     */
+    @Override
+    public Page<T> findAll(Pageable pageable) {
+        throw new UnsupportedOperationException("findAll domains pageable is not supported");
     }
 }
