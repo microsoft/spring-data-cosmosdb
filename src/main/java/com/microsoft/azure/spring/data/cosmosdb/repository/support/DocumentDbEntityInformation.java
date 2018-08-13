@@ -57,7 +57,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return (ID) ReflectionUtils.getField(id, entity);
     }
 
-    public Field getId() {
+    public Field getIdField() {
         return this.id;
     }
 

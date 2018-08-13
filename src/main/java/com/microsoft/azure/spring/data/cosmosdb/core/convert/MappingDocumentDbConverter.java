@@ -151,7 +151,7 @@ public class MappingDocumentDbConverter
      * @param fromPropertyValue
      * @return
      */
-    public Object mapToDocumentDBValue(Object fromPropertyValue) {
+    public static Object toDocumentDBValue(Object fromPropertyValue) {
         if (fromPropertyValue == null) {
             return null;
         }
