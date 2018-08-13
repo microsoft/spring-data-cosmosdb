@@ -28,5 +28,8 @@ public class Constants {
     public static final String USER_AGENT_SUFFIX = "spring-data/";
 
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
+
+    public static final String SQL_KEYWORD_AND = "AND";
+    public static final String SQL_KEYWORD_OR = "OR";
 }
 
