@@ -22,15 +22,6 @@ import java.util.*;
 public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
     private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
-    private static final Map<Part.Type, CriteriaType> criteriaMap;
-
-    static {
-        final Map<Part.Type, CriteriaType> map = new HashMap<>();
-
-        map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
-
-        criteriaMap = Collections.unmodifiableMap(map);
-    }
 
     public DocumentDbQueryCreator(PartTree tree, DocumentDbParameterAccessor accessor,
                                   MappingContext<?, DocumentDbPersistentProperty> mappingContext) {
@@ -45,7 +36,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
         final String subject = this.mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
         final List<Object> values = new ArrayList<>();
 
-        if (!criteriaMap.containsKey(type)) {
+        if (!CriteriaType.getCriteriaMap().containsKey(type)) {
             throw new UnsupportedOperationException("Unsupported keyword: " + type.toString());
         }
 
@@ -54,7 +45,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
             values.add(parameters.next());
         }
 
-        return Criteria.getUnaryInstance(criteriaMap.get(type), subject, values);
+        return Criteria.getUnaryInstance(CriteriaType.getCriteriaMap().get(type), subject, values);
     }
 
     @Override

@@ -5,6 +5,13 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.criteria;
 
+import lombok.Getter;
+import org.springframework.data.repository.query.parser.Part;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.SQL_KEYWORD_AND;
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.SQL_KEYWORD_OR;
 
@@ -12,6 +19,17 @@ public enum CriteriaType {
     IS_EQUAL,
     OR,
     AND;
+
+    @Getter
+    private static final Map<Part.Type, CriteriaType> criteriaMap;
+
+    static {
+        final Map<Part.Type, CriteriaType> map = new HashMap<>();
+
+        map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
+
+        criteriaMap = Collections.unmodifiableMap(map);
+    }
 
     public static String toSqlKeyword(CriteriaType type) {
         switch (type) {
@@ -23,4 +41,5 @@ public enum CriteriaType {
                 throw new UnsupportedOperationException("Unsupported criteria type.");
         }
     }
+
 }
