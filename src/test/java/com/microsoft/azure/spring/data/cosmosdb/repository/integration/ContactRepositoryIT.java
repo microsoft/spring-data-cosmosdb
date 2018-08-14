@@ -3,9 +3,12 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-package com.microsoft.azure.spring.data.cosmosdb.repository;
+package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;

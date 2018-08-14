@@ -3,9 +3,11 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-package com.microsoft.azure.spring.data.cosmosdb.repository;
+package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AllArgsConstructor;
 import lombok.Data;

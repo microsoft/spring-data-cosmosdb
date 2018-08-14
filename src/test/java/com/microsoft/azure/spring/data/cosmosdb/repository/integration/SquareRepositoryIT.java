@@ -3,10 +3,12 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-package com.microsoft.azure.spring.data.cosmosdb.repository;
+package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.inheritance.Square;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SquareRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
