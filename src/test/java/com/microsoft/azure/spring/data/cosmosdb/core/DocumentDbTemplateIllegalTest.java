@@ -10,7 +10,8 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -22,6 +23,9 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+
+import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DocumentDbTemplateIllegalTest {
@@ -51,11 +55,13 @@ public class DocumentDbTemplateIllegalTest {
 
     @Test
     public void deleteIllegalShouldFail() throws NoSuchMethodException {
-        final Method method = dbTemplateClass.getMethod("delete", Query.class, Class.class, String.class);
+        final Method method = dbTemplateClass.getMethod("delete", DocumentQuery.class, Class.class, String.class);
+        final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         checkIllegalArgument(method, null, Person.class, DUMMY_COLL);
-        checkIllegalArgument(method, new Query(), null, DUMMY_COLL);
-        checkIllegalArgument(method, new Query(), Person.class, null);
+        checkIllegalArgument(method, query, null, DUMMY_COLL);
+        checkIllegalArgument(method, query, Person.class, null);
     }
 
     @Test

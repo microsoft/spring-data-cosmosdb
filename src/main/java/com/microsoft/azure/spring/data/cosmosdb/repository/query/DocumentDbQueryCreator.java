@@ -5,8 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
 import org.springframework.data.domain.Sort;

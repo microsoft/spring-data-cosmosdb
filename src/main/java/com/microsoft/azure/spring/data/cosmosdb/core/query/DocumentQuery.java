@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
 import lombok.Getter;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;

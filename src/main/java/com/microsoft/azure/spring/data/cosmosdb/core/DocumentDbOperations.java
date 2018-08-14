@@ -25,36 +25,25 @@ public interface DocumentDbOperations {
 
     <T> List<T> findAll(String collectionName, Class<T> entityClass);
 
-    <T> T findById(Object id,
-                   Class<T> entityClass);
+    <T> T findById(Object id, Class<T> entityClass);
 
-    <T> T findById(String collectionName,
-                   Object id,
-                   Class<T> entityClass);
-
-    <T> List<T> find(DocumentQuery query,
-                     Class<T> entityClass,
-                     String collectionName);
+    <T> T findById(String collectionName, Object id, Class<T> entityClass);
 
     <T> T insert(T objectToSave, PartitionKey partitionKey);
 
-    <T> T insert(String collectionName,
-                 T objectToSave,
-                 PartitionKey partitionKey);
+    <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
     <T> void upsert(T object, PartitionKey partitionKey);
 
-    <T> void upsert(String collectionName,
-                    T object,
-                    PartitionKey partitionKey);
+    <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
-    <T> void deleteById(String collectionName,
-                        Object id,
-                        PartitionKey partitionKey);
+    <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String collectionName);
 
     <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+
+    <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     MappingDocumentDbConverter getConverter();
 }
