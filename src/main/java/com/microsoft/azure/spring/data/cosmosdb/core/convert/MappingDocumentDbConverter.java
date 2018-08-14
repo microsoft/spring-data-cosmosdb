@@ -84,8 +84,7 @@ public class MappingDocumentDbConverter
     @Override
     @Deprecated
     public void write(Object sourceEntity, Document document) {
-        // Not used anymore
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("The feature is not implemented yet");
     }
 
     public Document writeDoc(Object sourceEntity) {
