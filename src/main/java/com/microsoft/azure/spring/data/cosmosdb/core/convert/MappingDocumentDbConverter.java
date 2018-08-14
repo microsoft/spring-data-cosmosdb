@@ -25,7 +25,6 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -85,7 +84,7 @@ public class MappingDocumentDbConverter
     @Deprecated
     public void write(Object sourceEntity, Document document) {
         // Not used anymore
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("The feature is not implemented yet");
     }
 
     public Document writeDoc(Object sourceEntity) {
