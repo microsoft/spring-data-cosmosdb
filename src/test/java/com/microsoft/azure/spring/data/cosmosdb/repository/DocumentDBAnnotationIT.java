@@ -78,6 +78,7 @@ public class DocumentDBAnnotationIT {
     @After
     public void cleanUp() {
         dbTemplate.deleteAll(roleInfo.getCollectionName());
+        dbTemplate.deleteAll(sampleInfo.getCollectionName());
     }
 
     @Test
