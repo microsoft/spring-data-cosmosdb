@@ -5,8 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.javatuples.Pair;
@@ -40,9 +40,9 @@ public abstract class AbstractQueryGenerator {
     private String generateIsEqual(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
         final String subject = this.getCriteriaSubject(criteria);
 
-        Assert.isTrue(criteria.getSubValues().size() == 1, "IS_EQUAL should have only one subject value");
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "IS_EQUAL should have only one subject value");
 
-        parameters.add(Pair.with(subject, criteria.getSubValues().get(0)));
+        parameters.add(Pair.with(subject, criteria.getSubjectValues().get(0)));
 
         return String.format("r.%s=@%s", subject, subject);
     }

@@ -5,49 +5,66 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
+import lombok.Getter;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class Criteria implements CriteriaDefinition {
+@Getter
+public class Criteria {
 
-    private String key;
-    private Object value;
-    private List<Criteria> criteriaChain;
+    private String subject;
+    private List<Object> subjectValues;
+    private final CriteriaType type;
+    private final List<Criteria> subCriteria;
 
-    public Criteria(String key) {
-        this.criteriaChain = new ArrayList<>();
-        this.criteriaChain.add(this);
-        this.key = key;
+    private Criteria(CriteriaType type) {
+        this.type = type;
+        this.subCriteria = new ArrayList<>();
     }
 
-    protected Criteria(List<Criteria> criteriaChain, String key) {
-        this.criteriaChain = criteriaChain;
-        this.criteriaChain.add(this);
-        this.key = key;
+    public static boolean isBinaryOperation(CriteriaType type) {
+        switch (type) {
+            case AND:
+            case OR:
+                return true;
+            default:
+                return false;
+        }
     }
 
-    public Object getCriteriaObject() {
-        return value;
+    public static boolean isUnaryOperation(CriteriaType type) {
+        switch (type) {
+            case IS_EQUAL:
+                return true;
+            default:
+                return false;
+        }
     }
 
-    public String getKey() {
-        return key;
+    public static Criteria getUnaryInstance(CriteriaType type, @NonNull String subject, @NonNull List<Object> values) {
+        Assert.isTrue(isUnaryOperation(type), "type should be Unary operation");
+
+        final Criteria criteria = new Criteria(type);
+
+        criteria.subject = subject;
+        criteria.subjectValues = values;
+
+        return criteria;
     }
 
-    public static Criteria where(String key) {
-        return new Criteria(key);
-    }
+    public static Criteria getBinaryInstance(CriteriaType type, @NonNull Criteria left, @NonNull Criteria right) {
+        Assert.isTrue(isBinaryOperation(type), "type should be Binary operation");
 
-    public Criteria is(Object o) {
-        this.value = o;
-        return this;
-    }
+        final Criteria criteria = new Criteria(type);
 
-    public Criteria and(String key) {
-        return new Criteria(this.criteriaChain, key);
-    }
+        criteria.subCriteria.add(left);
+        criteria.subCriteria.add(right);
 
-    public List<Criteria> getCriteriaChain() {
-        return criteriaChain;
+        Assert.isTrue(criteria.getSubCriteria().size() == 2, "Binary should contains 2 subCriteria");
+
+        return criteria;
     }
 }

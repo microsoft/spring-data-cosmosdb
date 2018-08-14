@@ -10,16 +10,14 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -31,7 +29,6 @@ import org.springframework.util.Assert;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -57,8 +54,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         this.collectionCache = new ArrayList<>();
     }
 
-    public DocumentDbTemplate(DocumentClient client,
-                              MappingDocumentDbConverter mappingDocumentDbConverter,
+    public DocumentDbTemplate(DocumentClient client, MappingDocumentDbConverter mappingDocumentDbConverter,
                               String dbName) {
 
         this(new DocumentDbFactory(client), mappingDocumentDbConverter, dbName);
@@ -75,9 +71,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 partitionKey);
     }
 
-    public <T> T insert(String collectionName,
-                        T objectToSave,
-                        PartitionKey partitionKey) {
+    public <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
@@ -107,8 +101,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> T findById(Object id,
-                          Class<T> entityClass) {
+    public <T> T findById(Object id, Class<T> entityClass) {
         assertValidId(id);
         Assert.notNull(entityClass, "entityClass should not be null");
 
@@ -117,9 +110,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 entityClass);
     }
 
-    public <T> T findById(String collectionName,
-                          Object id,
-                          Class<T> entityClass) {
+    public <T> T findById(String collectionName, Object id, Class<T> entityClass) {
         assertValidId(id);
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(entityClass, "entityClass should not be null");
@@ -183,8 +174,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
 
-    public <T> List<T> findAll(String collectionName,
-                               final Class<T> entityClass) {
+    public <T> List<T> findAll(String collectionName, final Class<T> entityClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(entityClass, "entityClass should not be null");
 
@@ -348,9 +338,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void deleteById(String collectionName,
-                               Object id,
-                               PartitionKey partitionKey) {
+    public <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
         assertValidId(id);
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
 
@@ -400,7 +388,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    public <T> List<T> find(@NonNull DocumentQuery query, Class<T> domainClass, @NonNull String collectionName) {
+    public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
+                            @NonNull String collectionName) {
+        Assert.notNull(query, "DocumentQuery should not be null.");
+        Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final FeedOptions feedOptions = new FeedOptions();
@@ -419,7 +410,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> List<T> delete(@NonNull DocumentQuery query, Class<T> domainClass, @NonNull String collectionName) {
+    public <T> List<T> delete(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
+                              @NonNull String collectionName) {
+        Assert.notNull(query, "DocumentQuery should not be null.");
+        Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final FeedOptions feedOptions = new FeedOptions();
@@ -435,7 +429,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
         final RequestOptions options = new RequestOptions();
 
-        partitionCriteria.ifPresent(c -> options.setPartitionKey(new PartitionKey(c.getSubValues().get(0))));
+        partitionCriteria.ifPresent(c -> options.setPartitionKey(new PartitionKey(c.getSubjectValues().get(0))));
 
         final List<T> deletedResult = new ArrayList<>();
 
@@ -449,38 +443,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return deletedResult;
-    }
-
-    public <T> List<T> find(Query query, Class<T> domainClass, String collectionName) {
-        Assert.notNull(query, "query should not be null");
-        Assert.notNull(domainClass, "domainClass should not be null");
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-
-        final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, domainClass);
-
-        // TODO (wepa) Collection link should be created locally without accessing database,
-        // but currently exception will be thrown if not fetching collection url from database.
-        // Run repository integration test to reproduce.
-        final DocumentCollection collection = getDocCollection(collectionName);
-        final FeedOptions feedOptions = new FeedOptions();
-
-        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, domainClass);
-        if (!partitionKeyValue.isPresent()) {
-            feedOptions.setEnableCrossPartitionQuery(true);
-        }
-
-        final List<Document> results = documentDbFactory.getDocumentClient()
-                .queryDocuments(collection.getSelfLink(),
-                        sqlQuerySpec, feedOptions)
-                .getQueryIterable().toList();
-
-        final List<T> entities = new ArrayList<>();
-
-        for (int i = 0; i < results.size(); i++) {
-            final T entity = mappingDocumentDbConverter.read(domainClass, results.get(i));
-            entities.add(entity);
-        }
-        return entities;
     }
 
     private DocumentCollection getDocCollection(String collectionName) {
@@ -499,101 +461,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return collections.get(0);
     }
 
-    private <T> SqlQuerySpec createSqlQuerySpec(Query query, Class<T> entityClass) {
-        String queryStr = "SELECT * FROM ROOT r WHERE ";
-
-        final SqlParameterCollection parameterCollection = new SqlParameterCollection();
-
-        for (final Map.Entry<String, Object> entry : query.getCriteria().entrySet()) {
-            if (queryStr.contains("=@")) {
-                queryStr += " AND ";
-            }
-
-            String fieldName = entry.getKey();
-            if (isIdField(fieldName, entityClass)) {
-                fieldName = "id";
-            }
-
-            queryStr += "r." + fieldName + "=@" + entry.getKey();
-
-            parameterCollection.add(new SqlParameter("@" + entry.getKey(),
-                    MappingDocumentDbConverter.toDocumentDBValue(entry.getValue())));
-        }
-
-        return new SqlQuerySpec(queryStr, parameterCollection);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> boolean isIdField(String fieldName, Class<T> entityClass) {
-        if (StringUtils.isEmpty(fieldName)) {
-            return false;
-        }
-
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(entityClass);
-        return fieldName.equals(entityInfo.getIdField().getName());
-    }
-
     @Override
     public MappingDocumentDbConverter getConverter() {
         return this.mappingDocumentDbConverter;
-    }
-
-    public <T> List<T> delete(Query query, Class<T> entityClass, String collectionName) {
-        Assert.notNull(query, "query should not be null");
-        Assert.notNull(entityClass, "entityClass should not be null");
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-
-        final SqlQuerySpec sqlQuerySpec = createSqlQuerySpec(query, entityClass);
-        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, entityClass);
-
-        final DocumentCollection collection = getDocCollection(collectionName);
-        final FeedOptions feedOptions = new FeedOptions();
-        if (!partitionKeyValue.isPresent()) {
-            feedOptions.setEnableCrossPartitionQuery(true);
-        }
-
-        final List<Document> results = documentDbFactory.getDocumentClient()
-                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
-
-        final RequestOptions options = new RequestOptions();
-        if (partitionKeyValue.isPresent()) {
-            options.setPartitionKey(new PartitionKey(partitionKeyValue.get()));
-        }
-
-        final List<T> deletedResult = new ArrayList<>();
-        for (final Document document : results) {
-            try {
-                documentDbFactory.getDocumentClient().deleteDocument((document).getSelfLink(), options);
-                deletedResult.add(getConverter().read(entityClass, document));
-            } catch (DocumentClientException e) {
-                throw new DocumentDBAccessException(
-                        String.format("Failed to delete document [%s]", (document).getSelfLink()), e);
-            }
-        }
-
-        return deletedResult;
-    }
-
-    private <T> Optional<Object> getPartitionKeyValue(Query query, Class<T> domainClass) {
-        if (query == null) {
-            return Optional.empty();
-        }
-
-        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
-        if (!partitionKeyName.isPresent()) {
-            return Optional.empty();
-        }
-
-        final Map<String, Object> criteria = query.getCriteria();
-        // TODO (wepa) Only one partition key value is supported now
-        final Optional<String> matchedKey = criteria.keySet().stream()
-                .filter(key -> partitionKeyName.get().equals(key)).findFirst();
-
-        if (!matchedKey.isPresent()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(criteria.get(matchedKey.get()));
     }
 
     @SuppressWarnings("unchecked")

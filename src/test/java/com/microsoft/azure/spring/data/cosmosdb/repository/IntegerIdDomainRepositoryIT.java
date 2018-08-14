@@ -9,6 +9,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +34,11 @@ public class IntegerIdDomainRepositoryIT {
     @Before
     public void setup() {
         this.repository.save(DOMAIN);
+    }
+
+    @After
+    public void cleanup() {
+        this.repository.deleteAll();
     }
 
     @Test
