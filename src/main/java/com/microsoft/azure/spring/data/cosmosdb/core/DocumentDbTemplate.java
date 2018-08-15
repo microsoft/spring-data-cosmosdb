@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -388,6 +389,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
+    private <T> boolean nonParititonKeyContains(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+
+        if (!partitionKeyName.isPresent()) {
+            return true;
+        }
+
+        final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
+
+        return query.nonPartitionKeyContains(partitionKeys);
+    }
+
     public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
                             @NonNull String collectionName) {
         Assert.notNull(query, "DocumentQuery should not be null.");
@@ -396,11 +409,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final FeedOptions feedOptions = new FeedOptions();
         final DocumentCollection collection = getDocCollection(collectionName);
-        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
         final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
-        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
 
-        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
+        feedOptions.setEnableCrossPartitionQuery(this.nonParititonKeyContains(query, domainClass));
 
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
         final List<Document> result = documentDbFactory.getDocumentClient()

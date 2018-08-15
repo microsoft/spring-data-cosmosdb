@@ -12,6 +12,10 @@ import java.util.List;
 
 public interface ProjectRepository extends DocumentDbRepository<Project, String> {
 
+    List<Project> findByNameAndStarCount(String name, Long startCount);
+
+    List<Project> findByNameOrForkCount(String name, Long forkCount);
+
     List<Project> findByNameAndCreator(String name, String creator);
 
     List<Project> findByNameOrCreator(String name, String creator);

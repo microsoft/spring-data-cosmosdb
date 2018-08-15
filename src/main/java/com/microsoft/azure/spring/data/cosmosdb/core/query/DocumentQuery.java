@@ -52,4 +52,34 @@ public class DocumentQuery {
             return Optional.empty();
         }
     }
+
+    private boolean nonPartitionKeyContainsDfs(@NonNull Criteria criteria, @NonNull List<String> partitionKeys) {
+        if (!partitionKeys.contains(criteria.getSubject())) {
+            return true;
+        }
+
+        final List<Criteria> subCriteriaList = criteria.getSubCriteria();
+
+        for (final Criteria c : subCriteriaList) {
+            if (nonPartitionKeyContainsDfs(c, partitionKeys)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if Document Query contains Non-PartitionKey.
+     *
+     * @param partitionKeys the partitionKey name list.
+     * @return true if contains Non-PartitionKey, or return false.
+     */
+    public boolean nonPartitionKeyContains(@NonNull List<String> partitionKeys) {
+        if (partitionKeys.isEmpty()) {
+            return true;
+        } else {
+            return nonPartitionKeyContainsDfs(criteria, partitionKeys);
+        }
+    }
 }

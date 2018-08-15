@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -18,6 +19,7 @@ public class Project {
 
     private String name;
 
+    @PartitionKey
     private String creator;
 
     private Boolean hasReleased;
