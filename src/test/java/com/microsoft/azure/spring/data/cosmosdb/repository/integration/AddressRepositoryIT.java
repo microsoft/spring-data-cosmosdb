@@ -83,6 +83,18 @@ public class AddressRepositoryIT {
         assertThat(result.get(1).getCity()).isEqualTo(city);
     }
 
+    @Test
+    public void testFindByStreetOrCity() {
+        final String city = TEST_ADDRESS1_PARTITION1.getCity();
+        final String street = TEST_ADDRESS1_PARTITION2.getStreet();
+        final List<Address> result = repository.findByStreetOrCity(street, city);
+        assertThat(result.size()).isEqualTo(3);
+        for(Address address: result) {
+            assertThat(address.getCity().equals(city) || address.getStreet().equals(street)).isEqualTo(true);
+        }
+    }
+
+
 
     @Test
     public void testCount() {

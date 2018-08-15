@@ -22,4 +22,7 @@ public interface AddressRepository extends DocumentDbRepository<Address, String>
     List<Address> findByCity(String city);
 
     List<Address> findByPostalCode(String postalCode);
+
+    List<Address> findByStreetOrCity(String street, String city);
+
 }
