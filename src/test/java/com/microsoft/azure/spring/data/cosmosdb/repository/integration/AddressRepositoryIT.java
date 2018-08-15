@@ -10,16 +10,16 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
-import org.assertj.core.util.Lists;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -139,12 +139,4 @@ public class AddressRepositoryIT {
         assertThat(results.get(0).getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
     }
 
-    @Test
-    public void testFindAllSort() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "street");
-
-        final List<Address> results = Lists.newArrayList(this.repository.findAll(sort));
-
-        Assert.assertEquals(results.size(), 4);
-    }
 }

@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -392,8 +393,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
-        return getPartitionKeyField(domainClass).map(s -> !query.containsSubject(s)).orElse(true);
+    private <T> boolean hasPartitionKeyOnly(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+
+        if (!partitionKeyName.isPresent()) {
+            return false;
+        }
+
+        final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
+
+        return query.hasPartitionKeyOnly(partitionKeys);
     }
 
     private <T> List<T> executeQuery(@NonNull DocumentQuery query, @NonNull QuerySpecGenerator generator,
@@ -402,7 +411,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final DocumentCollection collection = getDocCollection(collectionName);
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
-        feedOptions.setEnableCrossPartitionQuery(this.isCrossPartitionQuery(query, domainClass));
+        feedOptions.setEnableCrossPartitionQuery(!this.hasPartitionKeyOnly(query, domainClass));
 
         final List<Document> result = getDocumentClient()
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();

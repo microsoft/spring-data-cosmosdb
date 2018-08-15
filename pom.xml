@@ -56,7 +56,7 @@
         <java.tuples.version>1.2</java.tuples.version>
         <slf4j.version>1.7.25</slf4j.version>
 
-        <azure.documentdb.version>1.16.1</azure.documentdb.version>
+        <azure.documentdb.version>1.16.2</azure.documentdb.version>
         <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <azure.applicationinsights.version>2.0.1</azure.applicationinsights.version>
