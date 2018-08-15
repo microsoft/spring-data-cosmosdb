@@ -20,7 +20,7 @@ public class Criteria {
     private final CriteriaType type;
     private final List<Criteria> subCriteria;
 
-    private Criteria(CriteriaType type) {
+    public Criteria(CriteriaType type) {
         this.type = type;
         this.subCriteria = new ArrayList<>();
     }

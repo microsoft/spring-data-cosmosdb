@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -229,8 +230,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @return all entities sorted by the given options
      */
     @Override
-    public Iterable<T> findAll(Sort sort) {
-        throw new UnsupportedOperationException("findAll domains sorted is not supported");
+    public Iterable<T> findAll(@NonNull Sort sort) {
+        Assert.notNull(sort, "sort of findAll should not be null");
+        return documentDbOperations.findAll(sort, entityInformation.getJavaType(), entityInformation.getCollectionName());
     }
 
     /**

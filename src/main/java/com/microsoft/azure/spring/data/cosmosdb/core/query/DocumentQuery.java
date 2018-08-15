@@ -6,7 +6,9 @@
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
 import lombok.Getter;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -17,8 +19,21 @@ public class DocumentQuery {
     @Getter
     private final Criteria criteria;
 
+    @Getter
+    private Sort sort = Sort.unsorted();
+
     public DocumentQuery(@NonNull Criteria criteria) {
         this.criteria = criteria;
+    }
+
+    public DocumentQuery with(@NonNull Sort sort) {
+        Assert.notNull(sort, "Sort should not be null");
+
+        if (sort.isSorted()) {
+            this.sort = this.sort.and(sort);
+        }
+
+        return this;
     }
 
     private Optional<Criteria> getSubjectCriteriaDfs(@NonNull Criteria criteria, @NonNull String keyName) {
@@ -51,5 +66,15 @@ public class DocumentQuery {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Check if subject Criteria of Query contains given subject name.
+     *
+     * @param subjectName the name of subject
+     * @return true if contains, or false.
+     */
+    public boolean containsSubject(@NonNull String subjectName) {
+        return this.getSubjectCriteria(subjectName).isPresent();
     }
 }
