@@ -156,6 +156,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public long count() {
+        // TODO The find all operation is too expensive, some sql query can be made to query the cosmosdb to get the count
+        // The problem is should this count be collection count?
+        // SELECT VALUE COUNT(1) FROM c
         return findAll().spliterator().getExactSizeIfKnown();
     }
 

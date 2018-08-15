@@ -11,6 +11,7 @@ import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -18,25 +19,27 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.Query;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.domain.*;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
+
+    private static final String COUNT_VALUE_KEY = "_aggregate";
 
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
@@ -416,6 +419,66 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
 
         return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass, String collectionName) {
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final FeedOptions feedOptions = new FeedOptions();
+        if (pageable instanceof DocumentDbPageRequest) {
+            feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
+        }
+
+        final DocumentCollection collection = getDocCollection(collectionName);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final FeedResponse<Document> response = documentDbFactory.getDocumentClient()
+                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions);
+
+        Iterator<Document> it = response.getQueryIterator();
+
+        // Todo Above boilerplate code should be removed
+        final List<T> result = new ArrayList<>();
+        int index = 0;
+        // TODO convert the queried result into a PageImpl object
+        // Set the pageable object into the PageImpl Object
+        // Pageable can be constructed from existing Pageable and response continounation token
+        while(it.hasNext() && index++ < pageable.getPageSize()) {
+            final Document doc = it.next();
+            final T entity = mappingDocumentDbConverter.read(domainClass, doc);
+            result.add(entity);
+        }
+
+        DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                response.getResponseContinuation());
+
+        return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+    }
+
+    @Override
+    public <T> long count(Class<T> domainClass, String collectionName) {
+        throw new NotImplementedException("Count not implemented");
+    }
+
+    @Override
+    public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final FeedOptions feedOptions = new FeedOptions();
+        final DocumentCollection collection = getDocCollection(collectionName);
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+        final QuerySpecGenerator generator = new CountQueryGenerator(domainClass);
+        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
+
+        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
+
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final List<Document> result = documentDbFactory.getDocumentClient()
+                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
+
+        return new Long((Integer)result.get(0).getHashMap().get(COUNT_VALUE_KEY));
     }
 
     @Override

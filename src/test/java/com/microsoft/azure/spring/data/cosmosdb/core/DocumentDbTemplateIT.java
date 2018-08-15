@@ -7,11 +7,15 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.criteria.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.criteria.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -28,6 +32,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -157,5 +162,13 @@ public class DocumentDbTemplateIT {
 
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+    }
+
+    @Test
+    public void testCount() {
+        List<Object> values = new ArrayList<>();
+        values.add(TEST_PERSON.getFirstName());
+        DocumentQuery query = new DocumentQuery(Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName", values));
+        assertThat(dbTemplate.count(query, Person.class, Person.class.getSimpleName())).isEqualTo(1);
     }
 }

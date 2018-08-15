@@ -11,6 +11,8 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -55,6 +57,12 @@ public interface DocumentDbOperations {
     void deleteAll(String collectionName);
 
     <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+
+    <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass, String collectionName);
+
+    <T> long count(Class<T> domainClass, String collectionName);
+
+    <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
 
     MappingDocumentDbConverter getConverter();
 }
