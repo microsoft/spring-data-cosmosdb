@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.cosmosdb.repository.PersonRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PersonRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
