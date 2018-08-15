@@ -55,7 +55,7 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", left, keyword, right);
     }
 
-    private String generateQueryBodyDfs(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+    private String generateQueryBody(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
         final CriteriaType type = criteria.getType();
 
         switch (type) {
@@ -65,8 +65,8 @@ public abstract class AbstractQueryGenerator {
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");
 
-                final String left = generateQueryBodyDfs(criteria.getSubCriteria().get(0), parameters);
-                final String right = generateQueryBodyDfs(criteria.getSubCriteria().get(1), parameters);
+                final String left = generateQueryBody(criteria.getSubCriteria().get(0), parameters);
+                final String right = generateQueryBody(criteria.getSubCriteria().get(1), parameters);
 
                 return generateBinaryQuery(left, right, type);
             default:
@@ -85,7 +85,7 @@ public abstract class AbstractQueryGenerator {
     @NonNull
     protected Pair<String, List<Pair<String, Object>>> generateQueryBody(@NonNull DocumentQuery query) {
         final List<Pair<String, Object>> parameters = new ArrayList<>();
-        final String queryString = this.generateQueryBodyDfs(query.getCriteria(), parameters);
+        final String queryString = this.generateQueryBody(query.getCriteria(), parameters);
 
         return Pair.with(queryString, parameters);
     }

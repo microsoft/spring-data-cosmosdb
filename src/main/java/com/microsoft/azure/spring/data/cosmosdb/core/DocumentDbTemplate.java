@@ -389,16 +389,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> boolean nonParititonKeyContains(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
+    private <T> boolean hasPartitionKeyOnly(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
 
         if (!partitionKeyName.isPresent()) {
-            return true;
+            return false;
         }
 
         final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
 
-        return query.nonPartitionKeyContains(partitionKeys);
+        return query.hasPartitionKeyOnly(partitionKeys);
     }
 
     public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
@@ -411,7 +411,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final DocumentCollection collection = getDocCollection(collectionName);
         final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
 
-        feedOptions.setEnableCrossPartitionQuery(this.nonParititonKeyContains(query, domainClass));
+        feedOptions.setEnableCrossPartitionQuery(!this.hasPartitionKeyOnly(query, domainClass));
 
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
         final List<Document> result = documentDbFactory.getDocumentClient()

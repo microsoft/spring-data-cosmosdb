@@ -21,7 +21,7 @@ public class DocumentQuery {
         this.criteria = criteria;
     }
 
-    private Optional<Criteria> getSubjectCriteriaDfs(@NonNull Criteria criteria, @NonNull String keyName) {
+    private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
         if (keyName.equals(criteria.getSubject())) {
             return Optional.of(criteria);
         }
@@ -29,7 +29,7 @@ public class DocumentQuery {
         final List<Criteria> subCriteriaList = criteria.getSubCriteria();
 
         for (final Criteria c : subCriteriaList) {
-            final Optional<Criteria> subjectCriteria = getSubjectCriteriaDfs(c, keyName);
+            final Optional<Criteria> subjectCriteria = getSubjectCriteria(c, keyName);
 
             if (subjectCriteria.isPresent()) {
                 return subjectCriteria;
@@ -47,39 +47,39 @@ public class DocumentQuery {
      */
     public Optional<Criteria> getSubjectCriteria(@NonNull String subjectName) {
         if (StringUtils.hasText(subjectName)) {
-            return getSubjectCriteriaDfs(criteria, subjectName);
+            return getSubjectCriteria(criteria, subjectName);
         } else {
             return Optional.empty();
         }
     }
 
-    private boolean nonPartitionKeyContainsDfs(@NonNull Criteria criteria, @NonNull List<String> partitionKeys) {
+    private boolean hasPartitionKeyOnly(@NonNull Criteria criteria, @NonNull List<String> partitionKeys) {
         if (!partitionKeys.contains(criteria.getSubject())) {
-            return true;
+            return false;
         }
 
         final List<Criteria> subCriteriaList = criteria.getSubCriteria();
 
         for (final Criteria c : subCriteriaList) {
-            if (nonPartitionKeyContainsDfs(c, partitionKeys)) {
-                return true;
+            if (!hasPartitionKeyOnly(c, partitionKeys)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**
-     * Check if Document Query contains Non-PartitionKey.
+     * Check if Document Query subjects only have partition Key
      *
      * @param partitionKeys the partitionKey name list.
-     * @return true if contains Non-PartitionKey, or return false.
+     * @return true if Query got only partition Key, or return false.
      */
-    public boolean nonPartitionKeyContains(@NonNull List<String> partitionKeys) {
+    public boolean hasPartitionKeyOnly(@NonNull List<String> partitionKeys) {
         if (partitionKeys.isEmpty()) {
             return true;
         } else {
-            return nonPartitionKeyContainsDfs(criteria, partitionKeys);
+            return hasPartitionKeyOnly(criteria, partitionKeys);
         }
     }
 }
