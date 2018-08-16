@@ -18,7 +18,9 @@ import static com.microsoft.azure.spring.data.cosmosdb.Constants.SQL_KEYWORD_OR;
 public enum CriteriaType {
     IS_EQUAL,
     OR,
-    AND;
+    AND,
+    GREATER_THAN,
+    AFTER;
 
     @Getter
     private static final Map<Part.Type, CriteriaType> criteriaMap;
@@ -27,6 +29,8 @@ public enum CriteriaType {
         final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
+        map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
+        map.put(Part.Type.AFTER, CriteriaType.AFTER);
 
         criteriaMap = Collections.unmodifiableMap(map);
     }

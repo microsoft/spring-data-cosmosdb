@@ -38,6 +38,8 @@ public class Criteria {
     public static boolean isUnaryOperation(CriteriaType type) {
         switch (type) {
             case IS_EQUAL:
+            case GREATER_THAN:
+            case AFTER:
                 return true;
             default:
                 return false;

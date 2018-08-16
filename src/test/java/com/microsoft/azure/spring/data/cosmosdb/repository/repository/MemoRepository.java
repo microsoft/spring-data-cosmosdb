@@ -18,4 +18,6 @@ public interface MemoRepository extends DocumentDbRepository<Memo, String> {
     List<Memo> findMemoByDate(Date date);
 
     List<Memo> findMemoByImportance(Importance importance);
+
+    List<Memo> findByDateAfter(Date date);
 }

@@ -47,6 +47,17 @@ public abstract class AbstractQueryGenerator {
         return String.format("r.%s=@%s", subject, subject);
     }
 
+    private String generateGreaterThan(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+        final String subject = this.getCriteriaSubject(criteria);
+
+        Assert.isTrue(criteria.getSubjectValues().size() == 1,
+                "GREATER_THAN should have only one subject value");
+
+        parameters.add(Pair.with(subject, criteria.getSubjectValues().get(0)));
+
+        return String.format("r.%s>@%s", subject, subject);
+    }
+
     private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
         Assert.isTrue(Criteria.isBinaryOperation(type), "Criteria type should be binary operation");
 
@@ -61,6 +72,9 @@ public abstract class AbstractQueryGenerator {
         switch (type) {
             case IS_EQUAL:
                 return this.generateIsEqual(criteria, parameters);
+            case GREATER_THAN:
+            case AFTER:
+                return this.generateGreaterThan(criteria, parameters);
             case AND:
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");

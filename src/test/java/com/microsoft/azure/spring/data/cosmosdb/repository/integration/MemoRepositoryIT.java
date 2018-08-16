@@ -11,10 +11,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.MemoRepository;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -80,6 +78,14 @@ public class MemoRepositoryIT {
 
         assertThat(result.size()).isEqualTo(1);
         assertMemoEquals(result.get(0), testMemo1);
+    }
+
+    @Test
+    public void testFindByDateAfter() {
+        final List<Memo> result = repository.findByDateAfter(date1);
+        final List<Memo> reference = Arrays.asList(testMemo2);
+
+        Assert.assertEquals(result, reference);
     }
 
     private void assertMemoEquals(Memo actual, Memo expected) {
