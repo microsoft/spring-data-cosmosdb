@@ -10,16 +10,14 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,14 +85,17 @@ public class AddressRepositoryIT {
     public void testFindByStreetOrCity() {
         final String city = TEST_ADDRESS1_PARTITION1.getCity();
         final String street = TEST_ADDRESS1_PARTITION2.getStreet();
+
         final List<Address> result = repository.findByStreetOrCity(street, city);
-        assertThat(result.size()).isEqualTo(3);
-        for (final Address address: result) {
-            assertThat(address.getCity().equals(city) || address.getStreet().equals(street)).isEqualTo(true);
-        }
+        final List<Address> reference = Arrays.asList(
+                TEST_ADDRESS1_PARTITION1, TEST_ADDRESS1_PARTITION2, TEST_ADDRESS2_PARTITION1);
+
+        result.sort(Comparator.comparing(Address::getPostalCode));
+        reference.sort(Comparator.comparing(Address::getPostalCode));
+
+        Assert.assertEquals(result.size(), reference.size());
+        Assert.assertEquals(result, reference);
     }
-
-
 
     @Test
     public void testCount() {
