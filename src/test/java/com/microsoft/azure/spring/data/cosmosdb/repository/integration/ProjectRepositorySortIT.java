@@ -134,5 +134,12 @@ public class ProjectRepositorySortIT {
 
         this.repository.findAll(sort);
     }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testFindAllSortWithIdName() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+
+        this.repository.findAll(sort);
+    }
 }
 

@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
+import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
@@ -33,7 +34,10 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -458,22 +462,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final Sort.Order order = sort.iterator().next();
+        final String property = order.getProperty();
+        final String idFieldName = new DocumentDbEntityInformation<>(domainClass).getIdField().getName();
+        final Field[] fields = FieldUtils.getAllFields(domainClass);
+        final Optional<Field> field = Arrays.stream(fields).filter(f -> f.getName().equals(property)).findFirst();
+        final DocumentCollection collection = getDocCollection(collectionName);
 
         if (order.isIgnoreCase()) {
             throw new IllegalQueryException("sort within case insensitive is not supported");
-        }
-
-        final String property = order.getProperty();
-        final Field[] fields = FieldUtils.getAllFields(domainClass);
-        final Optional<Field> field = Arrays.stream(fields).filter(f -> f.getName().equals(property)).findFirst();
-
-        if (!field.isPresent()) {
+        } else if (property.equals(Constants.ID_PROPERTY_NAME) || property.equals(idFieldName)) {
+            throw new IllegalQueryException("sort by @Id field is not supported");
+        } else if (!field.isPresent()) {
             throw new IllegalQueryException("order name must be consistency with domainClass");
-        }
-
-        final DocumentCollection collection = getDocCollection(collectionName);
-
-        if (field.get().getType() == String.class && !isCollectionSupportSortByString(collection)) {
+        } else if (field.get().getType() == String.class && !isCollectionSupportSortByString(collection)) {
             throw new IllegalQueryException("order by String must enable indexing with Range and max Precision.");
         }
     }
