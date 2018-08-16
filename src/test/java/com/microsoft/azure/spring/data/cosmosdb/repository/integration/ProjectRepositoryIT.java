@@ -167,7 +167,13 @@ public class ProjectRepositoryIT {
         Assert.assertEquals(projects, reference);
 
         projects = repository.findByNameAndCreatorOrForkCount(NAME_1, CREATOR_1, FORK_COUNT_2);
-        Assert.assertEquals(projects.size(), 2);
+        reference = Arrays.asList(PROJECT_1, PROJECT_2);
+        projects.sort(Comparator.comparing(Project::getId));
+        reference.sort(Comparator.comparing(Project::getId));
+        Assert.assertEquals(projects, reference);
+
+        projects = repository.findByNameAndCreatorOrForkCount(NAME_1, CREATOR_2, FAKE_COUNT);
+        Assert.assertEquals(projects.size(), 0);
     }
 
     @Test
@@ -183,15 +189,21 @@ public class ProjectRepositoryIT {
         projects.sort(Comparator.comparing(Project::getId));
         reference.sort(Comparator.comparing(Project::getId));
         Assert.assertEquals(projects, reference);
+
+        projects = repository.findByNameOrCreatorAndForkCount(FAKE_NAME, CREATOR_1, FORK_COUNT_2);
+        Assert.assertEquals(projects.size(), 0);
     }
 
     @Test
     public void testFindByWithOrOr() {
         List<Project> projects = repository.findByNameOrCreatorOrForkCount(NAME_0, CREATOR_1, FORK_COUNT_2);
-        List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4);
+        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4);
         projects.sort(Comparator.comparing(Project::getId));
         reference.sort(Comparator.comparing(Project::getId));
         Assert.assertEquals(projects, reference);
+
+        projects = repository.findByNameOrCreatorOrForkCount(FAKE_NAME, FAKE_CREATOR, FAKE_COUNT);
+        Assert.assertEquals(projects.size(), 0);
     }
 
 
@@ -210,5 +222,9 @@ public class ProjectRepositoryIT {
         projects.sort(Comparator.comparing(Project::getId));
         reference.sort(Comparator.comparing(Project::getId));
         Assert.assertEquals(projects, reference);
+
+        projects = repository.findByNameOrCreatorAndForkCountOrStarCount(FAKE_NAME, CREATOR_1,
+                FORK_COUNT_0, FAKE_COUNT);
+        Assert.assertEquals(projects.size(), 0);
     }
 }
