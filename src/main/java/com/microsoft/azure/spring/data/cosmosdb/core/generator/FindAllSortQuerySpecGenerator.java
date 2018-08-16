@@ -26,9 +26,7 @@ public class FindAllSortQuerySpecGenerator implements QuerySpecGenerator {
     private String getParameter(@NonNull Sort.Order order) {
         String parameter = "r." + order.getProperty();
 
-        if (order.isIgnoreCase()) {
-            parameter += " " + SQL_NOCASE;
-        }
+        Assert.isTrue(!order.isIgnoreCase(), "Ignore case is not supported");
 
         if (order.isDescending()) {
             parameter += " " + SQL_DESC;

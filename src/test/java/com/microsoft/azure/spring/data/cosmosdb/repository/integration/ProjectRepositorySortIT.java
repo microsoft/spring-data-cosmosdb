@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
+import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import org.junit.After;
@@ -36,14 +37,14 @@ public class ProjectRepositorySortIT {
     private static final String NAME_0 = "name-0";
     private static final String NAME_1 = "name-1";
     private static final String NAME_2 = "name-2";
-    private static final String NAME_3 = "name-3";
-    private static final String NAME_4 = NAME_3;
+    private static final String NAME_3 = "NAME-3";
+    private static final String NAME_4 = "name-4";
 
     private static final String CREATOR_0 = "creator-0";
     private static final String CREATOR_1 = "creator-1";
     private static final String CREATOR_2 = "creator-2";
     private static final String CREATOR_3 = "creator-3";
-    private static final String CREATOR_4 = CREATOR_3;
+    private static final String CREATOR_4 = "creator-4";
 
     private static final Long STAR_COUNT_0 = 0L;
     private static final Long STAR_COUNT_1 = 1L;
@@ -63,7 +64,7 @@ public class ProjectRepositorySortIT {
     private static final Project PROJECT_3 = new Project(ID_3, NAME_3, CREATOR_3, true, STAR_COUNT_3, FORK_COUNT_3);
     private static final Project PROJECT_4 = new Project(ID_4, NAME_4, CREATOR_4, true, STAR_COUNT_4, FORK_COUNT_4);
 
-    private static final List<Project> PROJECTS = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
+    private static final List<Project> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3, PROJECT_2, PROJECT_1, PROJECT_0);
 
     @Autowired
     private ProjectRepository repository;
@@ -79,11 +80,9 @@ public class ProjectRepositorySortIT {
     }
 
     @Test
-    public void testFindAllSortByOneSubject() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "startCount");
-        List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
-
-        Assert.assertEquals(projects.size(), PROJECTS.size());
+    public void testFindAllSortASC() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
         PROJECTS.sort(Comparator.comparing(Project::getStarCount));
 
@@ -92,23 +91,48 @@ public class ProjectRepositorySortIT {
     }
 
     @Test
-    public void testFindAllSortByTwoSubjects() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "forkCount", "startCount");
-        List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
+    public void testFindAllSortDESC() {
+        final Sort sort = new Sort(Sort.Direction.DESC, "creator");
+        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
-        Assert.assertEquals(projects.size(), PROJECTS.size());
-
-        PROJECTS.sort((a, b) -> {
-            if (a.getForkCount().longValue() != b.getForkCount().longValue()) {
-                return a.getForkCount().compareTo(b.getForkCount());
-            } else {
-                return a.getStarCount().compareTo(b.getStarCount());
-            }
-        });
+        PROJECTS.sort(Comparator.comparing(Project::getCreator).reversed());
 
         Assert.assertEquals(projects.size(), PROJECTS.size());
         Assert.assertEquals(projects, PROJECTS);
     }
 
+    @Test
+    public void testFindAllUnSorted() {
+        final Sort sort = Sort.unsorted();
+        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
+
+        PROJECTS.sort(Comparator.comparing(Project::getId));
+        projects.sort(Comparator.comparing(Project::getId));
+
+        Assert.assertEquals(projects.size(), PROJECTS.size());
+        Assert.assertEquals(projects, PROJECTS);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testFindAllSortMoreThanOneOrderException() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "name", "creator");
+
+        this.repository.findAll(sort);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testFindAllSortIgnoreCaseException() {
+        final Sort.Order order = Sort.Order.by("name").ignoreCase();
+        final Sort sort = Sort.by(order);
+
+        this.repository.findAll(sort);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testFindAllSortMissMatchException() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "fake-name");
+
+        this.repository.findAll(sort);
+    }
 }
 

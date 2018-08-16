@@ -26,18 +26,18 @@ import java.util.Optional;
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
 
     private final DocumentDbOperations documentDbOperations;
-    private final DocumentDbEntityInformation<T, ID> entityInformation;
+    private final DocumentDbEntityInformation<T, ID> information;
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
                                       ApplicationContext applicationContext) {
         this.documentDbOperations = applicationContext.getBean(DocumentDbOperations.class);
-        this.entityInformation = metadata;
+        this.information = metadata;
     }
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
                                       DocumentDbOperations dbOperations) {
         this.documentDbOperations = dbOperations;
-        this.entityInformation = metadata;
+        this.information = metadata;
     }
 
     /**
@@ -52,17 +52,17 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(entity, "entity must not be null");
 
         // create collection if not exists
-        documentDbOperations.createCollectionIfNotExists(this.entityInformation,
-                this.entityInformation.getPartitionKeyFieldName());
+        documentDbOperations.createCollectionIfNotExists(this.information,
+                this.information.getPartitionKeyFieldName());
 
         // save entity
-        if (entityInformation.isNew(entity)) {
-            return documentDbOperations.insert(entityInformation.getCollectionName(),
+        if (information.isNew(entity)) {
+            return documentDbOperations.insert(information.getCollectionName(),
                     entity,
-                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+                    createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
-            documentDbOperations.upsert(entityInformation.getCollectionName(),
-                    entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+            documentDbOperations.upsert(information.getCollectionName(),
+                    entity, createKey(information.getPartitionKeyFieldValue(entity)));
         }
 
         return entity;
@@ -88,8 +88,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(entities, "Iterable entities should not be null");
 
         // create collection if not exists
-        documentDbOperations.createCollectionIfNotExists(this.entityInformation,
-                this.entityInformation.getPartitionKeyFieldName());
+        documentDbOperations.createCollectionIfNotExists(this.information,
+                this.information.getPartitionKeyFieldName());
 
         for (final S entity : entities) {
             save(entity);
@@ -105,7 +105,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public Iterable<T> findAll() {
-        return documentDbOperations.findAll(entityInformation.getCollectionName(), entityInformation.getJavaType());
+        return documentDbOperations.findAll(information.getCollectionName(), information.getJavaType());
     }
 
     /**
@@ -145,7 +145,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         }
 
         final T result = documentDbOperations.findById(
-                entityInformation.getCollectionName(), id, entityInformation.getJavaType());
+                information.getCollectionName(), id, information.getJavaType());
 
         return result == null ? Optional.empty() : Optional.of(result);
     }
@@ -169,7 +169,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        documentDbOperations.deleteById(entityInformation.getCollectionName(), id, null);
+        documentDbOperations.deleteById(information.getCollectionName(), id, null);
     }
 
     /**
@@ -181,10 +181,10 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void delete(T entity) {
         Assert.notNull(entity, "entity to be deleted should not be null");
 
-        final String paritionKeyValue = entityInformation.getPartitionKeyFieldValue(entity);
+        final String paritionKeyValue = information.getPartitionKeyFieldValue(entity);
 
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                entityInformation.getId(entity),
+        documentDbOperations.deleteById(information.getCollectionName(),
+                information.getId(entity),
                 paritionKeyValue == null ? null : new PartitionKey(paritionKeyValue));
     }
 
@@ -193,7 +193,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void deleteAll() {
-        documentDbOperations.deleteAll(entityInformation.getCollectionName());
+        documentDbOperations.deleteAll(information.getCollectionName());
     }
 
     /**
@@ -232,7 +232,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public Iterable<T> findAll(@NonNull Sort sort) {
         Assert.notNull(sort, "sort of findAll should not be null");
-        return documentDbOperations.findAll(sort, entityInformation.getJavaType(), entityInformation.getCollectionName());
+        return documentDbOperations.findAll(sort, information.getJavaType(), information.getCollectionName());
     }
 
     /**

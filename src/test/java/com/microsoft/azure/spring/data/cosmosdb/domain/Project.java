@@ -14,7 +14,7 @@ import org.springframework.data.annotation.Id;
 
 @Data
 @AllArgsConstructor
-@DocumentIndexingPolicy(includePaths = {TestConstants.ORDER_BY_STRING_PATH})
+@DocumentIndexingPolicy(includePaths = TestConstants.ORDER_BY_STRING_PATH)
 public class Project {
 
     @Id

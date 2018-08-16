@@ -19,7 +19,9 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
+import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -29,11 +31,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
+import java.lang.reflect.Field;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
@@ -393,25 +394,24 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> boolean hasPartitionKeyOnly(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
+    private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
 
         if (!partitionKeyName.isPresent()) {
-            return false;
+            return true;
         }
 
         final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
 
-        return query.hasPartitionKeyOnly(partitionKeys);
+        return !query.hasPartitionKeyOnly(partitionKeys);
     }
 
-    private <T> List<T> executeQuery(@NonNull DocumentQuery query, @NonNull QuerySpecGenerator generator,
+    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, @NonNull boolean isCrossPartition,
                                      @NonNull Class<T> domainClass, String collectionName) {
         final FeedOptions feedOptions = new FeedOptions();
         final DocumentCollection collection = getDocCollection(collectionName);
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
-        feedOptions.setEnableCrossPartitionQuery(!this.hasPartitionKeyOnly(query, domainClass));
+        feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
 
         final List<Document> result = getDocumentClient()
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
@@ -425,8 +425,57 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
-        return this.executeQuery(query, generator, domainClass, collectionName);
+        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
+    }
+
+    private Predicate<Index> isIndexingSupportSortByString() {
+        return index -> {
+            if (index instanceof RangeIndex) {
+                final RangeIndex rangeIndex = (RangeIndex) index;
+                return rangeIndex.getDataType() == DataType.String && rangeIndex.getPrecision() == -1;
+            }
+
+            return false;
+        };
+    }
+
+    private boolean isCollectionSupportSortByString(@NonNull DocumentCollection collection) {
+        final IndexingPolicy policy = collection.getIndexingPolicy();
+        final List<Index> indices = new ArrayList<>();
+
+        policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
+
+        return indices.stream().anyMatch(isIndexingSupportSortByString());
+    }
+
+    private void validateSort(@NonNull Sort sort, @NonNull Class<?> domainClass, @NonNull String collectionName) {
+        Assert.isTrue(sort.isSorted(), "should be sorted");
+
+        if (sort.stream().count() != 1) {
+            throw new IllegalQueryException("only one order of Sort is supported");
+        }
+
+        final Sort.Order order = sort.iterator().next();
+
+        if (order.isIgnoreCase()) {
+            throw new IllegalQueryException("sort within case insensitive is not supported");
+        }
+
+        final String property = order.getProperty();
+        final Field[] fields = FieldUtils.getAllFields(domainClass);
+        final Optional<Field> field = Arrays.stream(fields).filter(f -> f.getName().equals(property)).findFirst();
+
+        if (!field.isPresent()) {
+            throw new IllegalQueryException("order name must be consistency with domainClass");
+        }
+
+        final DocumentCollection collection = getDocCollection(collectionName);
+
+        if (field.get().getType() == String.class && !isCollectionSupportSortByString(collection)) {
+            throw new IllegalQueryException("order by String must enable indexing with Range and max Precision.");
+        }
     }
 
     @Override
@@ -439,11 +488,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return this.findAll(collectionName, domainClass);
         }
 
-        final Criteria criteria = new Criteria(CriteriaType.IS_EQUAL);
-        final DocumentQuery query = new DocumentQuery(criteria).with(sort);
-        final QuerySpecGenerator generator = new FindAllSortQuerySpecGenerator();
+        validateSort(sort, domainClass, collectionName);
 
-        return this.executeQuery(query, generator, domainClass, collectionName);
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IS_EQUAL)).with(sort);
+        final QuerySpecGenerator generator = new FindAllSortQuerySpecGenerator();
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+
+        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
     }
 
     @Override

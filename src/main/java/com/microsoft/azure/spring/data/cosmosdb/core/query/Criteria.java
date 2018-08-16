@@ -20,7 +20,7 @@ public class Criteria {
     private final CriteriaType type;
     private final List<Criteria> subCriteria;
 
-    public Criteria(CriteriaType type) {
+    private Criteria(CriteriaType type) {
         this.type = type;
         this.subCriteria = new ArrayList<>();
     }
@@ -66,5 +66,9 @@ public class Criteria {
         Assert.isTrue(criteria.getSubCriteria().size() == 2, "Binary should contains 2 subCriteria");
 
         return criteria;
+    }
+
+    public static Criteria getInstance(CriteriaType type) {
+        return new Criteria(type);
     }
 }
