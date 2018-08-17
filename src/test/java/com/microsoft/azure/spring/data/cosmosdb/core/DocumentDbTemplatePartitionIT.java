@@ -152,7 +152,7 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final List<Person> inserted = dbTemplate.findAll(Person.class);
         assertThat(inserted.size()).isEqualTo(2);
@@ -172,7 +172,7 @@ public class DocumentDbTemplatePartitionIT {
         final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
         assertThat(prevCount).isEqualTo(1);
 
-        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
         assertThat(newCount).isEqualTo(2);
@@ -180,7 +180,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testCountForPartitionedCollectionByQuery() {
-        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
@@ -198,9 +198,5 @@ public class DocumentDbTemplatePartitionIT {
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(0);
-    }
-
-    private void insertPartitionedPerson(Person person, PartitionKey partitionKey) {
-        dbTemplate.insert(person, partitionKey);
     }
 }

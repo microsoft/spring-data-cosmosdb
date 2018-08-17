@@ -511,7 +511,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> long count(String collectionName) {
+    public long count(String collectionName) {
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final QuerySpecGenerator generator = new CountQueryGenerator();
@@ -541,7 +541,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         } else if (value instanceof Long) {
             return (Long)value;
         } else {
-            throw new IllegalStateException("Unexpected value type " + value.getClass());
+            throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
         }
 
     }

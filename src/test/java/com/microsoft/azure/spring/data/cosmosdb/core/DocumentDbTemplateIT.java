@@ -140,7 +140,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        insertPerson(TEST_PERSON_2);
+        dbTemplate.insert(TEST_PERSON_2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
@@ -169,7 +169,7 @@ public class DocumentDbTemplateIT {
         final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
         assertThat(prevCount).isEqualTo(1);
 
-        insertPerson(TEST_PERSON_2);
+        dbTemplate.insert(TEST_PERSON_2, null);
 
         final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
         assertThat(newCount).isEqualTo(2);
@@ -177,7 +177,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testCountByQuery() {
-        insertPerson(TEST_PERSON_2);
+        dbTemplate.insert(TEST_PERSON_2, null);
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
@@ -185,10 +185,5 @@ public class DocumentDbTemplateIT {
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(1);
-
-    }
-
-    private void insertPerson(Person person) {
-        dbTemplate.insert(person, null);
     }
 }
