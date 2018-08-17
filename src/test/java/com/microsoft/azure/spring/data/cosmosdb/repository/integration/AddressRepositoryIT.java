@@ -104,6 +104,10 @@ public class AddressRepositoryIT {
     public void testCount() {
         final long count = repository.count();
         assertThat(count).isEqualTo(4);
+
+        repository.deleteByCity(TestConstants.CITY);
+        final long newCount = repository.count();
+        assertThat(newCount).isEqualTo(2);
     }
 
     @Test

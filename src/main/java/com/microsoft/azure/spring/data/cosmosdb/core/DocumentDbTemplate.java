@@ -10,6 +10,7 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
@@ -30,15 +31,13 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
+    private static final String COUNT_VALUE_KEY = "_aggregate";
 
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
@@ -406,17 +405,22 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return !query.hasPartitionKeyOnly(partitionKeys);
     }
 
-    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, @NonNull boolean isCrossPartition,
+    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
                                      @NonNull Class<T> domainClass, String collectionName) {
+        final FeedResponse<Document> feedResponse = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
+        final List<Document> result = feedResponse.getQueryIterable().toList();
+
+        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+    }
+
+    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
+                                                String collectionName) {
         final FeedOptions feedOptions = new FeedOptions();
         final DocumentCollection collection = getDocCollection(collectionName);
 
         feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
 
-        final List<Document> result = getDocumentClient()
-                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
-
-        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+        return getDocumentClient().queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions);
     }
 
     public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
@@ -504,6 +508,41 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return deletedResult;
+    }
+
+    @Override
+    public long count(String collectionName) {
+        Assert.hasText(collectionName, "collectionName should not be empty");
+
+        final QuerySpecGenerator generator = new CountQueryGenerator();
+        final SqlQuerySpec querySpec = generator.generate(null);
+
+        return getCountValue(querySpec, true, collectionName);
+    }
+
+    @Override
+    public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        Assert.notNull(query, "query should not be null");
+        Assert.notNull(domainClass, "domainClass should not be null");
+        Assert.hasText(collectionName, "collectionName should not be empty");
+
+        final QuerySpecGenerator generator = new CountQueryGenerator();
+        final SqlQuerySpec querySpec = generator.generate(query);
+
+        return getCountValue(querySpec, isCrossPartitionQuery(query, domainClass), collectionName);
+    }
+
+    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartiionQuery, String collectionName) {
+        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
+
+        final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
+        if (value instanceof Integer) {
+            return Long.valueOf((Integer) value);
+        } else if (value instanceof Long) {
+            return (Long) value;
+        } else {
+            throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
+        }
     }
 
     private DocumentCollection getDocCollection(String collectionName) {

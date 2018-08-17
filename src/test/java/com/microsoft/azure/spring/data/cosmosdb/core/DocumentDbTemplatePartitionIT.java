@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
@@ -51,6 +52,9 @@ public class DocumentDbTemplatePartitionIT {
     private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
     private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+
+    private static final Person TEST_PERSON_2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+            TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -148,9 +152,7 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
-        dbTemplate.insert(Person.class.getSimpleName(), person2, new PartitionKey(person2.getLastName()));
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final List<Person> inserted = dbTemplate.findAll(Person.class);
         assertThat(inserted.size()).isEqualTo(2);
@@ -162,6 +164,39 @@ public class DocumentDbTemplatePartitionIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(person2));
+        assertTrue(result.get(0).equals(TEST_PERSON_2));
+    }
+
+    @Test
+    public void testCountForPartitionedCollection() {
+        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(prevCount).isEqualTo(1);
+
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(newCount).isEqualTo(2);
+    }
+
+    @Test
+    public void testCountForPartitionedCollectionByQuery() {
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON_2.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void testNonExistFieldValue() {
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList("non-exist-first-name"));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(0);
     }
 }
