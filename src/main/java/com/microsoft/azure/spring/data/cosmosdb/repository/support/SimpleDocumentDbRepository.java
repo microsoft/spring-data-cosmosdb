@@ -157,7 +157,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public long count() {
-        return findAll().spliterator().getExactSizeIfKnown();
+        return documentDbOperations.count(information.getCollectionName());
     }
 
     /**

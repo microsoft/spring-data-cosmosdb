@@ -40,6 +40,9 @@ public class DocumentDbTemplateIT {
     private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
+    final Person TEST_PERSON_2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
     @Value("${cosmosdb.key}")
@@ -133,16 +136,14 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
-        dbTemplate.insert(person2, null);
+        insertPerson(TEST_PERSON_2);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(person2));
+        assertTrue(result.get(0).equals(TEST_PERSON_2));
     }
 
 
@@ -157,5 +158,27 @@ public class DocumentDbTemplateIT {
 
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+    }
+
+    @Test
+    public void testCountByCollection() {
+        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(prevCount).isEqualTo(1);
+
+        insertPerson(TEST_PERSON_2);
+
+        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(newCount).isEqualTo(2);
+    }
+
+    @Test
+    public void testCountByQuery() {
+        insertPerson(TEST_PERSON_2);
+
+
+    }
+
+    private void insertPerson(Person person) {
+        dbTemplate.insert(person, null);
     }
 }

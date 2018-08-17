@@ -10,6 +10,7 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
@@ -504,6 +505,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return deletedResult;
+    }
+
+    @Override
+    public <T> long count(String collectionName) {
+
+    }
+
+    @Override
+    public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        Assert.notNull(query, "query should not be null");
+        Assert.notNull(domainClass, "domainClass should not be null");
+        Assert.hasText(collectionName, "collectionName should not be empty");
+
+        final QuerySpecGenerator generator = new CountQueryGenerator(domainClass);
     }
 
     private DocumentCollection getDocCollection(String collectionName) {

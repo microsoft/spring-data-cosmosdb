@@ -48,5 +48,9 @@ public interface DocumentDbOperations {
 
     <T> List<T> findAll(Sort sort, Class<T> domainClass, String collectionName);
 
+    <T> long count(String collectionName);
+
+    <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
+
     MappingDocumentDbConverter getConverter();
 }

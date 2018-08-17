@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
@@ -29,6 +30,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -51,6 +53,9 @@ public class DocumentDbTemplatePartitionIT {
     private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
     private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+
+    final Person TEST_PERSON_2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+            TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -148,9 +153,7 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
-        dbTemplate.insert(Person.class.getSimpleName(), person2, new PartitionKey(person2.getLastName()));
+        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final List<Person> inserted = dbTemplate.findAll(Person.class);
         assertThat(inserted.size()).isEqualTo(2);
@@ -162,6 +165,43 @@ public class DocumentDbTemplatePartitionIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(person2));
+        assertTrue(result.get(0).equals(TEST_PERSON_2));
+    }
+
+    @Test
+    public void testCountForPartitionedCollection() {
+        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(prevCount).isEqualTo(1);
+
+        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(newCount).isEqualTo(2);
+    }
+
+    @Test
+    public void testCountForPartitionedCollectionByQuery() {
+        insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "lastName",
+                Arrays.asList(TEST_PERSON_2.getLastName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void testNonExistFieldValue() {
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "non-exist-last-name",
+                Arrays.asList(TEST_PERSON_2.getLastName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(0);
+    }
+
+    private void insertPartitionedPerson(Person person, PartitionKey partitionKey) {
+        dbTemplate.insert(person, partitionKey);
     }
 }
