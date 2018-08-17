@@ -54,6 +54,7 @@
         <spring.boot.starter.test.version>1.5.11.RELEASE</spring.boot.starter.test.version>
         <org.projectlombok.version>1.16.18</org.projectlombok.version>
         <java.tuples.version>1.2</java.tuples.version>
+        <slf4j.version>1.7.25</slf4j.version>
 
         <azure.documentdb.version>1.16.2</azure.documentdb.version>
         <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
@@ -170,6 +171,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.starter.test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

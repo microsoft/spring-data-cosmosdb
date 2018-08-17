@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.data.repository.query.parser.Part;
@@ -15,49 +16,26 @@ import java.util.Map;
 
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.*;
 
+@AllArgsConstructor
 public enum CriteriaType {
-    IS_EQUAL,
-    OR,
-    AND,
-    BEFORE;
+    IS_EQUAL(SQL_KEYWORD_IS_EQUAL),
+    OR(SQL_KEYWORD_OR),
+    AND(SQL_KEYWORD_AND),
+    BEFORE(SQL_KEYWORD_BEFORE);
 
     @Getter
+    private String sqlKeyword;
+
     // Map Part.Type to CriteriaType
     private static final Map<Part.Type, CriteriaType> PART_TREE_TYPE_TO_CRITERIA;
 
-    // Map CriteriaType to Sql Keyword String
-    private static final Map<CriteriaType, String> CRITERIA_TYPE_TO_SQL_KEYWORD;
-
     static {
-        final Map<Part.Type, CriteriaType> criteriaMap = new HashMap<>();
-        final Map<CriteriaType, String> keywordMap = new HashMap<>();
+        final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
-        criteriaMap.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
-        criteriaMap.put(Part.Type.BEFORE, CriteriaType.BEFORE);
+        map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
+        map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
 
-        keywordMap.put(CriteriaType.IS_EQUAL, SQL_KEYWORD_IS_EQUAL);
-        keywordMap.put(CriteriaType.AND, SQL_KEYWORD_AND);
-        keywordMap.put(CriteriaType.OR, SQL_KEYWORD_OR);
-        keywordMap.put(CriteriaType.BEFORE, SQL_KEYWORD_BEFORE);
-
-        PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(criteriaMap);
-        CRITERIA_TYPE_TO_SQL_KEYWORD = Collections.unmodifiableMap(keywordMap);
-    }
-
-    /**
-     * Convert CriteriaType to Sql keyword.
-     *
-     * @param criteriaType
-     * @return Sql keyword String of CriteriaType.
-     */
-    public static String toSqlKeyword(@NonNull CriteriaType criteriaType) {
-        final String keyword = CRITERIA_TYPE_TO_SQL_KEYWORD.get(criteriaType);
-
-        if (keyword == null) {
-            throw new UnsupportedOperationException("Unsupported criteria type: " + criteriaType);
-        }
-
-        return keyword;
+        PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
 
     /**
@@ -67,7 +45,17 @@ public enum CriteriaType {
      * @return True if unsupported, or false.
      */
     public static boolean isPartTypeUnSupported(@NonNull Part.Type partType) {
-        return !PART_TREE_TYPE_TO_CRITERIA.containsKey(partType);
+        return !isPartTypeSupported(partType);
+    }
+
+    /**
+     * Check if PartType is supported.
+     *
+     * @param partType
+     * @return True if supported, or false.
+     */
+    public static boolean isPartTypeSupported(@NonNull Part.Type partType) {
+        return PART_TREE_TYPE_TO_CRITERIA.containsKey(partType);
     }
 
     public static CriteriaType toCriteriaType(@NonNull Part.Type partType) {
@@ -82,6 +70,7 @@ public enum CriteriaType {
 
     /**
      * Check if CriteriaType operation contains two subjects.
+     *
      * @param type
      * @return True if contains, or false.
      */
@@ -97,6 +86,7 @@ public enum CriteriaType {
 
     /**
      * Check if CriteriaType operation contains only one subjects.
+     *
      * @param type
      * @return True if contains, or false.
      */

@@ -69,6 +69,10 @@ public class TestConstants {
             EXCLUDEDPATH_1,
     };
 
+    public static final String ORDER_BY_STRING_PATH = "{\"path\":\"/*\",\"indexes\":[" +
+            "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":-1}," +
+            "]}";
+
     public static final String DB_NAME = "database_name_pli";
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
