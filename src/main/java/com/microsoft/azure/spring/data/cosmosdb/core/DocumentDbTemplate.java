@@ -414,7 +414,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
-                                        String collectionName) {
+                                                String collectionName) {
         final FeedOptions feedOptions = new FeedOptions();
         final DocumentCollection collection = getDocCollection(collectionName);
 
@@ -533,17 +533,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartiionQuery, String collectionName) {
-        FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
+        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
 
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
         if (value instanceof Integer) {
-            return new Long((Integer)value);
+            return Long.valueOf((Integer) value);
         } else if (value instanceof Long) {
-            return (Long)value;
+            return (Long) value;
         } else {
             throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
         }
-
     }
 
     private DocumentCollection getDocCollection(String collectionName) {
