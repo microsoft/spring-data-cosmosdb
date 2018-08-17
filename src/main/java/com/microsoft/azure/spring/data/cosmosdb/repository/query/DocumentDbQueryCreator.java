@@ -36,8 +36,8 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
         final String subject = this.mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
         final List<Object> values = new ArrayList<>();
 
-        if (!CriteriaType.getCriteriaMap().containsKey(type)) {
-            throw new UnsupportedOperationException("Unsupported keyword: " + type.toString());
+        if (CriteriaType.isPartTypeUnSupported(type)) {
+            throw new UnsupportedOperationException("Unsupported keyword: " + type);
         }
 
         for (int i = 0; i < part.getNumberOfArguments(); i++) {
@@ -45,7 +45,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
             values.add(parameters.next());
         }
 
-        return Criteria.getUnaryInstance(CriteriaType.getCriteriaMap().get(type), subject, values);
+        return Criteria.getUnaryInstance(CriteriaType.toCriteriaType(type), subject, values);
     }
 
     @Override

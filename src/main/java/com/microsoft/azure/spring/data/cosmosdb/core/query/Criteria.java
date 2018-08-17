@@ -25,27 +25,8 @@ public class Criteria {
         this.subCriteria = new ArrayList<>();
     }
 
-    public static boolean isBinaryOperation(CriteriaType type) {
-        switch (type) {
-            case AND:
-            case OR:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isUnaryOperation(CriteriaType type) {
-        switch (type) {
-            case IS_EQUAL:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     public static Criteria getUnaryInstance(CriteriaType type, @NonNull String subject, @NonNull List<Object> values) {
-        Assert.isTrue(isUnaryOperation(type), "type should be Unary operation");
+        Assert.isTrue(CriteriaType.isUnary(type), "type should be Unary operation");
 
         final Criteria criteria = new Criteria(type);
 
@@ -56,7 +37,7 @@ public class Criteria {
     }
 
     public static Criteria getBinaryInstance(CriteriaType type, @NonNull Criteria left, @NonNull Criteria right) {
-        Assert.isTrue(isBinaryOperation(type), "type should be Binary operation");
+        Assert.isTrue(CriteriaType.isBinary(type), "type should be Binary operation");
 
         final Criteria criteria = new Criteria(type);
 

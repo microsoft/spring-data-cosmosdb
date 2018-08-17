@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -37,18 +38,21 @@ public abstract class AbstractQueryGenerator {
         return subject;
     }
 
-    private String generateIsEqual(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+    private String generateUnaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Unary criteria should have only one subject value");
+        Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
+
         final String subject = this.getCriteriaSubject(criteria);
+        final String keyword = CriteriaType.toSqlKeyword(criteria.getType());
+        final Object subjectValue = MappingDocumentDbConverter.toDocumentDBValue(criteria.getSubjectValues().get(0));
 
-        Assert.isTrue(criteria.getSubjectValues().size() == 1, "IS_EQUAL should have only one subject value");
+        parameters.add(Pair.with(subject, subjectValue));
 
-        parameters.add(Pair.with(subject, criteria.getSubjectValues().get(0)));
-
-        return String.format("r.%s=@%s", subject, subject);
+        return String.format("r.%s%s@%s", subject, keyword, subject);
     }
 
     private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
-        Assert.isTrue(Criteria.isBinaryOperation(type), "Criteria type should be binary operation");
+        Assert.isTrue(CriteriaType.isBinary(type), "Criteria type should be binary operation");
 
         final String keyword = CriteriaType.toSqlKeyword(type);
 
@@ -60,7 +64,8 @@ public abstract class AbstractQueryGenerator {
 
         switch (type) {
             case IS_EQUAL:
-                return this.generateIsEqual(criteria, parameters);
+            case BEFORE:
+                return this.generateUnaryQuery(criteria, parameters);
             case AND:
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");

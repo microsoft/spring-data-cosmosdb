@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDBAnnotationIT {
-    private static final Role TEST_ROLE = new Role(TestConstants.ID, TestConstants.LEVEL,
+    private static final Role TEST_ROLE = new Role(TestConstants.ID_1, TestConstants.LEVEL,
             TestConstants.ROLE_NAME);
 
     @Value("${cosmosdb.uri}")
@@ -97,7 +97,7 @@ public class DocumentDBAnnotationIT {
     @Test
     @SneakyThrows
     public void testDocumentAnnotationTimeToLive() {
-        final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID);
+        final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
         final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
 
         Assert.notNull(timeToLive, "timeToLive should not be null");

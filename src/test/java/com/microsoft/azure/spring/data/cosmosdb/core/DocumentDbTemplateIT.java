@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
@@ -133,7 +133,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+        final Person person2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
                 TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
