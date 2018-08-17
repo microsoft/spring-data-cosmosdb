@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
-import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
@@ -20,9 +19,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -32,7 +29,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -454,31 +450,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return indices.stream().anyMatch(isIndexingSupportSortByString());
     }
 
-    private void validateSort(@NonNull Sort sort, @NonNull Class<?> domainClass, @NonNull String collectionName) {
-        Assert.isTrue(sort.isSorted(), "should be sorted");
-
-        if (sort.stream().count() != 1) {
-            throw new IllegalQueryException("only one order of Sort is supported");
-        }
-
-        final Sort.Order order = sort.iterator().next();
-        final String property = order.getProperty();
-        final String idFieldName = new DocumentDbEntityInformation<>(domainClass).getIdField().getName();
-        final Field[] fields = FieldUtils.getAllFields(domainClass);
-        final Optional<Field> field = Arrays.stream(fields).filter(f -> f.getName().equals(property)).findFirst();
-        final DocumentCollection collection = getDocCollection(collectionName);
-
-        if (order.isIgnoreCase()) {
-            throw new IllegalQueryException("sort within case insensitive is not supported");
-        } else if (property.equals(Constants.ID_PROPERTY_NAME) || property.equals(idFieldName)) {
-            throw new IllegalQueryException("sort by @Id field is not supported");
-        } else if (!field.isPresent()) {
-            throw new IllegalQueryException("order name must be consistency with domainClass");
-        } else if (field.get().getType() == String.class && !isCollectionSupportSortByString(collection)) {
-            throw new IllegalQueryException("order by String must enable indexing with Range and max Precision.");
-        }
-    }
-
     @Override
     public <T> List<T> findAll(@NonNull Sort sort, @NonNull Class<T> domainClass, String collectionName) {
         Assert.notNull(sort, "sort should not be null.");
@@ -489,9 +460,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return this.findAll(collectionName, domainClass);
         }
 
-        validateSort(sort, domainClass, collectionName);
-
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IS_EQUAL)).with(sort);
+
+        query.validateSort(domainClass, this.isCollectionSupportSortByString(getDocCollection(collectionName)));
+
         final QuerySpecGenerator generator = new FindAllSortQuerySpecGenerator();
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
