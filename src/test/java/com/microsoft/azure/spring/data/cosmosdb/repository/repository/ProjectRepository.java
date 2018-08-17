@@ -19,4 +19,13 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
     List<Project> findByNameAndCreator(String name, String creator);
 
     List<Project> findByNameOrCreator(String name, String creator);
+
+    List<Project> findByNameAndCreatorOrForkCount(String name, String creator, Long forkCount);
+
+    List<Project> findByNameOrCreatorAndForkCount(String name, String creator, Long forkCount);
+
+    List<Project> findByNameOrCreatorOrForkCount(String name, String creator, Long forkCount);
+
+    List<Project> findByNameOrCreatorAndForkCountOrStarCount(String name, String creator,
+                                                             Long forkCount, Long starCount);
 }
