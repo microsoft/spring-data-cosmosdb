@@ -67,4 +67,8 @@ public class Criteria {
 
         return criteria;
     }
+
+    public static Criteria getInstance(CriteriaType type) {
+        return new Criteria(type);
+    }
 }

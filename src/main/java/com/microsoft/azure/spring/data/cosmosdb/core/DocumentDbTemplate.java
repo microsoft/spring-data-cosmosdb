@@ -10,9 +10,11 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -23,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
@@ -31,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
@@ -64,6 +68,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 
+    private DocumentClient getDocumentClient() {
+        return this.documentDbFactory.getDocumentClient();
+    }
+
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
         Assert.notNull(objectToSave, "entityClass should not be null");
 
@@ -84,7 +92,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         try {
-            final Resource result = documentDbFactory.getDocumentClient()
+            final Resource result = getDocumentClient()
                     .createDocument(getCollectionLink(this.databaseName, collectionName), document,
                             getRequestOptions(partitionKey, null),
                             false).getResource();
@@ -117,7 +125,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(entityClass, "entityClass should not be null");
 
         try {
-            final Resource resource = documentDbFactory.getDocumentClient()
+            final Resource resource = getDocumentClient()
                     .readDocument(getDocumentLink(this.databaseName, collectionName, id),
                             new RequestOptions()).getResource();
 
@@ -159,7 +167,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 LOGGER.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
             }
 
-            documentDbFactory.getDocumentClient().upsertDocument(
+            getDocumentClient().upsertDocument(
                     getCollectionLink(this.databaseName, collectionName),
                     originalDoc,
                     getRequestOptions(partitionKey, null), false);
@@ -179,7 +187,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(entityClass, "entityClass should not be null");
 
-        final List<DocumentCollection> collections = documentDbFactory.getDocumentClient().
+        final List<DocumentCollection> collections = getDocumentClient().
                 queryCollections(
                         getDatabaseLink(this.databaseName),
                         new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id",
@@ -196,7 +204,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT * FROM root c");
 
-        final List<Document> results = documentDbFactory.getDocumentClient()
+        final List<Document> results = getDocumentClient()
                 .queryDocuments(collections.get(0).getSelfLink(), sqlQuerySpec, feedOptions)
                 .getQueryIterable().toList();
 
@@ -219,8 +227,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         try {
-            documentDbFactory.getDocumentClient()
-                    .deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
+            getDocumentClient().deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
             if (this.collectionCache.contains(collectionName)) {
                 this.collectionCache.remove(collectionName);
             }
@@ -242,7 +249,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private Database createDatabaseIfNotExists(String dbName) {
         try {
-            final List<Database> dbList = documentDbFactory.getDocumentClient()
+            final List<Database> dbList = getDocumentClient()
                     .queryDatabases(new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
                             new SqlParameterCollection(new SqlParameter("@id", dbName))), null)
                     .getQueryIterable().toList();
@@ -258,8 +265,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     LOGGER.debug("execute createDatabase {}", dbName);
                 }
 
-                final Resource resource = documentDbFactory.getDocumentClient()
-                        .createDatabase(db, null).getResource();
+                final Resource resource = getDocumentClient().createDatabase(db, null).getResource();
 
                 if (resource instanceof Database) {
                     return (Database) resource;
@@ -305,7 +311,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         try {
-            final Resource resource = documentDbFactory.getDocumentClient()
+            final Resource resource = getDocumentClient()
                     .createCollection(getDatabaseLink(dbName), collection, requestOptions)
                     .getResource();
             if (resource instanceof DocumentCollection) {
@@ -326,7 +332,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final String collectionName = information.getCollectionName();
 
-        final List<DocumentCollection> collectionList = documentDbFactory.getDocumentClient()
+        final List<DocumentCollection> collectionList = getDocumentClient()
                 .queryCollections(getDatabaseLink(this.databaseName),
                         new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
                                 new SqlParameterCollection(new SqlParameter("@id", collectionName))), null)
@@ -348,8 +354,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         try {
-            documentDbFactory.getDocumentClient().deleteDocument(
-                    getDocumentLink(this.databaseName, collectionName, id.toString()),
+            getDocumentClient().deleteDocument(getDocumentLink(this.databaseName, collectionName, id.toString()),
                     getRequestOptions(partitionKey, null));
 
         } catch (DocumentClientException ex) {
@@ -389,35 +394,80 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> boolean hasPartitionKeyOnly(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
+    private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
 
         if (!partitionKeyName.isPresent()) {
-            return false;
+            return true;
         }
 
         final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
 
-        return query.hasPartitionKeyOnly(partitionKeys);
+        return !query.hasPartitionKeyOnly(partitionKeys);
     }
 
-    public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
-                            @NonNull String collectionName) {
+    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, @NonNull boolean isCrossPartition,
+                                     @NonNull Class<T> domainClass, String collectionName) {
+        final FeedOptions feedOptions = new FeedOptions();
+        final DocumentCollection collection = getDocCollection(collectionName);
+
+        feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
+
+        final List<Document> result = getDocumentClient()
+                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
+
+        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+    }
+
+    public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
         Assert.notNull(query, "DocumentQuery should not be null.");
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        final FeedOptions feedOptions = new FeedOptions();
-        final DocumentCollection collection = getDocCollection(collectionName);
         final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
-
-        feedOptions.setEnableCrossPartitionQuery(!this.hasPartitionKeyOnly(query, domainClass));
-
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
-        final List<Document> result = documentDbFactory.getDocumentClient()
-                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
 
-        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
+        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
+    }
+
+    private Predicate<Index> isIndexingSupportSortByString() {
+        return index -> {
+            if (index instanceof RangeIndex) {
+                final RangeIndex rangeIndex = (RangeIndex) index;
+                return rangeIndex.getDataType() == DataType.String && rangeIndex.getPrecision() == -1;
+            }
+
+            return false;
+        };
+    }
+
+    private boolean isCollectionSupportSortByString(@NonNull DocumentCollection collection) {
+        final IndexingPolicy policy = collection.getIndexingPolicy();
+        final List<Index> indices = new ArrayList<>();
+
+        policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
+
+        return indices.stream().anyMatch(isIndexingSupportSortByString());
+    }
+
+    @Override
+    public <T> List<T> findAll(@NonNull Sort sort, @NonNull Class<T> domainClass, String collectionName) {
+        Assert.notNull(sort, "sort should not be null.");
+        Assert.notNull(domainClass, "domainClass should not be null.");
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        if (sort.isUnsorted()) {
+            return this.findAll(collectionName, domainClass);
+        }
+
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IS_EQUAL)).with(sort);
+
+        query.validateSort(domainClass, this.isCollectionSupportSortByString(getDocCollection(collectionName)));
+
+        final QuerySpecGenerator generator = new FindAllSortQuerySpecGenerator();
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+
+        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
     }
 
     @Override
@@ -436,7 +486,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
 
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
-        final List<Document> results = documentDbFactory.getDocumentClient()
+        final List<Document> results = getDocumentClient()
                 .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
         final RequestOptions options = new RequestOptions();
 
@@ -446,7 +496,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         for (final Document d : results) {
             try {
-                documentDbFactory.getDocumentClient().deleteDocument(d.getSelfLink(), options);
+                getDocumentClient().deleteDocument(d.getSelfLink(), options);
                 deletedResult.add(getConverter().read(domainClass, d));
             } catch (DocumentClientException e) {
                 throw new DocumentDBAccessException(String.format("Failed to delete document %s", d.getSelfLink()), e);
@@ -457,7 +507,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private DocumentCollection getDocCollection(String collectionName) {
-        final List<DocumentCollection> collections = documentDbFactory.getDocumentClient().
+        final List<DocumentCollection> collections = getDocumentClient().
                 queryCollections(
                         getDatabaseLink(this.databaseName),
                         new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id",

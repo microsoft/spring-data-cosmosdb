@@ -60,14 +60,14 @@ public class ProjectRepositoryIT {
     private static final Project PROJECT_3 = new Project(ID_3, NAME_3, CREATOR_3, true, STAR_COUNT_3, FORK_COUNT_3);
     private static final Project PROJECT_4 = new Project(ID_4, NAME_0, CREATOR_0, false, STAR_COUNT_0, FORK_COUNT_0);
 
+    private static final List<Project> PROJECTS = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
+
     @Autowired
     private ProjectRepository repository;
 
     @Before
     public void setup() {
-        final List<Project> projects = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
-
-        this.repository.saveAll(projects);
+        this.repository.saveAll(PROJECTS);
     }
 
     @After
@@ -158,7 +158,6 @@ public class ProjectRepositoryIT {
         Assert.assertEquals(projects.size(), reference.size());
         Assert.assertEquals(projects, reference);
     }
-
 
     @Test
     public void testFindByWithAndOr() {
