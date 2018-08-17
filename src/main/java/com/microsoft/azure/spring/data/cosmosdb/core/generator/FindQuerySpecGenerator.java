@@ -9,6 +9,7 @@ import com.microsoft.azure.documentdb.SqlParameter;
 import com.microsoft.azure.documentdb.SqlParameterCollection;
 import com.microsoft.azure.documentdb.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import lombok.NoArgsConstructor;
 import org.javatuples.Pair;
 import org.springframework.lang.NonNull;
 
@@ -17,11 +18,8 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter.toDocumentDBValue;
 
+@NoArgsConstructor
 public class FindQuerySpecGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
-
-    public <T> FindQuerySpecGenerator(@NonNull Class<T> domainClass) {
-        super(domainClass);
-    }
 
     @Override
     public SqlQuerySpec generate(@NonNull DocumentQuery query) {

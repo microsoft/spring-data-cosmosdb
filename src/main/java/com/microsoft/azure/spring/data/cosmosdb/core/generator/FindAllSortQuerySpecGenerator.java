@@ -19,8 +19,6 @@ import java.util.List;
 @NoArgsConstructor
 public class FindAllSortQuerySpecGenerator implements QuerySpecGenerator {
 
-    private static final String SQL_NOCASE = "COLLATE NOCASE";
-
     private static final String SQL_DESC = "DESC";
 
     private String getParameter(@NonNull Sort.Order order) {
