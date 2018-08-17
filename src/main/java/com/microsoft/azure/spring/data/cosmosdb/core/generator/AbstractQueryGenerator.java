@@ -8,7 +8,8 @@ package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.javatuples.Pair;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
@@ -16,29 +17,11 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.microsoft.azure.spring.data.cosmosdb.Constants.ID_PROPERTY_NAME;
-
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
 
-    protected final DocumentDbEntityInformation information;
-
-    @SuppressWarnings("unchecked")
-    protected <T> AbstractQueryGenerator(@NonNull Class<T> domainClass) {
-        this.information = new DocumentDbEntityInformation(domainClass);
-    }
-
-    private String getCriteriaSubject(@NonNull Criteria criteria) {
-        String subject = criteria.getSubject();
-
-        if (subject.equals(information.getIdField().getName())) {
-            subject = ID_PROPERTY_NAME;
-        }
-
-        return subject;
-    }
-
     private String generateIsEqual(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
-        final String subject = this.getCriteriaSubject(criteria);
+        final String subject = criteria.getSubject();
 
         Assert.isTrue(criteria.getSubjectValues().size() == 1, "IS_EQUAL should have only one subject value");
 
