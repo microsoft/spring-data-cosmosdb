@@ -424,7 +424,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
@@ -481,7 +481,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final DocumentCollection collection = getDocCollection(collectionName);
         final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
         final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator(domainClass);
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
 
         feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
 
