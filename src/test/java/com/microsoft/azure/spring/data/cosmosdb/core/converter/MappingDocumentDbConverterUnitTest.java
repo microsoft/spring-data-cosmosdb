@@ -77,7 +77,7 @@ public class MappingDocumentDbConverterUnitTest {
 
     @Test
     public void canWritePojoWithDateToDocument() throws ParseException {
-        final Memo memo = new Memo(TestConstants.ID, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
+        final Memo memo = new Memo(TestConstants.ID_1, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
                 Importance.NORMAL);
         final Document document = dbConverter.writeDoc(memo);
 
@@ -89,7 +89,7 @@ public class MappingDocumentDbConverterUnitTest {
     @Test
     public void canReadPojoWithDateFromDocument() throws ParseException {
         final Document document = new Document();
-        document.setId(TestConstants.ID);
+        document.setId(TestConstants.ID_1);
         document.set(TestConstants.PROPERTY_MESSAGE, TestConstants.MESSAGE);
 
         final long date = DATE.parse(TestConstants.DATE_STRING).getTime();

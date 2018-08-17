@@ -74,10 +74,11 @@ public class TestConstants {
             "]}";
 
     public static final String DB_NAME = "database_name_pli";
-    public static final String ID = "template_id_pli";
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
-    public static final String NEW_ID = "new_id";
+    public static final String ID_1 = "id-1";
+    public static final String ID_2 = "id-2";
+    public static final String ID_3 = "id-3";
     public static final String NEW_FIRST_NAME = "new_first_name";
     public static final String NEW_LAST_NAME = "new_last_name";
     public static final String UPDATED_FIRST_NAME = "updated_first_name";
@@ -86,8 +87,9 @@ public class TestConstants {
     public static final String ROLE_NAME = "Developer";
     public static final String NOT_EXIST_ID = "non_exist_id";
 
-    public static final String DATE_STRING = "1/1/2000";
-    public static final String NEW_DATE_STRING = "1/1/2001";
+    public static final String DATE_STRING = "8/8/2017";
+    public static final String DATE_BEFORE_STRING = "8/1/2017";
+    public static final String DATE_AFTER_STRING = "8/13/2017";
     public static final String DATE_FORMAT = "dd/MM/yyyy";
     public static final String DATE_TIMEZONE_STRING = "1/1/2000 00:00 GMT";
     public static final String DATE_TIMEZONE_FORMAT = "dd/MM/yyyy HH:mm ZZZ";

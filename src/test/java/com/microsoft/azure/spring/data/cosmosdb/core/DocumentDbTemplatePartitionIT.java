@@ -50,10 +50,10 @@ public class DocumentDbTemplatePartitionIT {
     private static final String TEST_DB_NAME = "template_it_db";
     private static final List<String> HOBBIES = TestConstants.HOBBIES;
     private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
-    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    private static final Person TEST_PERSON_2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
             TEST_PERSON.getLastName(), TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
@@ -103,7 +103,7 @@ public class DocumentDbTemplatePartitionIT {
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON);
 
-        criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID));
+        criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
         result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
 
