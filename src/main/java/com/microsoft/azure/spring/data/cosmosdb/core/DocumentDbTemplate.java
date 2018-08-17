@@ -10,11 +10,9 @@ import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindAllSortQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
@@ -424,6 +421,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
+        query.validateSort(domainClass, this.isCollectionSupportSortByString(getDocCollection(collectionName)));
+
         final QuerySpecGenerator generator = new FindQuerySpecGenerator();
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
 
@@ -448,26 +447,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
 
         return indices.stream().anyMatch(isIndexingSupportSortByString());
-    }
-
-    @Override
-    public <T> List<T> findAll(@NonNull Sort sort, @NonNull Class<T> domainClass, String collectionName) {
-        Assert.notNull(sort, "sort should not be null.");
-        Assert.notNull(domainClass, "domainClass should not be null.");
-        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
-
-        if (sort.isUnsorted()) {
-            return this.findAll(collectionName, domainClass);
-        }
-
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IS_EQUAL)).with(sort);
-
-        query.validateSort(domainClass, this.isCollectionSupportSortByString(getDocCollection(collectionName)));
-
-        final QuerySpecGenerator generator = new FindAllSortQuerySpecGenerator();
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
-
-        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
     }
 
     @Override

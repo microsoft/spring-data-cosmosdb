@@ -16,6 +16,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.Constants.SQL_KEYWORD_AND
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.SQL_KEYWORD_OR;
 
 public enum CriteriaType {
+    ALL,
     IS_EQUAL,
     OR,
     AND;

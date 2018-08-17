@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 
@@ -20,7 +21,7 @@ public class DocumentQueryUnitTest {
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY,
                 Arrays.asList(CRITERIA_OBJECT));
 
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
 
         Assert.assertEquals(query.getCriteria(), criteria);
         Assert.assertTrue(query.getSubjectCriteria(criteria.getSubject()).isPresent());
