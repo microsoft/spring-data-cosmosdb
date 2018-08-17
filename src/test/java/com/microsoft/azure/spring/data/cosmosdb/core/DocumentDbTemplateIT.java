@@ -12,6 +12,9 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -28,6 +31,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -175,6 +179,12 @@ public class DocumentDbTemplateIT {
     public void testCountByQuery() {
         insertPerson(TEST_PERSON_2);
 
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON_2.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(1);
 
     }
 

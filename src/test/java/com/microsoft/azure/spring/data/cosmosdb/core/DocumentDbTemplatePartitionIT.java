@@ -30,7 +30,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
-import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -183,8 +182,8 @@ public class DocumentDbTemplatePartitionIT {
     public void testCountForPartitionedCollectionByQuery() {
         insertPartitionedPerson(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "lastName",
-                Arrays.asList(TEST_PERSON_2.getLastName()));
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
@@ -193,8 +192,8 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testNonExistFieldValue() {
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "non-exist-last-name",
-                Arrays.asList(TEST_PERSON_2.getLastName()));
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList("non-exist-first-name"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
