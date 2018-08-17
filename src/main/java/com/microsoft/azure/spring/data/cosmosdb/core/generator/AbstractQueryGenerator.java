@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
@@ -86,17 +85,11 @@ public abstract class AbstractQueryGenerator {
     }
 
     private String getParameter(@NonNull Sort.Order order) {
-        String parameter = "r." + order.getProperty();
-
         Assert.isTrue(!order.isIgnoreCase(), "Ignore case is not supported");
 
-        if (order.isDescending()) {
-            parameter += " " + Constants.SQL_KEYWORD_DESC;
-        } else {
-            parameter += " " + Constants.SQL_KEYWORD_ASC;
-        }
+        final String direction = order.isDescending() ? "DESC" : "ASC";
 
-        return parameter;
+        return String.format("r.%s %s", order.getProperty(), direction);
     }
 
     private String generateQuerySort(@NonNull Sort sort) {

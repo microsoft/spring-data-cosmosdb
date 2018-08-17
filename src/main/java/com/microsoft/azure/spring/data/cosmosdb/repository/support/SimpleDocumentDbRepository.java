@@ -240,7 +240,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         return documentDbOperations.find(query, information.getJavaType(), information.getCollectionName());
     }
 
-    /*FindQuerySpecGenerator*
+    /**
+     * FindQuerySpecGenerator
      * Returns a Page of entities meeting the paging restriction provided in the Pageable object.
      *
      * @param pageable

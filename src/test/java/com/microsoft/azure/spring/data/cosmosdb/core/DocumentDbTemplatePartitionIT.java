@@ -185,7 +185,7 @@ public class DocumentDbTemplatePartitionIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(1);
@@ -195,7 +195,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testNonExistFieldValue() {
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList("non-exist-first-name"));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(0);
