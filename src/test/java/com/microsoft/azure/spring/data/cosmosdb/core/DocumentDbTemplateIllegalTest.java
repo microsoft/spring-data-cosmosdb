@@ -32,7 +32,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.I
 public class DocumentDbTemplateIllegalTest {
     private static final String NULL_STR = null;
     private static final String DUMMY_COLL = "dummy";
-    private static final String DUMMY_ID = "ID";
+    private static final String DUMMY_ID = "ID_1";
     private static final PartitionKey DUMMY_KEY = new PartitionKey("dummy");
     private static final String EMPTY_STR = StringUtils.EMPTY;
     private static final String WHITESPACES_STR = "  ";
