@@ -14,16 +14,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.azure.spring.data.cosmosdb.Constants.*;
-
 @AllArgsConstructor
 public enum CriteriaType {
-    IS_EQUAL(SQL_KEYWORD_IS_EQUAL),
-    OR(SQL_KEYWORD_OR),
-    AND(SQL_KEYWORD_AND),
-    BEFORE(SQL_KEYWORD_BEFORE),
-    AFTER(SQL_KEYWORD_AFTER),
-    GREATER_THAN(SQL_KEYWORD_GREATER_THAN);
+
+    ALL(""),
+    IS_EQUAL("="),
+    OR("OR"),
+    AND("AND"),
+    BEFORE("<"),
+    AFTER(">"),
+    GREATER_THAN(">");
 
     @Getter
     private String sqlKeyword;

@@ -12,11 +12,14 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.javatuples.Pair;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
@@ -43,6 +46,8 @@ public abstract class AbstractQueryGenerator {
         final CriteriaType type = criteria.getType();
 
         switch (type) {
+            case ALL:
+                return "";
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -72,8 +77,46 @@ public abstract class AbstractQueryGenerator {
     @NonNull
     protected Pair<String, List<Pair<String, Object>>> generateQueryBody(@NonNull DocumentQuery query) {
         final List<Pair<String, Object>> parameters = new ArrayList<>();
-        final String queryString = this.generateQueryBody(query.getCriteria(), parameters);
+        String queryString = this.generateQueryBody(query.getCriteria(), parameters);
+
+        if (StringUtils.hasText(queryString)) {
+            queryString = "WHERE" + " " + queryString;
+        }
 
         return Pair.with(queryString, parameters);
+    }
+
+    private String getParameter(@NonNull Sort.Order order) {
+        Assert.isTrue(!order.isIgnoreCase(), "Ignore case is not supported");
+
+        final String direction = order.isDescending() ? "DESC" : "ASC";
+
+        return String.format("r.%s %s", order.getProperty(), direction);
+    }
+
+    private String generateQuerySort(@NonNull Sort sort) {
+        if (sort.isUnsorted()) {
+            return "";
+        }
+
+        final String queryTail = "ORDER BY";
+        final List<String> subjects = sort.stream().map(this::getParameter).collect(Collectors.toList());
+
+        return queryTail + " " + String.join(",", subjects);
+    }
+
+    /**
+     * Generate a query tail for method query.
+     *
+     * @param query
+     * @return The tail String of Sql query.
+     */
+    @NonNull
+    protected String generateQueryTail(@NonNull DocumentQuery query) {
+        final List<String> queryTails = new ArrayList<>();
+
+        queryTails.add(generateQuerySort(query.getSort()));
+
+        return String.join(" ", queryTails.stream().filter(StringUtils::hasText).collect(Collectors.toList()));
     }
 }

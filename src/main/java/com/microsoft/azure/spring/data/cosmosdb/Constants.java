@@ -6,12 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.documentdb.IndexingMode;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Constants {
-    private Constants() {
-        // Hide the implicit public one
-    }
-
     public static final String DEFAULT_COLLECTION_NAME = "";
     public static final String DEFAULT_REQUEST_UNIT = "4000";
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
@@ -28,12 +27,5 @@ public class Constants {
     public static final String USER_AGENT_SUFFIX = "spring-data/";
 
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
-
-    public static final String SQL_KEYWORD_AND = "AND";
-    public static final String SQL_KEYWORD_OR = "OR";
-    public static final String SQL_KEYWORD_IS_EQUAL = "=";
-    public static final String SQL_KEYWORD_BEFORE = "<";
-    public static final String SQL_KEYWORD_AFTER = ">";
-    public static final String SQL_KEYWORD_GREATER_THAN = ">";
 }
 

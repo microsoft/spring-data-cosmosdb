@@ -12,7 +12,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEnt
 import lombok.Getter;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -26,20 +25,11 @@ public class DocumentQuery {
     private final Criteria criteria;
 
     @Getter
-    private Sort sort = Sort.unsorted();
+    private Sort sort;
 
-    public DocumentQuery(@NonNull Criteria criteria) {
+    public DocumentQuery(@NonNull Criteria criteria, @NonNull Sort sort) {
         this.criteria = criteria;
-    }
-
-    public DocumentQuery with(@NonNull Sort sort) {
-        Assert.notNull(sort, "Sort should not be null");
-
-        if (sort.isSorted()) {
-            this.sort = this.sort.and(sort);
-        }
-
-        return this;
+        this.sort = sort;
     }
 
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
@@ -107,7 +97,7 @@ public class DocumentQuery {
     /**
      * Validate if Sort is valid for cosmosdb.
      *
-     * @param domainClass class of domain
+     * @param domainClass                     class of domain
      * @param isCollectionSupportSortByString indicate if collection support sort by String.
      */
     public void validateSort(@NonNull Class<?> domainClass, boolean isCollectionSupportSortByString) {
