@@ -17,13 +17,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -37,9 +40,6 @@ public class PageableAddressRepositoryIT {
             TestConstants.POSTAL_CODE_1, TestConstants.STREET_0, TestConstants.CITY_0);
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
-
-    private static final int PAGE_SIZE = 3;
-    private static final int MIN_PAGE_SIZE = 1;
 
     @Autowired
     private PageableAddressRepository repository;
@@ -66,84 +66,67 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindAllByPage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE, null);
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findAll(pageRequest);
 
-        assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE);
-        validateNonLastPage(page, PAGE_SIZE);
+        assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
+        validateNonLastPage(page, PAGE_SIZE_3);
 
         final Page<Address> nextPage = repository.findAll(page.getPageable());
         assertThat(nextPage.getContent().size()).isEqualTo(1);
-        validateLastPage(nextPage, PAGE_SIZE);
+        validateLastPage(nextPage, PAGE_SIZE_3);
     }
 
     @Test
     public void testFindWithParitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE, null);
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultCityMatch(page, TestConstants.CITY);
-        validateLastPage(page, PAGE_SIZE);
+        validateLastPage(page, PAGE_SIZE_3);
     }
 
     @Test
     public void testFindWithParitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, MIN_PAGE_SIZE, null);
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
-        assertThat(page.getContent().size()).isEqualTo(MIN_PAGE_SIZE);
+        assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultCityMatch(page, TestConstants.CITY);
-        validateNonLastPage(page, MIN_PAGE_SIZE);
+        validateNonLastPage(page, PAGE_SIZE_1);
 
         final Page<Address> nextPage = repository.findByCity(TestConstants.CITY, page.getPageable());
 
-        assertThat(nextPage.getContent().size()).isEqualTo(MIN_PAGE_SIZE);
+        assertThat(nextPage.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultCityMatch(page, TestConstants.CITY);
-        validateLastPage(nextPage, MIN_PAGE_SIZE);
+        validateLastPage(nextPage, PAGE_SIZE_1);
     }
 
     @Test
     public void testFindWithoutPartitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE, null);
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultStreetMatch(page, TestConstants.STREET);
-        validateLastPage(page, PAGE_SIZE);
+        validateLastPage(page, PAGE_SIZE_3);
     }
 
     @Test
     public void testFindWithoutPartitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, MIN_PAGE_SIZE, null);
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(1);
         validateResultStreetMatch(page, TestConstants.STREET);
-        validateNonLastPage(page, MIN_PAGE_SIZE);
+        validateNonLastPage(page, PAGE_SIZE_1);
 
         final Page<Address> nextPage = repository.findByStreet(TestConstants.STREET, page.getPageable());
 
-        assertThat(nextPage.getContent().size()).isEqualTo(MIN_PAGE_SIZE);
+        assertThat(nextPage.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultStreetMatch(page, TestConstants.STREET);
-        validateLastPage(nextPage, MIN_PAGE_SIZE);
-    }
-
-    private void validateLastPage(Page page, int pageSize) {
-        final Pageable pageable = page.getPageable();
-
-        assertThat(pageable).isInstanceOf(DocumentDbPageRequest.class);
-        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNullOrEmpty();
-        assertThat(pageable.getPageSize()).isEqualTo(pageSize);
-    }
-
-    private void validateNonLastPage(Page page, int pageSize) {
-        final Pageable pageable = page.getPageable();
-
-        assertThat(pageable).isInstanceOf(DocumentDbPageRequest.class);
-        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotNull();
-        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotBlank();
-        assertThat(pageable.getPageSize()).isEqualTo(pageSize);
+        validateLastPage(nextPage, PAGE_SIZE_1);
     }
 
     private void validateResultCityMatch(Page<Address> page, String city) {

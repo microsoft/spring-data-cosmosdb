@@ -551,6 +551,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         while (it.hasNext() && index++ < pageable.getPageSize()) {
             // Limit iterator as inner iterator will automatically fetch the next page
             final Document doc = it.next();
+            if (doc == null) {
+                continue;
+            }
+
             final T entity = mappingDocumentDbConverter.read(domainClass, doc);
             result.add(entity);
         }
