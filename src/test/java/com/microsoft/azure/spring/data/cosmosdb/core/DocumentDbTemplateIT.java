@@ -85,7 +85,7 @@ public class DocumentDbTemplateIT {
 
     @After
     public void cleanup() {
-        dbTemplate.deleteAll(Person.class.getSimpleName());
+        dbTemplate.deleteAll(Person.class.getSimpleName(), Person.class);
     }
 
     @Test(expected = DocumentDBAccessException.class)

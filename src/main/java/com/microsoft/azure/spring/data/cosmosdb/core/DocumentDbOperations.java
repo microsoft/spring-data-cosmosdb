@@ -11,7 +11,6 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -40,7 +39,7 @@ public interface DocumentDbOperations {
 
     <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName);
+    void deleteAll(String collectionName, Class<?> domainClass);
 
     <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
 

@@ -67,11 +67,11 @@ public class DocumentDbTemplateIllegalTest {
 
     @Test
     public void deleteIllegalCollectionShouldFail() throws NoSuchMethodException {
-        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class);
+        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, Class.class);
 
-        checkIllegalArgument(method, NULL_STR);
-        checkIllegalArgument(method, EMPTY_STR);
-        checkIllegalArgument(method, WHITESPACES_STR);
+        checkIllegalArgument(method, NULL_STR, Person.class);
+        checkIllegalArgument(method, EMPTY_STR, Person.class);
+        checkIllegalArgument(method, WHITESPACES_STR, Person.class);
     }
 
     @Test

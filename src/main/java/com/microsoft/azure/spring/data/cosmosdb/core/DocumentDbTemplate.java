@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerat
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -24,8 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -181,69 +184,28 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return findAll(getCollectionName(entityClass), entityClass);
     }
 
-
-    public <T> List<T> findAll(String collectionName, final Class<T> entityClass) {
+    public <T> List<T> findAll(String collectionName, final Class<T> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.notNull(domainClass, "entityClass should not be null");
 
-        final List<DocumentCollection> collections = getDocumentClient().
-                queryCollections(
-                        getDatabaseLink(this.databaseName),
-                        new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id",
-                                new SqlParameterCollection(new SqlParameter("@id", collectionName))), null)
-                .getQueryIterable().toList();
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final List<Document> results = findAllDocuments(query, domainClass, collectionName);
 
-        if (collections.size() != 1) {
-            throw new IllegalCollectionException("expect only one collection: " + collectionName
-                    + " in database: " + this.databaseName + ", but found " + collections.size());
-        }
-
-        final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(true);
-
-        final SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT * FROM root c");
-
-        final List<Document> results = getDocumentClient()
-                .queryDocuments(collections.get(0).getSelfLink(), sqlQuerySpec, feedOptions)
-                .getQueryIterable().toList();
-
-        final List<T> entities = new ArrayList<>();
-
-        for (int i = 0; i < results.size(); i++) {
-            final T entity = mappingDocumentDbConverter.read(entityClass, results.get(i));
-            entities.add(entity);
-        }
-
-        return entities;
+        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
     }
 
-    public void deleteAll(String collectionName) {
+    public void deleteAll(@NonNull String collectionName, @NonNull Class<?> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("execute deleteCollection in database {} collection {}",
-                    this.databaseName, collectionName);
-        }
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
 
-        try {
-            getDocumentClient().deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
-            if (this.collectionCache.contains(collectionName)) {
-                this.collectionCache.remove(collectionName);
-            }
-        } catch (DocumentClientException ex) {
-            if (ex.getStatusCode() == 404) {
-                LOGGER.warn("deleteAll in database {} collection {} met NOTFOUND error {}",
-                        this.databaseName, collectionName, ex.getMessage());
-            } else {
-                throw new DocumentDBAccessException("deleteAll exception", ex);
-            }
-        }
+        this.delete(query, domainClass, collectionName);
     }
 
-    public String getCollectionName(Class<?> entityClass) {
-        Assert.notNull(entityClass, "entityClass should not be null");
+    public String getCollectionName(Class<?> domainClass) {
+        Assert.notNull(domainClass, "domainClass should not be null");
 
-        return entityClass.getSimpleName();
+        return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
     }
 
     private Database createDatabaseIfNotExists(String dbName) {
@@ -394,7 +356,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
-        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+        final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
 
         if (!partitionKeyName.isPresent()) {
             return true;
@@ -456,6 +418,41 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return indices.stream().anyMatch(isIndexingSupportSortByString());
     }
 
+    private List<Document> findAllDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
+                                            @NonNull String collectionName) {
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final boolean isCrossPartition = isCrossPartitionQuery(query, domainClass);
+        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
+
+        return response.getQueryIterable().toList();
+    }
+
+    private void deleteDocument(@NonNull Document document, @NonNull String partitionKeyName) {
+        try {
+            final RequestOptions options = new RequestOptions();
+
+            if (StringUtils.hasText(partitionKeyName)) {
+                options.setPartitionKey(new PartitionKey(document.get(partitionKeyName)));
+            }
+
+            getDocumentClient().deleteDocument(document.getSelfLink(), options);
+        } catch (DocumentClientException e) {
+            throw new DocumentDBAccessException("Failed to delete document %s" + document.getSelfLink(), e);
+        }
+    }
+
+    /**
+     * Delete the DocumentQuery, need to query the domains at first, then delete the document
+     * from the result.
+     * The cosmosdb Sql API do _NOT_ support DELETE query, we cannot add one DeleteQueryGenerator.
+     *
+     * @param query          The representation for query method.
+     * @param domainClass    Class of domain
+     * @param collectionName Collection Name of database
+     * @param <T>
+     * @return All the deleted documents as List.
+     */
     @Override
     public <T> List<T> delete(@NonNull DocumentQuery query, @NonNull Class<T> domainClass,
                               @NonNull String collectionName) {
@@ -463,33 +460,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        final FeedOptions feedOptions = new FeedOptions();
-        final DocumentCollection collection = getDocCollection(collectionName);
-        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
-        final Optional<Criteria> partitionCriteria = query.getSubjectCriteria(partitionKeyName.orElse(""));
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
+        final List<Document> results = findAllDocuments(query, domainClass, collectionName);
+        final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
 
-        feedOptions.setEnableCrossPartitionQuery(!partitionCriteria.isPresent());
+        results.forEach(d -> deleteDocument(d, partitionKeyName.orElse("")));
 
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
-        final List<Document> results = getDocumentClient()
-                .queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions).getQueryIterable().toList();
-        final RequestOptions options = new RequestOptions();
-
-        partitionCriteria.ifPresent(c -> options.setPartitionKey(new PartitionKey(c.getSubjectValues().get(0))));
-
-        final List<T> deletedResult = new ArrayList<>();
-
-        for (final Document d : results) {
-            try {
-                getDocumentClient().deleteDocument(d.getSelfLink(), options);
-                deletedResult.add(getConverter().read(domainClass, d));
-            } catch (DocumentClientException e) {
-                throw new DocumentDBAccessException(String.format("Failed to delete document %s", d.getSelfLink()), e);
-            }
-        }
-
-        return deletedResult;
+        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
     }
 
     @Override
@@ -549,8 +525,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<String> getPartitionKeyField(Class<T> domainClass) {
+    private <T> Optional<String> getPartitionKeyFieldName(Class<T> domainClass) {
         final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
+
         if (entityInfo.getPartitionKeyFieldName() == null) {
             return Optional.empty();
         }

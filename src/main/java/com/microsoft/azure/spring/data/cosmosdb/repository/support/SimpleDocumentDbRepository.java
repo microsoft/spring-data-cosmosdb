@@ -192,11 +192,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete an collection
+     * delete all the domains of a collection
      */
     @Override
     public void deleteAll() {
-        documentDbOperations.deleteAll(information.getCollectionName());
+        documentDbOperations.deleteAll(information.getCollectionName(), information.getJavaType());
     }
 
     /**
