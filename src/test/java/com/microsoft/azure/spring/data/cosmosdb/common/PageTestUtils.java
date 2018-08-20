@@ -27,7 +27,7 @@ public class PageTestUtils {
         final Pageable pageable = page.getPageable();
 
         assertThat(pageable).isInstanceOf(DocumentDbPageRequest.class);
-        assertFalse(continuationTokenIsNull((DocumentDbPageRequest) pageable));
+        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotNull();
         assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotBlank();
         assertThat(pageable.getPageSize()).isEqualTo(pageSize);
     }

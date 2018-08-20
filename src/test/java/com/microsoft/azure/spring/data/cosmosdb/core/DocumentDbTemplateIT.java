@@ -217,7 +217,7 @@ public class DocumentDbTemplateIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
 
         final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);

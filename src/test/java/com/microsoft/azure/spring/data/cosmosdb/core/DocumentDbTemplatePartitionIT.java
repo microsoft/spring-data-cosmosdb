@@ -50,7 +50,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplatePartitionIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
@@ -223,7 +223,7 @@ public class DocumentDbTemplatePartitionIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
 
         final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);
