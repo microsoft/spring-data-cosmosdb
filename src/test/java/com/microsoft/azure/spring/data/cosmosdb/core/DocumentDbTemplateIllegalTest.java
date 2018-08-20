@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,7 +32,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.I
 public class DocumentDbTemplateIllegalTest {
     private static final String NULL_STR = null;
     private static final String DUMMY_COLL = "dummy";
-    private static final String DUMMY_ID = "ID";
+    private static final String DUMMY_ID = "ID_1";
     private static final PartitionKey DUMMY_KEY = new PartitionKey("dummy");
     private static final String EMPTY_STR = StringUtils.EMPTY;
     private static final String WHITESPACES_STR = "  ";
@@ -57,7 +58,7 @@ public class DocumentDbTemplateIllegalTest {
     public void deleteIllegalShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getMethod("delete", DocumentQuery.class, Class.class, String.class);
         final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
 
         checkIllegalArgument(method, null, Person.class, DUMMY_COLL);
         checkIllegalArgument(method, query, null, DUMMY_COLL);

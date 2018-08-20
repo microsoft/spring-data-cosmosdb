@@ -9,6 +9,9 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
@@ -232,10 +235,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public Iterable<T> findAll(@NonNull Sort sort) {
         Assert.notNull(sort, "sort of findAll should not be null");
-        return documentDbOperations.findAll(sort, information.getJavaType(), information.getCollectionName());
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), sort);
+
+        return documentDbOperations.find(query, information.getJavaType(), information.getCollectionName());
     }
 
     /**
+     * FindQuerySpecGenerator
      * Returns a Page of entities meeting the paging restriction provided in the Pageable object.
      *
      * @param pageable

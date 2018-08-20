@@ -23,17 +23,13 @@ public class FindQuerySpecGenerator extends AbstractQueryGenerator implements Qu
 
     @Override
     public SqlQuerySpec generate(@NonNull DocumentQuery query) {
-        final String queryHeader = "SELECT * FROM ROOT r";
-        if (query == null) {
-            return new SqlQuerySpec(queryHeader, null);
-        }
-
         final Pair<String, List<Pair<String, Object>>> queryBody = super.generateQueryBody(query);
-        final String queryString = queryHeader + " WHERE " + queryBody.getValue0();
-        final List<Pair<String, Object>> parameters = queryBody.getValue1();
+        final String queryHead = "SELECT * FROM ROOT r";
+        final String queryTail = super.generateQueryTail(query);
+        final String queryString = String.join(" ", queryHead, queryBody.getValue0(), queryTail);
         final SqlParameterCollection sqlParameters = new SqlParameterCollection();
 
-        sqlParameters.addAll(parameters.stream()
+        sqlParameters.addAll(queryBody.getValue1().stream()
                 .map(p -> new SqlParameter("@" + p.getValue0(), toDocumentDBValue(p.getValue1())))
                 .collect(Collectors.toList()));
 

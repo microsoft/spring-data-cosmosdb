@@ -27,23 +27,14 @@ public class DocumentQuery {
     private final Criteria criteria;
 
     @Getter
-    private Sort sort = Sort.unsorted();
+    private Sort sort;
 
     @Getter
     private Pageable pageable = Pageable.unpaged();
 
-    public DocumentQuery(@NonNull Criteria criteria) {
+    public DocumentQuery(@NonNull Criteria criteria, @NonNull Sort sort) {
         this.criteria = criteria;
-    }
-
-    public DocumentQuery with(@NonNull Sort sort) {
-        Assert.notNull(sort, "Sort should not be null");
-
-        if (sort.isSorted()) {
-            this.sort = this.sort.and(sort);
-        }
-
-        return this;
+        this.sort = sort;
     }
 
     public DocumentQuery with(@NonNull Pageable pageable) {
@@ -118,7 +109,7 @@ public class DocumentQuery {
     /**
      * Validate if Sort is valid for cosmosdb.
      *
-     * @param domainClass class of domain
+     * @param domainClass                     class of domain
      * @param isCollectionSupportSortByString indicate if collection support sort by String.
      */
     public void validateSort(@NonNull Class<?> domainClass, boolean isCollectionSupportSortByString) {

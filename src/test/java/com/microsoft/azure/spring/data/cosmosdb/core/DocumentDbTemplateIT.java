@@ -17,8 +17,8 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +31,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
@@ -48,10 +49,10 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    private static final Person TEST_PERSON_2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
+    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
             TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
@@ -159,7 +160,6 @@ public class DocumentDbTemplateIT {
         assertTrue(result.get(0).equals(TEST_PERSON_2));
     }
 
-
     @Test
     public void testDocumentDBAnnotation() {
         final IndexingPolicy policy = collectionPerson.getIndexingPolicy();
@@ -190,7 +190,7 @@ public class DocumentDbTemplateIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria);
+        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
 
         final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
