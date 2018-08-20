@@ -135,17 +135,17 @@ public class MemoRepositoryIT {
 
     @Test
     public void testFindByAfter() {
-        List<Memo> memos = this.repository.findByDateAfter(memoDateBefore);
+        List<Memo> memos = this.repository.findByDateAfter(memoDateAfter);
 
         Assert.assertTrue(memos.isEmpty());
 
-        memos = this.repository.findByDateBefore(memoDate);
+        memos = this.repository.findByDateAfter(memoDate);
 
         Assert.assertEquals(memos.size(), 1);
-        Assert.assertEquals(memos.get(0), testMemo2);
+        Assert.assertEquals(memos.get(0), testMemo3);
 
-        memos = this.repository.findByDateBefore(memoDateAfter);
-        final List<Memo> reference = Arrays.asList(testMemo1, testMemo2);
+        memos = this.repository.findByDateAfter(memoDateBefore);
+        final List<Memo> reference = Arrays.asList(testMemo2, testMemo3);
 
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
