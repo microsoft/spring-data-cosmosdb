@@ -21,7 +21,7 @@ public enum CriteriaType {
     IS_EQUAL("="),
     OR("OR"),
     AND("AND"),
-    BEFORE("BEFORE");
+    BEFORE("<");
 
     @Getter
     private String sqlKeyword;

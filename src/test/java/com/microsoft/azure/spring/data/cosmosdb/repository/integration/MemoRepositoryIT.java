@@ -92,7 +92,7 @@ public class MemoRepositoryIT {
     }
 
     @Test
-    public void testFindByAfter() {
+    public void testFindByBefore() {
         List<Memo> memos = this.repository.findByDateBefore(memoDateBefore);
 
         Assert.assertTrue(memos.isEmpty());
@@ -113,7 +113,7 @@ public class MemoRepositoryIT {
     }
 
     @Test
-    public void testFindByAfterWithAndOr() {
+    public void testFindByBeforeWithAndOr() {
         List<Memo> memos = this.repository.findByDateBeforeAndMessage(memoDate, TestConstants.NEW_MESSAGE);
 
         Assert.assertTrue(memos.isEmpty());
