@@ -11,6 +11,8 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -47,6 +49,10 @@ public interface DocumentDbOperations {
     <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     <T> List<T> findAll(Sort sort, Class<T> domainClass, String collectionName);
+
+    <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
+
+    <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass, String collectionName);
 
     long count(String collectionName);
 

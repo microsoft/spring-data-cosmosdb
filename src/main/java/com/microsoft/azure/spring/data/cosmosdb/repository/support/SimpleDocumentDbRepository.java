@@ -243,6 +243,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public Page<T> findAll(Pageable pageable) {
-        throw new UnsupportedOperationException("findAll domains pageable is not supported");
+        Assert.notNull(pageable, "pageable should not be null");
+
+        return documentDbOperations.findAll(pageable, information.getJavaType(), information.getCollectionName());
     }
 }

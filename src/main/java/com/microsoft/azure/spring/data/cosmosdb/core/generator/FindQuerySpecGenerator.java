@@ -23,9 +23,13 @@ public class FindQuerySpecGenerator extends AbstractQueryGenerator implements Qu
 
     @Override
     public SqlQuerySpec generate(@NonNull DocumentQuery query) {
+        final String queryHeader = "SELECT * FROM ROOT r";
+        if (query == null) {
+            return new SqlQuerySpec(queryHeader, null);
+        }
+
         final Pair<String, List<Pair<String, Object>>> queryBody = super.generateQueryBody(query);
-        final String queryHeader = "SELECT * FROM ROOT r WHERE";
-        final String queryString = queryHeader + " " + queryBody.getValue0();
+        final String queryString = queryHeader + " WHERE " + queryBody.getValue0();
         final List<Pair<String, Object>> parameters = queryBody.getValue1();
         final SqlParameterCollection sqlParameters = new SqlParameterCollection();
 

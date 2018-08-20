@@ -27,15 +27,17 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
         final ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
         final String collection = ((DocumentDbEntityMetadata) method.getEntityInformation()).getCollectionName();
 
-        final DocumentDbQueryExecution execution = getExecution();
+        final DocumentDbQueryExecution execution = getExecution(accessor);
         return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
     }
 
 
-    private DocumentDbQueryExecution getExecution() {
+    private DocumentDbQueryExecution getExecution(DocumentDbParameterAccessor accessor) {
         if (isDeleteQuery()) {
             return new DocumentDbQueryExecution.DeleteExecution(operations);
-        } else {
+        } else if (method.isPageQuery()) {
+            return new DocumentDbQueryExecution.PagedExecution(operations, accessor.getPageable());
+        }else {
             return new DocumentDbQueryExecution.MultiEntityExecution(operations);
         }
     }
