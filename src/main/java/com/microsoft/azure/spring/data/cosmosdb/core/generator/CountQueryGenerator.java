@@ -26,7 +26,7 @@ public class CountQueryGenerator extends AbstractQueryGenerator implements Query
 
         final Pair<String, List<Pair<String, Object>>> queryBody = super.generateQueryBody(query);
 
-        final String queryString = queryHeader + " WHERE " + queryBody.getValue0();
+        final String queryString = queryHeader + " " + queryBody.getValue0();
         final List<Pair<String, Object>> parameters = queryBody.getValue1();
         final SqlParameterCollection sqlParameters = new SqlParameterCollection();
 

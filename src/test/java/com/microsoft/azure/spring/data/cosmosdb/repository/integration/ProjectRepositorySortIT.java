@@ -141,5 +141,41 @@ public class ProjectRepositorySortIT {
 
         this.repository.findAll(sort);
     }
+
+    @Test
+    public void testFindSortWithOr() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final List<Project> projects = Lists.newArrayList(this.repository.findByNameOrCreator(NAME_0, CREATOR_3, sort));
+        final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_3);
+
+        references.sort(Comparator.comparing(Project::getStarCount));
+
+        Assert.assertEquals(projects.size(), references.size());
+        Assert.assertEquals(projects, references);
+    }
+
+    @Test
+    public void testFindSortWithAnd() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "forkCount");
+        final List<Project> projects = Lists.newArrayList(repository.findByNameAndCreator(NAME_0, CREATOR_0, sort));
+        final List<Project> references = Arrays.asList(PROJECT_0);
+
+        references.sort(Comparator.comparing(Project::getStarCount));
+
+        Assert.assertEquals(projects.size(), references.size());
+        Assert.assertEquals(projects, references);
+    }
+
+    @Test
+    public void testFindSortWithEqual() {
+        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final List<Project> projects = Lists.newArrayList(this.repository.findByForkCount(FORK_COUNT_3, sort));
+        final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
+
+        references.sort(Comparator.comparing(Project::getName).reversed());
+
+        Assert.assertEquals(projects.size(), references.size());
+        Assert.assertEquals(projects, references);
+    }
 }
 
