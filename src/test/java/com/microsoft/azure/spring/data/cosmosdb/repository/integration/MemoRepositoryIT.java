@@ -132,4 +132,46 @@ public class MemoRepositoryIT {
         Assert.assertEquals(memos.size(), reference.size());
         Assert.assertEquals(memos, reference);
     }
+
+    @Test
+    public void testFindByAfter() {
+        List<Memo> memos = this.repository.findByDateAfter(memoDateAfter);
+
+        Assert.assertTrue(memos.isEmpty());
+
+        memos = this.repository.findByDateAfter(memoDate);
+
+        Assert.assertEquals(memos.size(), 1);
+        Assert.assertEquals(memos.get(0), testMemo3);
+
+        memos = this.repository.findByDateAfter(memoDateBefore);
+        final List<Memo> reference = Arrays.asList(testMemo2, testMemo3);
+
+        memos.sort(Comparator.comparing(Memo::getId));
+        reference.sort(Comparator.comparing(Memo::getId));
+
+        Assert.assertEquals(memos.size(), reference.size());
+        Assert.assertEquals(memos, reference);
+    }
+
+    @Test
+    public void testFindByAfterWithAndOr() {
+        List<Memo> memos = this.repository.findByDateAfterAndMessage(memoDate, TestConstants.MESSAGE);
+
+        Assert.assertTrue(memos.isEmpty());
+
+        memos = this.repository.findByDateAfterAndMessage(memoDate, TestConstants.NEW_MESSAGE);
+
+        Assert.assertEquals(memos.size(), 1);
+        Assert.assertEquals(memos.get(0), testMemo3);
+
+        memos = this.repository.findByDateAfterOrMessage(memoDateBefore, TestConstants.MESSAGE);
+        final List<Memo> reference = Arrays.asList(testMemo1, testMemo2, testMemo3);
+
+        memos.sort(Comparator.comparing(Memo::getId));
+        reference.sort(Comparator.comparing(Memo::getId));
+
+        Assert.assertEquals(memos.size(), reference.size());
+        Assert.assertEquals(memos, reference);
+    }
 }

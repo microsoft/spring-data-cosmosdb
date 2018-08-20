@@ -21,7 +21,9 @@ public enum CriteriaType {
     IS_EQUAL("="),
     OR("OR"),
     AND("AND"),
-    BEFORE("<");
+    BEFORE("<"),
+    AFTER(">"),
+    GREATER_THAN(">");
 
     @Getter
     private String sqlKeyword;
@@ -34,6 +36,8 @@ public enum CriteriaType {
 
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
+        map.put(Part.Type.AFTER, CriteriaType.AFTER);
+        map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
@@ -94,6 +98,8 @@ public enum CriteriaType {
         switch (type) {
             case IS_EQUAL:
             case BEFORE:
+            case AFTER:
+            case GREATER_THAN:
                 return true;
             default:
                 return false;
