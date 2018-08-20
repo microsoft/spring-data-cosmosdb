@@ -5,10 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
+import com.microsoft.azure.spring.data.cosmosdb.Constants;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -17,7 +19,9 @@ import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
@@ -30,14 +34,28 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
         this.mappingContext = mappingContext;
     }
 
+    private String getSubject(@NonNull Part part) {
+        String subject = mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
+        final Class<?> domainClass = part.getProperty().getOwningType().getType();
+
+        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information =
+                new DocumentDbEntityInformation(domainClass);
+
+        if (information.getIdField().getName().equals(subject)) {
+            subject = Constants.ID_PROPERTY_NAME;
+        }
+
+        return subject;
+    }
+
     @Override // Note (panli): side effect here, this method will change the iterator status of parameters.
     protected Criteria create(Part part, Iterator<Object> parameters) {
         final Part.Type type = part.getType();
-        final String subject = this.mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
+        final String subject = getSubject(part);
         final List<Object> values = new ArrayList<>();
 
-        if (!CriteriaType.getCriteriaMap().containsKey(type)) {
-            throw new UnsupportedOperationException("Unsupported keyword: " + type.toString());
+        if (CriteriaType.isPartTypeUnSupported(type)) {
+            throw new UnsupportedOperationException("Unsupported keyword: " + type);
         }
 
         for (int i = 0; i < part.getNumberOfArguments(); i++) {
@@ -45,7 +63,7 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
             values.add(parameters.next());
         }
 
-        return Criteria.getUnaryInstance(CriteriaType.getCriteriaMap().get(type), subject, values);
+        return Criteria.getUnaryInstance(CriteriaType.toCriteriaType(type), subject, values);
     }
 
     @Override

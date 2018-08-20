@@ -12,6 +12,9 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -28,6 +31,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,8 +41,11 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID, TestConstants.FIRST_NAME,
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+
+    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
+            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -133,18 +140,15 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        final Person person2 = new Person(TestConstants.NEW_ID, TestConstants.NEW_FIRST_NAME,
-                TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
-        dbTemplate.insert(person2, null);
+        dbTemplate.insert(TEST_PERSON_2, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(person2));
+        assertTrue(result.get(0).equals(TEST_PERSON_2));
     }
-
 
     @Test
     public void testDocumentDBAnnotation() {
@@ -157,5 +161,28 @@ public class DocumentDbTemplateIT {
 
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.DEFAULT_INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.DEFAULT_EXCLUDEDPATHS);
+    }
+
+    @Test
+    public void testCountByCollection() {
+        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(prevCount).isEqualTo(1);
+
+        dbTemplate.insert(TEST_PERSON_2, null);
+
+        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        assertThat(newCount).isEqualTo(2);
+    }
+
+    @Test
+    public void testCountByQuery() {
+        dbTemplate.insert(TEST_PERSON_2, null);
+
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON_2.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        assertThat(count).isEqualTo(1);
     }
 }

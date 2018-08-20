@@ -5,10 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.javatuples.Pair;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
@@ -16,54 +18,25 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.microsoft.azure.spring.data.cosmosdb.Constants.ID_PROPERTY_NAME;
-
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
 
-    protected final DocumentDbEntityInformation information;
+    private String generateUnaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Unary criteria should have only one subject value");
+        Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
 
-    @SuppressWarnings("unchecked")
-    protected <T> AbstractQueryGenerator(@NonNull Class<T> domainClass) {
-        this.information = new DocumentDbEntityInformation(domainClass);
-    }
+        final String subject = criteria.getSubject();
+        final Object subjectValue = MappingDocumentDbConverter.toDocumentDBValue(criteria.getSubjectValues().get(0));
 
-    private String getCriteriaSubject(@NonNull Criteria criteria) {
-        String subject = criteria.getSubject();
+        parameters.add(Pair.with(subject, subjectValue));
 
-        if (subject.equals(information.getIdField().getName())) {
-            subject = ID_PROPERTY_NAME;
-        }
-
-        return subject;
-    }
-
-    private String generateIsEqual(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
-        final String subject = this.getCriteriaSubject(criteria);
-
-        Assert.isTrue(criteria.getSubjectValues().size() == 1, "IS_EQUAL should have only one subject value");
-
-        parameters.add(Pair.with(subject, criteria.getSubjectValues().get(0)));
-
-        return String.format("r.%s=@%s", subject, subject);
-    }
-
-    private String generateGreaterThan(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
-        final String subject = this.getCriteriaSubject(criteria);
-
-        Assert.isTrue(criteria.getSubjectValues().size() == 1,
-                "GREATER_THAN should have only one subject value");
-
-        parameters.add(Pair.with(subject, criteria.getSubjectValues().get(0)));
-
-        return String.format("r.%s>@%s", subject, subject);
+        return String.format("r.%s%s@%s", subject, criteria.getType().getSqlKeyword(), subject);
     }
 
     private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
-        Assert.isTrue(Criteria.isBinaryOperation(type), "Criteria type should be binary operation");
+        Assert.isTrue(CriteriaType.isBinary(type), "Criteria type should be binary operation");
 
-        final String keyword = CriteriaType.toSqlKeyword(type);
-
-        return String.join(" ", left, keyword, right);
+        return String.join(" ", left, type.getSqlKeyword(), right);
     }
 
     private String generateQueryBody(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
@@ -71,10 +44,8 @@ public abstract class AbstractQueryGenerator {
 
         switch (type) {
             case IS_EQUAL:
-                return this.generateIsEqual(criteria, parameters);
-            case GREATER_THAN:
-            case AFTER:
-                return this.generateGreaterThan(criteria, parameters);
+            case BEFORE:
+                return this.generateUnaryQuery(criteria, parameters);
             case AND:
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");

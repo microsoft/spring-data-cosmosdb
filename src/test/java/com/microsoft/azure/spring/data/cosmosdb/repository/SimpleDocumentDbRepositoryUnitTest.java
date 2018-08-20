@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleDocumentDbRepositoryUnitTest {
     private static final Person TEST_PERSON =
-            new Person(TestConstants.ID, TestConstants.FIRST_NAME, TestConstants.LAST_NAME,
+            new Person(TestConstants.ID_1, TestConstants.FIRST_NAME, TestConstants.LAST_NAME,
                     TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     private static final String PARTITION_VALUE_REQUIRED_MSG =
