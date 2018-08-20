@@ -5,7 +5,9 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.documentdb.SqlParameter;
+import com.microsoft.azure.documentdb.SqlParameterCollection;
+import com.microsoft.azure.documentdb.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -21,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter.toDocumentDBValue;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
 
@@ -29,7 +33,7 @@ public abstract class AbstractQueryGenerator {
         Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
 
         final String subject = criteria.getSubject();
-        final Object subjectValue = MappingDocumentDbConverter.toDocumentDBValue(criteria.getSubjectValues().get(0));
+        final Object subjectValue = toDocumentDBValue(criteria.getSubjectValues().get(0));
 
         parameters.add(Pair.with(subject, subjectValue));
 
@@ -73,12 +77,12 @@ public abstract class AbstractQueryGenerator {
      * @return A pair tuple compose of Sql query.
      */
     @NonNull
-    protected Pair<String, List<Pair<String, Object>>> generateQueryBody(@NonNull DocumentQuery query) {
+    private Pair<String, List<Pair<String, Object>>> generateQueryBody(@NonNull DocumentQuery query) {
         final List<Pair<String, Object>> parameters = new ArrayList<>();
         String queryString = this.generateQueryBody(query.getCriteria(), parameters);
 
         if (StringUtils.hasText(queryString)) {
-            queryString = "WHERE" + " " + queryString;
+            queryString = String.join(" ", "WHERE", queryString);
         }
 
         return Pair.with(queryString, parameters);
@@ -103,18 +107,36 @@ public abstract class AbstractQueryGenerator {
         return queryTail + " " + String.join(",", subjects);
     }
 
-    /**
-     * Generate a query tail for method query.
-     *
-     * @param query
-     * @return The tail String of Sql query.
-     */
     @NonNull
-    protected String generateQueryTail(@NonNull DocumentQuery query) {
+    private String generateQueryTail(@NonNull DocumentQuery query) {
         final List<String> queryTails = new ArrayList<>();
 
         queryTails.add(generateQuerySort(query.getSort()));
 
         return String.join(" ", queryTails.stream().filter(StringUtils::hasText).collect(Collectors.toList()));
+    }
+
+    /**
+     * Generate SqlQuerySpec with given DocumentQuery and query head.
+     *
+     * @param query     DocumentQuery represent one query method.
+     * @param queryHead
+     * @return The SqlQuerySpec for DocumentClient.
+     */
+    protected SqlQuerySpec generateQuery(@NonNull DocumentQuery query, @NonNull String queryHead) {
+        Assert.hasText(queryHead, "query head should have text.");
+
+        final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
+        final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
+        final List<Pair<String, Object>> parameters = queryBody.getValue1();
+        final SqlParameterCollection sqlParameters = new SqlParameterCollection();
+
+        sqlParameters.addAll(
+                parameters.stream()
+                        .map(p -> new SqlParameter("@" + p.getValue0(), toDocumentDBValue(p.getValue1())))
+                        .collect(Collectors.toList())
+        );
+
+        return new SqlQuerySpec(queryString, sqlParameters);
     }
 }

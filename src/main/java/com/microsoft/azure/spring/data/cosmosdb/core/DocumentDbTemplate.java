@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerat
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
@@ -497,7 +499,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final QuerySpecGenerator generator = new CountQueryGenerator();
-        final SqlQuerySpec querySpec = generator.generate(null);
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final SqlQuerySpec querySpec = generator.generate(query);
 
         return getCountValue(querySpec, true, collectionName);
     }
@@ -514,8 +517,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getCountValue(querySpec, isCrossPartitionQuery(query, domainClass), collectionName);
     }
 
-    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartiionQuery, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
+    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
+        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
 
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
         if (value instanceof Integer) {
