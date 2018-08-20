@@ -30,7 +30,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -98,14 +97,14 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testFindWithPartition() {
         Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
-        DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        DocumentQuery query = new DocumentQuery(criteria);
         List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON);
 
         criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
-        query = new DocumentQuery(criteria, Sort.unsorted());
+        query = new DocumentQuery(criteria);
         result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
@@ -115,7 +114,7 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testFindByNonExistIdWithPartition() {
         final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
         assertThat(result.size()).isEqualTo(0);
@@ -185,7 +184,7 @@ public class DocumentDbTemplatePartitionIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(1);
@@ -195,7 +194,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testNonExistFieldValue() {
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList("non-exist-first-name"));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
         assertThat(count).isEqualTo(0);

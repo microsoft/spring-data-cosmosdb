@@ -25,11 +25,18 @@ public class DocumentQuery {
     private final Criteria criteria;
 
     @Getter
-    private Sort sort;
+    private Sort sort = Sort.unsorted();
 
-    public DocumentQuery(@NonNull Criteria criteria, @NonNull Sort sort) {
+    public DocumentQuery(@NonNull Criteria criteria) {
         this.criteria = criteria;
-        this.sort = sort;
+    }
+
+    public DocumentQuery with(@NonNull Sort sort) {
+        if (sort.isSorted()) {
+            this.sort.and(sort);
+        }
+
+        return this;
     }
 
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
