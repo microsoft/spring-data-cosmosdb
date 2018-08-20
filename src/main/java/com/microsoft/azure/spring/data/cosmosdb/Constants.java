@@ -33,5 +33,7 @@ public class Constants {
     public static final String SQL_KEYWORD_OR = "OR";
     public static final String SQL_KEYWORD_IS_EQUAL = "=";
     public static final String SQL_KEYWORD_BEFORE = "<";
+    public static final String SQL_KEYWORD_AFTER = ">";
+    public static final String SQL_KEYWORD_GREATER_THAN = ">";
 }
 
