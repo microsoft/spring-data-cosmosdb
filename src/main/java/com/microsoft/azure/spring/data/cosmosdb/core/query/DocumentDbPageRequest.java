@@ -8,6 +8,8 @@ package com.microsoft.azure.spring.data.cosmosdb.core.query;
 import org.springframework.data.domain.PageRequest;
 
 public class DocumentDbPageRequest extends PageRequest {
+    private static final long serialVersionUID = 6093304300037688375L;
+
     // Request continuation token used to resume query
     private String requestContinuation;
 
@@ -22,5 +24,30 @@ public class DocumentDbPageRequest extends PageRequest {
 
     public String getRequestContinuation() {
         return this.requestContinuation;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+
+        result = 31 * result + (requestContinuation != null ? requestContinuation.hashCode() : 0);
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof DocumentDbPageRequest)) {
+            return false;
+        }
+
+        final DocumentDbPageRequest that = (DocumentDbPageRequest) obj;
+
+        return super.equals(that) && (requestContinuation != null ?
+                requestContinuation.equals(that.requestContinuation) : that.requestContinuation == null);
     }
 }

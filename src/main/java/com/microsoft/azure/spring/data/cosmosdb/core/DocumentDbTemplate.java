@@ -533,7 +533,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final FeedOptions feedOptions = new FeedOptions();
-        if (pageable != null && pageable instanceof DocumentDbPageRequest) {
+        if (pageable instanceof DocumentDbPageRequest) {
             feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
         }
 
