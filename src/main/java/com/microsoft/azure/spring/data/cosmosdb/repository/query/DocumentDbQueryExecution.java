@@ -58,7 +58,7 @@ public interface DocumentDbQueryExecution {
 
     final class PagedExecution implements DocumentDbQueryExecution {
         private final DocumentDbOperations operations;
-        private final @NonNull Pageable pageable;
+        private final Pageable pageable;
 
         public PagedExecution(DocumentDbOperations operations, Pageable pageable) {
             this.operations = operations;

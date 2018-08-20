@@ -133,7 +133,7 @@ public class PageableAddressRepositoryIT {
         final Pageable pageable = page.getPageable();
 
         assertThat(pageable).isInstanceOf(DocumentDbPageRequest.class);
-        assertThat(((DocumentDbPageRequest)pageable).getRequestContinuation()).isNullOrEmpty();
+        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNullOrEmpty();
         assertThat(pageable.getPageSize()).isEqualTo(pageSize);
     }
 
@@ -141,8 +141,8 @@ public class PageableAddressRepositoryIT {
         final Pageable pageable = page.getPageable();
 
         assertThat(pageable).isInstanceOf(DocumentDbPageRequest.class);
-        assertThat(((DocumentDbPageRequest)pageable).getRequestContinuation()).isNotNull();
-        assertThat(((DocumentDbPageRequest)pageable).getRequestContinuation()).isNotBlank();
+        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotNull();
+        assertThat(((DocumentDbPageRequest) pageable).getRequestContinuation()).isNotBlank();
         assertThat(pageable.getPageSize()).isEqualTo(pageSize);
     }
 

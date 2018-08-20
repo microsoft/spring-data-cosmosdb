@@ -37,7 +37,7 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
             return new DocumentDbQueryExecution.DeleteExecution(operations);
         } else if (method.isPageQuery()) {
             return new DocumentDbQueryExecution.PagedExecution(operations, accessor.getPageable());
-        }else {
+        } else {
             return new DocumentDbQueryExecution.MultiEntityExecution(operations);
         }
     }

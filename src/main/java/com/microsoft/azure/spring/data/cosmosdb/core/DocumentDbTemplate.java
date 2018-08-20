@@ -544,18 +544,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
         final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
 
-        Iterator<Document> it = response.getQueryIterator();
+        final Iterator<Document> it = response.getQueryIterator();
 
         final List<T> result = new ArrayList<>();
         int index = 0;
-        while(it.hasNext() && index++ < pageable.getPageSize()) {
+        while (it.hasNext() && index++ < pageable.getPageSize()) {
+            // Limit iterator as inner iterator will automatically fetch the next page
             final Document doc = it.next();
             final T entity = mappingDocumentDbConverter.read(domainClass, doc);
             result.add(entity);
         }
 
-        DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                response.getResponseContinuation());
+        final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
+                                                                            pageable.getPageSize(),
+                                                                            response.getResponseContinuation());
 
         return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
     }
