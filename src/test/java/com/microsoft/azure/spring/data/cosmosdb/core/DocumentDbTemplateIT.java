@@ -31,7 +31,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
@@ -190,7 +189,7 @@ public class DocumentDbTemplateIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
@@ -217,7 +216,7 @@ public class DocumentDbTemplateIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
 
         final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);

@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
@@ -58,7 +57,7 @@ public class DocumentDbTemplateIllegalTest {
     public void deleteIllegalShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getMethod("delete", DocumentQuery.class, Class.class, String.class);
         final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
         checkIllegalArgument(method, null, Person.class, DUMMY_COLL);
         checkIllegalArgument(method, query, null, DUMMY_COLL);
