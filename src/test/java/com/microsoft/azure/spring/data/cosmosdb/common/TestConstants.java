@@ -73,7 +73,7 @@ public class TestConstants {
             "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":-1}," +
             "]}";
 
-    public static final String DB_NAME = "database_name_pli";
+    public static final String DB_NAME = "new-testdb";
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
     public static final String ID_1 = "id-1";

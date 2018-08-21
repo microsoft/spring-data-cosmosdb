@@ -202,6 +202,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         this.delete(query, domainClass, collectionName);
     }
 
+    @Override
+    public void deleteCollection(@NonNull String collectionName) {
+        Assert.hasText(collectionName, "collectionName should have text.");
+
+        try {
+            getDocumentClient().deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
+            this.collectionCache.remove(collectionName);
+        } catch (DocumentClientException ex) {
+            throw new DocumentDBAccessException("failed to delete collection: " + collectionName, ex);
+        }
+    }
+
     public String getCollectionName(Class<?> domainClass) {
         Assert.notNull(domainClass, "domainClass should not be null");
 

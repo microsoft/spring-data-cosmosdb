@@ -41,6 +41,8 @@ public interface DocumentDbOperations {
 
     void deleteAll(String collectionName, Class<?> domainClass);
 
+    void deleteCollection(String collectionName);
+
     <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
