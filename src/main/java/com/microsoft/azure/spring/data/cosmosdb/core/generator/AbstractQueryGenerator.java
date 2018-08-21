@@ -37,7 +37,11 @@ public abstract class AbstractQueryGenerator {
 
         parameters.add(Pair.with(subject, subjectValue));
 
-        return String.format("r.%s%s@%s", subject, criteria.getType().getSqlKeyword(), subject);
+        if (CriteriaType.isFunction(criteria.getType())) {
+            return String.format("%s(r.%s, @%s)", criteria.getType().getSqlKeyword(), subject, subject);
+        } else {
+            return String.format("r.%s %s @%s", subject, criteria.getType().getSqlKeyword(), subject);
+        }
     }
 
     private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
@@ -59,6 +63,8 @@ public abstract class AbstractQueryGenerator {
             case LESS_THAN_EQUAL:
             case GREATER_THAN:
             case GREATER_THAN_EQUAL:
+            case CONTAINING:
+            case ENDS_WITH:
                 return this.generateUnaryQuery(criteria, parameters);
             case AND:
             case OR:
