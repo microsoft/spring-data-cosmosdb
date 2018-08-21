@@ -16,8 +16,8 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbCo
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
@@ -30,12 +30,16 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
 import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,11 +49,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplatePartitionIT {
-    private static final String TEST_NOTEXIST_ID = "non_exist_id";
-
-    private static final String TEST_DB_NAME = "template_it_db";
-    private static final List<String> HOBBIES = TestConstants.HOBBIES;
-    private static final List<Address> ADDRESSES = TestConstants.ADDRESSES;
     private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
@@ -68,6 +67,7 @@ public class DocumentDbTemplatePartitionIT {
     private DocumentDbMappingContext mappingContext;
     private ObjectMapper objectMapper;
     private DocumentDbEntityInformation<Person, String> personInfo;
+    private String collectionName;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -84,6 +84,7 @@ public class DocumentDbTemplatePartitionIT {
 
         dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
         personInfo = new DocumentDbEntityInformation<>(Person.class);
+        collectionName = personInfo.getCollectionName();
 
         dbTemplate.createCollectionIfNotExists(this.personInfo, PROPERTY_LAST_NAME);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, new PartitionKey(TEST_PERSON.getLastName()));
@@ -169,12 +170,12 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testCountForPartitionedCollection() {
-        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
         dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
-        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
     }
 
@@ -186,7 +187,7 @@ public class DocumentDbTemplatePartitionIT {
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
     }
 
@@ -196,7 +197,36 @@ public class DocumentDbTemplatePartitionIT {
                 Arrays.asList("non-exist-first-name"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    public void testPartitionedFindAllPageableMultiPages() {
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+
+        assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
+        validateNonLastPage(page1, PAGE_SIZE_1);
+
+        final Page<Person> page2 = dbTemplate.findAll(page1.getPageable(), Person.class, collectionName);
+        assertThat(page2.getContent().size()).isEqualTo(1);
+        validateLastPage(page2, PAGE_SIZE_1);
+    }
+
+    @Test
+    public void testPartitionedPaginationQuery() {
+        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TestConstants.FIRST_NAME));
+        final DocumentQuery query = new DocumentQuery(criteria);
+        final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
+
+        final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);
+        assertThat(page.getContent().size()).isEqualTo(1);
+        validateLastPage(page, PAGE_SIZE_2);
     }
 }

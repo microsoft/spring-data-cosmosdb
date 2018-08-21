@@ -6,7 +6,9 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import org.springframework.data.domain.Pageable;
 
 public interface DocumentDbQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String collection);
@@ -50,6 +52,26 @@ public interface DocumentDbQueryExecution {
         @Override
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
             return operations.delete(query, type, collection);
+        }
+    }
+
+    final class PagedExecution implements DocumentDbQueryExecution {
+        private final DocumentDbOperations operations;
+        private final Pageable pageable;
+
+        public PagedExecution(DocumentDbOperations operations, Pageable pageable) {
+            this.operations = operations;
+            this.pageable = pageable;
+        }
+
+        @Override
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
+            if (pageable.getPageNumber() != 0 && !(pageable instanceof DocumentDbPageRequest)) {
+                throw new IllegalStateException("Not the first page but Pageable is not a valid " +
+                        "DocumentDbPageRequest, requestContinuation is required for non first page request");
+            }
+
+            return operations.paginationQuery(query, pageable, type, collection);
         }
     }
 }
