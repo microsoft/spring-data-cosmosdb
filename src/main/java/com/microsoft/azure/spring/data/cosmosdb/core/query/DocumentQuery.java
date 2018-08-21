@@ -38,7 +38,7 @@ public class DocumentQuery {
 
     public DocumentQuery with(@NonNull Sort sort) {
         if (sort.isSorted()) {
-            this.sort.and(sort);
+            this.sort = sort.and(this.sort);
         }
 
         return this;
