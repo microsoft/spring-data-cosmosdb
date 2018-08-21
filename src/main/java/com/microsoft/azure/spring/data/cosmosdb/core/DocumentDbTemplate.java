@@ -387,7 +387,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        query.validateSort(domainClass, this.isCollectionSupportSortByString(getDocCollection(collectionName)));
+        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
+            query.validateSort(domainClass, isCollectionSupportSortByString(getDocCollection(collectionName)));
+        }
 
         final QuerySpecGenerator generator = new FindQuerySpecGenerator();
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
