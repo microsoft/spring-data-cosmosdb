@@ -222,9 +222,8 @@ public class DocumentDbTemplatePartitionIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
-        final DocumentQuery query = new DocumentQuery(criteria);
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
-        query.with(pageRequest);
+        final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
         final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
