@@ -54,7 +54,9 @@ public class DocumentDbPageRequest extends PageRequest {
 
         final DocumentDbPageRequest that = (DocumentDbPageRequest) obj;
 
-        return super.equals(that) && (requestContinuation != null ?
-                requestContinuation.equals(that.requestContinuation) : that.requestContinuation == null);
+        final boolean continuationTokenEquals = requestContinuation != null ?
+                requestContinuation.equals(that.requestContinuation) : that.requestContinuation == null;
+
+        return continuationTokenEquals && super.equals(that);
     }
 }

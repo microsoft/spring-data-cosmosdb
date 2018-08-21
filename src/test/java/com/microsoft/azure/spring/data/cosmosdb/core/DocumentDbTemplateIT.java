@@ -219,8 +219,9 @@ public class DocumentDbTemplateIT {
                 Arrays.asList(TestConstants.FIRST_NAME));
         final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
+        query.with(pageRequest);
 
-        final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);
+        final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
     }
