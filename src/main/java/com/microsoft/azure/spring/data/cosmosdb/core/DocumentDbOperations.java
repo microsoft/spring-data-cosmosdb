@@ -49,7 +49,7 @@ public interface DocumentDbOperations {
 
     <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
 
-    <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass, String collectionName);
+    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName);
 
     long count(String collectionName);
 

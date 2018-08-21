@@ -71,7 +71,9 @@ public interface DocumentDbQueryExecution {
                         "DocumentDbPageRequest, requestContinuation is required for non first page request");
             }
 
-            return operations.paginationQuery(query, pageable, type, collection);
+            query.with(pageable);
+
+            return operations.paginationQuery(query, type, collection);
         }
     }
 }
