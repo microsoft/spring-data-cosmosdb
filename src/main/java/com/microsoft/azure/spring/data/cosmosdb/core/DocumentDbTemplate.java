@@ -370,7 +370,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
         final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
 
-        if (!partitionKeyName.isPresent() || query == null) {
+        if (!partitionKeyName.isPresent()) {
             return true;
         }
 
@@ -489,16 +489,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     @Override
     public <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName) {
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        return paginationQuery(query, pageable, domainClass, collectionName);
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
+        return paginationQuery(query, domainClass, collectionName);
     }
 
     @Override
-    public <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass,
-                                       String collectionName) {
-        Assert.isTrue(pageable.getPageSize() > 0, "pageable should have page size larger than 0");
+    public <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        Assert.isTrue(query.getPageable().getPageSize() > 0, "pageable should have page size larger than 0");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
+        final Pageable pageable = query.getPageable();
         final FeedOptions feedOptions = new FeedOptions();
         if (pageable instanceof DocumentDbPageRequest) {
             feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
