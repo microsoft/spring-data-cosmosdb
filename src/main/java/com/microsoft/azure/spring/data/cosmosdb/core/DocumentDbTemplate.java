@@ -189,7 +189,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "entityClass should not be null");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final List<Document> results = findAllDocuments(query, domainClass, collectionName);
+        final List<Document> results = findDocuments(query, domainClass, collectionName);
 
         return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
     }
@@ -437,8 +437,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return indices.stream().anyMatch(isIndexingSupportSortByString());
     }
 
-    private List<Document> findAllDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
-                                            @NonNull String collectionName) {
+    private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
+                                         @NonNull String collectionName) {
         final QuerySpecGenerator generator = new FindQuerySpecGenerator();
         final SqlQuerySpec sqlQuerySpec = generator.generate(query);
         final boolean isCrossPartition = isCrossPartitionQuery(query, domainClass);
@@ -457,7 +457,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
         } catch (DocumentClientException e) {
-            throw new DocumentDBAccessException("Failed to delete document %s" + document.getSelfLink(), e);
+            throw new DocumentDBAccessException("Failed to delete document: " + document.getSelfLink(), e);
         }
     }
 
@@ -479,7 +479,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        final List<Document> results = findAllDocuments(query, domainClass, collectionName);
+        final List<Document> results = findDocuments(query, domainClass, collectionName);
         final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
 
         results.forEach(d -> deleteDocument(d, partitionKeyName.orElse("")));
