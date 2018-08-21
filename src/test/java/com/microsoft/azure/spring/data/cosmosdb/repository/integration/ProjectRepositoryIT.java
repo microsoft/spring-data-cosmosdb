@@ -243,4 +243,40 @@ public class ProjectRepositoryIT {
 
         Assert.assertEquals(projects.size(), 0);
     }
+
+    @Test
+    public void testFindByGreaterThan() {
+        List<Project> projects = repository.findByForkCountGreaterThan(FORK_COUNT_1);
+        final List<Project> reference = Arrays.asList(PROJECT_2, PROJECT_3);
+
+        projects.sort(Comparator.comparing(Project::getId));
+        reference.sort(Comparator.comparing(Project::getId));
+
+        Assert.assertEquals(projects.size(), reference.size());
+        Assert.assertEquals(projects, reference);
+
+        projects = repository.findByForkCountGreaterThan(FAKE_COUNT);
+
+        Assert.assertEquals(projects.size(), 0);
+    }
+
+    @Test
+    public void testFindByGreaterThanWithAndOr() {
+        List<Project> projects = repository.findByCreatorAndForkCountGreaterThan(CREATOR_2, FORK_COUNT_1);
+
+        Assert.assertEquals(projects.get(0), PROJECT_2);
+
+        projects = repository.findByCreatorAndForkCountGreaterThan(CREATOR_0, FORK_COUNT_1);
+
+        Assert.assertEquals(projects.size(), 0);
+
+        projects = repository.findByCreatorOrForkCountGreaterThan(CREATOR_0, FORK_COUNT_2);
+        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_3, PROJECT_4);
+
+        projects.sort(Comparator.comparing(Project::getId));
+        reference.sort(Comparator.comparing(Project::getId));
+
+        Assert.assertEquals(projects.size(), reference.size());
+        Assert.assertEquals(projects, reference);
+    }
 }
