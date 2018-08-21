@@ -541,8 +541,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
-                                                                            pageable.getPageSize(),
-                                                                            response.getResponseContinuation());
+                pageable.getPageSize(),
+                response.getResponseContinuation());
 
         return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
     }
@@ -569,8 +569,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getCountValue(querySpec, isCrossPartitionQuery(query, domainClass), collectionName);
     }
 
-    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartiionQuery, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
+    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
+        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
 
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
         if (value instanceof Integer) {
