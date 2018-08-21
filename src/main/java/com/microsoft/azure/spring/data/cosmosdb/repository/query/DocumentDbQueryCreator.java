@@ -80,6 +80,6 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
 
     @Override
     protected DocumentQuery complete(@NonNull Criteria criteria, @NonNull Sort sort) {
-        return new DocumentQuery(criteria, sort);
+        return new DocumentQuery(criteria).with(sort);
     }
 }

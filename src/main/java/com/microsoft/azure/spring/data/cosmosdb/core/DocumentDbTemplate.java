@@ -29,7 +29,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
@@ -504,7 +503,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     @Override
     public <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName) {
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
         return paginationQuery(query, pageable, domainClass, collectionName);
     }
 
@@ -552,7 +551,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final QuerySpecGenerator generator = new CountQueryGenerator();
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
         final SqlQuerySpec querySpec = generator.generate(query);
 
         return getCountValue(querySpec, true, collectionName);
