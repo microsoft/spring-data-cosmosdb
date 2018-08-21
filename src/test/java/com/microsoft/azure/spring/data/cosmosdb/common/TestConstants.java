@@ -7,15 +7,18 @@ package com.microsoft.azure.spring.data.cosmosdb.common;
 
 import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestConstants {
 
-    private TestConstants() {
-        // Hide the implicit public one
-    }
+    private static final int SUFFIX_LENGTH = 3;
+    private static final String DB_NAME_SUFFIX = UUID.randomUUID().toString().substring(0, SUFFIX_LENGTH);
 
     private static final Address ADDRESS_1 = new Address("201107", "Zixing Road", "Shanghai");
     private static final Address ADDRESS_2 = new Address("200000", "Xuhui", "Shanghai");
@@ -73,7 +76,7 @@ public class TestConstants {
             "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":-1}," +
             "]}";
 
-    public static final String DB_NAME = "new-testdb";
+    public static final String DB_NAME = String.join("-", "testdb", DB_NAME_SUFFIX);
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
     public static final String ID_1 = "id-1";
@@ -129,5 +132,9 @@ public class TestConstants {
 
     public static final String PROPERTY_MESSAGE = "message";
     public static final String PROPERTY_DATE = "date";
+
+    public static final int PAGE_SIZE_1 = 1;
+    public static final int PAGE_SIZE_2 = 2;
+    public static final int PAGE_SIZE_3 = 3;
 }
 

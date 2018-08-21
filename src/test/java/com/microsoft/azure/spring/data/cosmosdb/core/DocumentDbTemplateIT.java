@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbCo
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -28,7 +29,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
@@ -36,6 +38,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -61,6 +67,7 @@ public class DocumentDbTemplateIT {
     private ObjectMapper objectMapper;
     private DocumentCollection collectionPerson;
     private DocumentDbEntityInformation<Person, String> personInfo;
+    private String collectionName;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -70,6 +77,7 @@ public class DocumentDbTemplateIT {
         mappingContext = new DocumentDbMappingContext();
         objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
+        collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
@@ -166,12 +174,12 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testCountByCollection() {
-        final long prevCount = dbTemplate.count(this.personInfo.getCollectionName());
+        final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
         dbTemplate.insert(TEST_PERSON_2, null);
 
-        final long newCount = dbTemplate.count(this.personInfo.getCollectionName());
+        final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
     }
 
@@ -181,9 +189,38 @@ public class DocumentDbTemplateIT {
 
         final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria, Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, Person.class, this.personInfo.getCollectionName());
+        final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void testFindAllPageableMultiPages() {
+        dbTemplate.insert(TEST_PERSON_2, null);
+
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+
+        assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
+        validateNonLastPage(page1, PAGE_SIZE_1);
+
+        final Page<Person> page2 = dbTemplate.findAll(page1.getPageable(), Person.class, collectionName);
+        assertThat(page2.getContent().size()).isEqualTo(1);
+        validateLastPage(page2, PAGE_SIZE_1);
+    }
+
+    @Test
+    public void testPaginationQuery() {
+        dbTemplate.insert(TEST_PERSON_2, null);
+
+        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TestConstants.FIRST_NAME));
+        final DocumentQuery query = new DocumentQuery(criteria);
+        final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
+
+        final Page<Person> page = dbTemplate.paginationQuery(query, pageRequest, Person.class, collectionName);
+        assertThat(page.getContent().size()).isEqualTo(1);
+        validateLastPage(page, PAGE_SIZE_2);
     }
 }

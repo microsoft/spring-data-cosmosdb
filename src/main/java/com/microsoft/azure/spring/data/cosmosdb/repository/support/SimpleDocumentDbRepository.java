@@ -235,7 +235,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public Iterable<T> findAll(@NonNull Sort sort) {
         Assert.notNull(sort, "sort of findAll should not be null");
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), sort);
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
 
         return documentDbOperations.find(query, information.getJavaType(), information.getCollectionName());
     }
@@ -249,6 +249,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public Page<T> findAll(Pageable pageable) {
-        throw new UnsupportedOperationException("findAll domains pageable is not supported");
+        Assert.notNull(pageable, "pageable should not be null");
+
+        return documentDbOperations.findAll(pageable, information.getJavaType(), information.getCollectionName());
     }
 }

@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGene
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
@@ -25,16 +26,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -188,7 +188,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domainClass, "entityClass should not be null");
 
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
         final List<Document> results = findAllDocuments(query, domainClass, collectionName);
 
         return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
@@ -197,7 +197,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void deleteAll(@NonNull String collectionName, @NonNull Class<?> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
 
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL), Sort.unsorted());
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
 
         this.delete(query, domainClass, collectionName);
     }
@@ -370,7 +370,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
         final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
 
-        if (!partitionKeyName.isPresent()) {
+        if (!partitionKeyName.isPresent() || query == null) {
             return true;
         }
 
@@ -393,6 +393,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final DocumentCollection collection = getDocCollection(collectionName);
 
         feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
+
+        return getDocumentClient().queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions);
+    }
+
+    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, FeedOptions feedOptions,
+                                                String collectionName) {
+        final DocumentCollection collection = getDocCollection(collectionName);
 
         return getDocumentClient().queryDocuments(collection.getSelfLink(), sqlQuerySpec, feedOptions);
     }
@@ -481,18 +488,63 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
+    public <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName) {
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
+        return paginationQuery(query, pageable, domainClass, collectionName);
+    }
+
+    @Override
+    public <T> Page<T> paginationQuery(DocumentQuery query, Pageable pageable, Class<T> domainClass,
+                                       String collectionName) {
+        Assert.isTrue(pageable.getPageSize() > 0, "pageable should have page size larger than 0");
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final FeedOptions feedOptions = new FeedOptions();
+        if (pageable instanceof DocumentDbPageRequest) {
+            feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
+        }
+
+        feedOptions.setPageSize(pageable.getPageSize());
+        feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery(query, domainClass));
+
+        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
+        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
+
+        final Iterator<Document> it = response.getQueryIterator();
+
+        final List<T> result = new ArrayList<>();
+        for (int index = 0; it.hasNext() && index < pageable.getPageSize(); index++) {
+            // Limit iterator as inner iterator will automatically fetch the next page
+            final Document doc = it.next();
+            if (doc == null) {
+                continue;
+            }
+
+            final T entity = mappingDocumentDbConverter.read(domainClass, doc);
+            result.add(entity);
+        }
+
+        final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
+                pageable.getPageSize(),
+                response.getResponseContinuation());
+
+        return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+    }
+
+    @Override
     public long count(String collectionName) {
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final QuerySpecGenerator generator = new CountQueryGenerator();
-        final SqlQuerySpec querySpec = generator.generate(null);
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
+        final SqlQuerySpec querySpec = generator.generate(query);
 
         return getCountValue(querySpec, true, collectionName);
     }
 
     @Override
     public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
-        Assert.notNull(query, "query should not be null");
         Assert.notNull(domainClass, "domainClass should not be null");
         Assert.hasText(collectionName, "collectionName should not be empty");
 
@@ -502,8 +554,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getCountValue(querySpec, isCrossPartitionQuery(query, domainClass), collectionName);
     }
 
-    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartiionQuery, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartiionQuery, collectionName);
+    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
+        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
 
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
         if (value instanceof Integer) {

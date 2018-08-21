@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = {"classpath:application.properties"})
 @EnableDocumentDbRepositories
 public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
+
     @Value("${cosmosdb.uri}")
     String dbUri;
 
@@ -31,6 +33,6 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
 
     @Override
     public String getDatabase() {
-        return "testdb";
+        return TestConstants.DB_NAME;
     }
 }

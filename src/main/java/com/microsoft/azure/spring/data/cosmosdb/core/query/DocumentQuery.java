@@ -10,8 +10,10 @@ import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.Getter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -25,11 +27,28 @@ public class DocumentQuery {
     private final Criteria criteria;
 
     @Getter
-    private Sort sort;
+    private Sort sort = Sort.unsorted();
 
-    public DocumentQuery(@NonNull Criteria criteria, @NonNull Sort sort) {
+    @Getter
+    private Pageable pageable = Pageable.unpaged();
+
+    public DocumentQuery(@NonNull Criteria criteria) {
         this.criteria = criteria;
-        this.sort = sort;
+    }
+
+    public DocumentQuery with(@NonNull Sort sort) {
+        if (sort.isSorted()) {
+            this.sort = sort.and(this.sort);
+        }
+
+        return this;
+    }
+
+    public DocumentQuery with(@NonNull Pageable pageable) {
+        Assert.notNull(pageable, "pageable should not be null");
+
+        this.pageable = pageable;
+        return this;
     }
 
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
