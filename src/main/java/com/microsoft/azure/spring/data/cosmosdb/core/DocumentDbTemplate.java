@@ -529,8 +529,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final Iterator<Document> it = response.getQueryIterator();
 
         final List<T> result = new ArrayList<>();
-        int index = 0;
-        while (it.hasNext() && index++ < pageable.getPageSize()) {
+        for (int index = 0; it.hasNext() && index < pageable.getPageSize(); index++) {
             // Limit iterator as inner iterator will automatically fetch the next page
             final Document doc = it.next();
             if (doc == null) {
