@@ -41,7 +41,9 @@ public interface DocumentDbOperations {
 
     <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName);
+    void deleteAll(String collectionName, Class<?> domainClass);
+
+    void deleteCollection(String collectionName);
 
     <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
 

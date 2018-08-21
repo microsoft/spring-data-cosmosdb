@@ -92,7 +92,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        dbTemplate.deleteAll(Person.class.getSimpleName());
+        dbTemplate.deleteCollection(Person.class.getSimpleName());
     }
 
     @Test
