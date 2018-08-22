@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,7 +61,7 @@ public class AbstractDocumentDbConfiguratinUnitTest {
 
         @Override
         public DocumentDBConfig getConfig() {
-            return new DocumentDBConfig.Builder("fake-uri", "fake-key", "fake-database").build();
+            return new DocumentDBConfig.Builder("fake-uri", "fake-key", TestConstants.DB_NAME).build();
         }
 
         @Override
