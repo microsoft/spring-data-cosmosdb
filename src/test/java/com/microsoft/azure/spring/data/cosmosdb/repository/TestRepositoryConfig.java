@@ -5,11 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -19,20 +16,17 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = {"classpath:application.properties"})
 @EnableDocumentDbRepositories
 public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
-
     @Value("${cosmosdb.uri}")
-    String dbUri;
+    private String documentDbUri;
 
     @Value("${cosmosdb.key}")
-    String dbKey;
+    private String documentDbKey;
+
+    @Value("${cosmosdb.database}")
+    private String database;
 
     @Override
-    public DocumentClient documentClient() {
-        return new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-    }
-
-    @Override
-    public String getDatabase() {
-        return TestConstants.DB_NAME;
+    public DocumentDBConfig getConfig() {
+        return new DocumentDBConfig.Builder(documentDbUri, documentDbKey, database).build();
     }
 }

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
-
 
 public class AbstractDocumentDbConfiguratinUnitTest {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
@@ -61,8 +59,8 @@ public class AbstractDocumentDbConfiguratinUnitTest {
         private DocumentClient mockClient;
 
         @Override
-        public String getDatabase() {
-            return TestConstants.DB_NAME;
+        public DocumentDBConfig getConfig() {
+            return new DocumentDBConfig.Builder("fake-uri", "fake-key", "fake-database").build();
         }
 
         @Override

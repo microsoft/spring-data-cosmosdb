@@ -92,12 +92,8 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     @Value("${azure.cosmosdb.database}")
     private String dbName;
 
-    public DocumentClient documentClient() {
-        return new DocumentClient(uri, key, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-    }
-
-    public String getDatabase() {
-        return dbName;
+    public DocumentDBConfig getConfig() {
+        return new DocumentDBConfig.Builder(uri, key, dbName).build();
     }
 }
 ```
