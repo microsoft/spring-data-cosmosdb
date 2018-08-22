@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
+import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import lombok.Getter;
 
@@ -19,6 +20,9 @@ public class DocumentDBConfig {
     private String database;
 
     @Getter
+    private ConnectionPolicy connectionPolicy;
+
+    @Getter
     private ConsistencyLevel consistencyLevel;
 
     @Getter
@@ -29,6 +33,7 @@ public class DocumentDBConfig {
         private final String key;
         private final String database;
 
+        private ConnectionPolicy connectionPolicy = ConnectionPolicy.GetDefault();
         private ConsistencyLevel consistencyLevel = ConsistencyLevel.Session;
         private boolean allowTelemetry = true;
 
@@ -36,6 +41,11 @@ public class DocumentDBConfig {
             this.uri = uri;
             this.key = key;
             this.database = database;
+        }
+
+        public Builder connectionPolicy(ConnectionPolicy policy) {
+            this.connectionPolicy = policy;
+            return this;
         }
 
         public Builder consistencyLevel(ConsistencyLevel level) {
@@ -57,6 +67,7 @@ public class DocumentDBConfig {
         this.uri = builder.uri;
         this.key = builder.key;
         this.database = builder.database;
+        this.connectionPolicy = builder.connectionPolicy;
         this.consistencyLevel = builder.consistencyLevel;
         this.allowTelemetry = builder.allowTelemetry;
     }

@@ -30,7 +30,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
         this.telemetryProxy = new TelemetryProxy(config.isAllowTelemetry());
         this.telemetryProxy.trackCustomEvent(this.getClass());
 
-        return new DocumentClient(config.getUri(), config.getKey(), ConnectionPolicy.GetDefault(),
+        return new DocumentClient(config.getUri(), config.getKey(), config.getConnectionPolicy(),
                 config.getConsistencyLevel());
     }
 
