@@ -9,6 +9,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.springframework.data.domain.Sort;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ProjectRepository extends DocumentDbRepository<Project, String> {
@@ -45,4 +46,8 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
     List<Project> findByStarCountGreaterThanEqual(Long count);
 
     List<Project> findByForkCountGreaterThanEqualAndCreator(Long count, String creator);
+
+    List<Project> findByCreatorIn(Collection<String> creators);
+
+    List<Project> findByCreatorInAndStarCountIn(Collection<String> creators, Collection<Long> starCounts);
 }

@@ -251,7 +251,20 @@ public class ProjectRepositoryIT {
 
         projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_0, CREATOR_0);
 
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
+    }
+
+    @Test
+    public void testFindByIn() {
+        List<Project> projects = repository.findByCreatorIn(Collections.singleton(FAKE_CREATOR));
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByCreatorIn(Arrays.asList(CREATOR_1, CREATOR_2));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2));
+
+        projects = repository.findByCreatorIn(Arrays.asList(CREATOR_0, FAKE_CREATOR));
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }

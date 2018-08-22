@@ -23,6 +23,7 @@ public enum CriteriaType {
     AND("AND"),
     BEFORE("<"),
     AFTER(">"),
+    IN("IN"),
     GREATER_THAN(">"),
     GREATER_THAN_EQUAL(">=");
 
@@ -38,6 +39,7 @@ public enum CriteriaType {
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
+        map.put(Part.Type.IN, CriteriaType.IN);
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
 
@@ -101,6 +103,7 @@ public enum CriteriaType {
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
+            case IN:
             case GREATER_THAN:
             case GREATER_THAN_EQUAL:
                 return true;

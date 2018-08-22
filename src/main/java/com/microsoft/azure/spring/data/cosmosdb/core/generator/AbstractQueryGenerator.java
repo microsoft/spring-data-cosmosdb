@@ -11,6 +11,7 @@ import com.microsoft.azure.documentdb.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.javatuples.Pair;
@@ -20,6 +21,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +39,7 @@ public abstract class AbstractQueryGenerator {
 
         parameters.add(Pair.with(subject, subjectValue));
 
-        return String.format("r.%s%s@%s", subject, criteria.getType().getSqlKeyword(), subject);
+        return String.format("r.%s %s @%s", subject, criteria.getType().getSqlKeyword(), subject);
     }
 
     private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
@@ -46,12 +48,36 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", left, type.getSqlKeyword(), right);
     }
 
+    private String generateINQuery(Criteria criteria) {
+        Assert.isTrue(CriteriaType.IN.equals(criteria.getType()), "Criteria type should be IN.");
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Criteria should have only one subject value");
+
+        if (!(criteria.getSubjectValues().get(0) instanceof Collection)) {
+            throw new IllegalQueryException("IN keyword requires Collection type in parameters");
+        }
+
+        final List<String> inRangeValues = new ArrayList<>();
+        final Collection values = (Collection) criteria.getSubjectValues().get(0);
+
+        values.forEach(o -> {
+            if (o instanceof Integer || o instanceof Long) {
+                inRangeValues.add(String.format("%d", (Long) o));
+            } else {
+                inRangeValues.add(String.format("'%s'", o.toString()));
+            }
+        });
+
+        return String.format("r.%s IN (%s)", criteria.getSubject(), String.join(",", inRangeValues));
+    }
+
     private String generateQueryBody(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
         final CriteriaType type = criteria.getType();
 
         switch (type) {
             case ALL:
                 return "";
+            case IN:
+                return this.generateINQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
