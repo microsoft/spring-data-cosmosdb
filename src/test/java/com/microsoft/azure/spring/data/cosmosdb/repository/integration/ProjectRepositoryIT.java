@@ -240,13 +240,7 @@ public class ProjectRepositoryIT {
 
         projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_2);
 
-        final List<Project> reference = Arrays.asList(PROJECT_2, PROJECT_3);
-
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_2, PROJECT_3));
     }
 
     @Test
@@ -259,10 +253,6 @@ public class ProjectRepositoryIT {
 
         final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
 }
