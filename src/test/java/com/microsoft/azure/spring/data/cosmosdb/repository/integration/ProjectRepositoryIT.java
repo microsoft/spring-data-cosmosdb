@@ -14,10 +14,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -47,12 +49,14 @@ public class ProjectRepositoryIT {
     private static final Long STAR_COUNT_1 = 1L;
     private static final Long STAR_COUNT_2 = 2L;
     private static final Long STAR_COUNT_3 = 3L;
+    private static final Long STAR_COUNT_MAX = 100L;
 
     private static final Long FORK_COUNT_0 = 0L;
     private static final Long FORK_COUNT_1 = 1L;
     private static final Long FORK_COUNT_2 = 2L;
     private static final Long FORK_COUNT_3 = 3L;
     private static final Long FAKE_COUNT = 123234L;
+    private static final Long FORK_COUNT_MAX = 100L;
 
     private static final Project PROJECT_0 = new Project(ID_0, NAME_0, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0);
     private static final Project PROJECT_1 = new Project(ID_1, NAME_1, CREATOR_1, true, STAR_COUNT_1, FORK_COUNT_1);
@@ -75,208 +79,180 @@ public class ProjectRepositoryIT {
         this.repository.deleteAll();
     }
 
+    private void assertProjectListEquals(@NonNull List<Project> projects, @NonNull List<Project> reference) {
+        Assert.assertEquals(projects.size(), reference.size());
+
+        projects.sort(Comparator.comparing(Project::getId));
+        reference.sort(Comparator.comparing(Project::getId));
+
+        Assert.assertEquals(projects, reference);
+    }
+
     @Test
     public void testFindByWithAnd() {
         List<Project> projects = this.repository.findByNameAndStarCount(NAME_1, STAR_COUNT_1);
 
-        Assert.assertEquals(projects.size(), 1);
-        Assert.assertEquals(projects.get(0), PROJECT_1);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_1));
 
         projects = this.repository.findByNameAndStarCount(NAME_0, STAR_COUNT_1);
 
         Assert.assertTrue(projects.isEmpty());
 
         projects = this.repository.findByNameAndStarCount(NAME_0, STAR_COUNT_0);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
 
     @Test
     public void testFindByWithOr() {
         List<Project> projects = this.repository.findByNameOrForkCount(NAME_2, STAR_COUNT_2);
 
-        Assert.assertEquals(projects.size(), 1);
-        Assert.assertEquals(projects.get(0), PROJECT_2);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_2));
 
         projects = this.repository.findByNameOrForkCount(FAKE_NAME, FAKE_COUNT);
 
         Assert.assertTrue(projects.isEmpty());
 
         projects = this.repository.findByNameOrForkCount(NAME_0, FORK_COUNT_1);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_4));
     }
 
     @Test
     public void testFindByWithAndPartition() {
         List<Project> projects = this.repository.findByNameAndCreator(NAME_1, CREATOR_1);
 
-        Assert.assertEquals(projects.size(), 1);
-        Assert.assertEquals(projects.get(0), PROJECT_1);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_1));
 
         projects = this.repository.findByNameAndCreator(NAME_0, CREATOR_1);
 
         Assert.assertTrue(projects.isEmpty());
 
         projects = this.repository.findByNameAndCreator(NAME_0, CREATOR_0);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
 
     @Test
     public void testFindByWithOrPartition() {
         List<Project> projects = this.repository.findByNameOrCreator(NAME_2, CREATOR_2);
 
-        Assert.assertEquals(projects.size(), 1);
-        Assert.assertEquals(projects.get(0), PROJECT_2);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_2));
 
         projects = this.repository.findByNameOrCreator(FAKE_NAME, FAKE_CREATOR);
 
         Assert.assertTrue(projects.isEmpty());
 
         projects = this.repository.findByNameOrCreator(NAME_0, CREATOR_1);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_4));
     }
 
     @Test
     public void testFindByWithAndOr() {
         List<Project> projects = repository.findByNameAndCreatorOrForkCount(NAME_0, CREATOR_1, FORK_COUNT_2);
-        List<Project> reference = Arrays.asList(PROJECT_2);
 
-        Assert.assertEquals(projects, reference);
-
-        projects = repository.findByNameAndCreatorOrForkCount(NAME_1, CREATOR_1, FORK_COUNT_2);
-        reference = Arrays.asList(PROJECT_1, PROJECT_2);
-
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_2));
 
         projects = repository.findByNameAndCreatorOrForkCount(NAME_1, CREATOR_2, FAKE_COUNT);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByNameAndCreatorOrForkCount(NAME_1, CREATOR_1, FORK_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2));
     }
 
     @Test
     public void testFindByWithOrAnd() {
         List<Project> projects = repository.findByNameOrCreatorAndForkCount(NAME_0, CREATOR_1, FORK_COUNT_2);
-        List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects, reference);
-
-        projects = repository.findByNameOrCreatorAndForkCount(NAME_1, CREATOR_2, FORK_COUNT_2);
-        reference = Arrays.asList(PROJECT_1, PROJECT_2);
-
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
 
         projects = repository.findByNameOrCreatorAndForkCount(FAKE_NAME, CREATOR_1, FORK_COUNT_2);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByNameOrCreatorAndForkCount(NAME_1, CREATOR_2, FORK_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2));
     }
 
     @Test
     public void testFindByWithOrOr() {
         List<Project> projects = repository.findByNameOrCreatorOrForkCount(NAME_0, CREATOR_1, FORK_COUNT_2);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4));
 
         projects = repository.findByNameOrCreatorOrForkCount(FAKE_NAME, FAKE_CREATOR, FAKE_COUNT);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
     }
-
 
     @Test
     public void testFindByWithOrAndOr() {
         List<Project> projects = repository.findByNameOrCreatorAndForkCountOrStarCount(NAME_1, CREATOR_0,
                 FORK_COUNT_2, STAR_COUNT_3);
-        List<Project> reference = Arrays.asList(PROJECT_1, PROJECT_3);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_3));
 
-        Assert.assertEquals(projects, reference);
+        projects = repository.findByNameOrCreatorAndForkCountOrStarCount(NAME_1, CREATOR_0, FORK_COUNT_0, STAR_COUNT_3);
 
-        projects = repository.findByNameOrCreatorAndForkCountOrStarCount(NAME_1, CREATOR_0,
-                FORK_COUNT_0, STAR_COUNT_3);
-        reference = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_3, PROJECT_4);
-
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_3, PROJECT_4));
 
         projects = repository.findByNameOrCreatorAndForkCountOrStarCount(FAKE_NAME, CREATOR_1,
                 FORK_COUNT_0, FAKE_COUNT);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
     }
 
     @Test
     public void testFindByGreaterThan() {
         List<Project> projects = repository.findByForkCountGreaterThan(FORK_COUNT_1);
-        final List<Project> reference = Arrays.asList(PROJECT_2, PROJECT_3);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
-
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_2, PROJECT_3));
 
         projects = repository.findByForkCountGreaterThan(FAKE_COUNT);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
     }
 
     @Test
     public void testFindByGreaterThanWithAndOr() {
         List<Project> projects = repository.findByCreatorAndForkCountGreaterThan(CREATOR_2, FORK_COUNT_1);
 
-        Assert.assertEquals(projects.get(0), PROJECT_2);
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_2));
 
         projects = repository.findByCreatorAndForkCountGreaterThan(CREATOR_0, FORK_COUNT_1);
 
-        Assert.assertEquals(projects.size(), 0);
+        Assert.assertTrue(projects.isEmpty());
 
         projects = repository.findByCreatorOrForkCountGreaterThan(CREATOR_0, FORK_COUNT_2);
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_3, PROJECT_4);
 
-        projects.sort(Comparator.comparing(Project::getId));
-        reference.sort(Comparator.comparing(Project::getId));
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_3, PROJECT_4));
+    }
 
-        Assert.assertEquals(projects.size(), reference.size());
-        Assert.assertEquals(projects, reference);
+    @Test
+    public void testFindByGreaterThanEqual() {
+        List<Project> projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_MAX);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_2, PROJECT_3));
+    }
+
+    @Test
+    public void testFindByGreaterThanEqualAnd() {
+        List<Project> projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_MAX, CREATOR_2);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_0, CREATOR_0);
+
+        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
 }
