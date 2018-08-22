@@ -78,7 +78,7 @@ If you are using Maven, add the following dependency.
 ### Setup Configuration
 Setup configuration class.
 
-```
+```java
 @Configuration
 @EnableDocumentDbRepositories
 public class AppConfiguration extends AbstractDocumentDbConfiguration {
@@ -98,7 +98,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 }
 ```
 By default, `@EnableDocumentDbRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
-```
+```java
 @Configuration
 @EnableDocumentDbRepositories(basePackageClass=UserRepository.class)
 public class AppConfiguration extends AbstractDocumentDbConfiguration {
@@ -110,7 +110,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 ### Define an entity
 Define a simple entity as Document in Azure Cosmos DB.
 
-```
+```java
 @Document(collection = "mycollection")
 public class User {
     private String id;
@@ -142,7 +142,7 @@ public class User {
 Annotation `@Document(collection="mycollection")` is used to specify collection name in Azure Cosmos DB.
 Annotation `@PartitionKey` on `lastName` field is used to specify this field be partition key in Azure Cosmos DB.
 
-```
+```java
 @Document(collection = "mycollection")
 public class User {
     @Id
@@ -155,7 +155,7 @@ public class User {
 ### Create repositories
 Extends DocumentDbRepository interface, which provides Spring Data repository support.
 
-```
+```java
 import DocumentDbRepository;
 import org.springframework.stereotype.Repository;
 
@@ -170,7 +170,7 @@ public interface UserRepository extends DocumentDbRepository<User, String> {
 ### Create an Application class
 Here create an application class with all the components
 
-```
+```java
 @SpringBootApplication
 public class SampleApplication implements CommandLineRunner {
 
