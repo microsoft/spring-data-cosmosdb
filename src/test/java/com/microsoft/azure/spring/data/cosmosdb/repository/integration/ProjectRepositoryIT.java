@@ -49,12 +49,14 @@ public class ProjectRepositoryIT {
     private static final Long STAR_COUNT_1 = 1L;
     private static final Long STAR_COUNT_2 = 2L;
     private static final Long STAR_COUNT_3 = 3L;
+    private static final Long STAR_COUNT_MAX = 100L;
 
     private static final Long FORK_COUNT_0 = 0L;
     private static final Long FORK_COUNT_1 = 1L;
     private static final Long FORK_COUNT_2 = 2L;
     private static final Long FORK_COUNT_3 = 3L;
     private static final Long FAKE_COUNT = 123234L;
+    private static final Long FORK_COUNT_MAX = 100L;
 
     private static final Project PROJECT_0 = new Project(ID_0, NAME_0, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0);
     private static final Project PROJECT_1 = new Project(ID_1, NAME_1, CREATOR_1, true, STAR_COUNT_1, FORK_COUNT_1);
@@ -228,5 +230,29 @@ public class ProjectRepositoryIT {
         projects = repository.findByCreatorOrForkCountGreaterThan(CREATOR_0, FORK_COUNT_2);
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_3, PROJECT_4));
+    }
+
+    @Test
+    public void testFindByGreaterThanEqual() {
+        List<Project> projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_MAX);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_2, PROJECT_3));
+    }
+
+    @Test
+    public void testFindByGreaterThanEqualAnd() {
+        List<Project> projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_MAX, CREATOR_2);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_0, CREATOR_0);
+
+        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
 }
