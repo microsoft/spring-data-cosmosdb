@@ -47,7 +47,7 @@ public class DocumentDbFactory {
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
         this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
 
-        this.trackCustomEvent();
+        this.telemetryProxy.trackCustomEvent(this.getClass());
     }
 
     public DocumentDbFactory(DocumentClient client) {
@@ -57,19 +57,11 @@ public class DocumentDbFactory {
 
         this.documentClient = client;
         this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
-        this.trackCustomEvent();
+        this.telemetryProxy.trackCustomEvent(this.getClass());
     }
 
     public DocumentClient getDocumentClient() {
         return documentClient;
-    }
-
-    private void trackCustomEvent() {
-        final Map<String, String> customProperties = new HashMap<>();
-
-        customProperties.put(TelemetryProperties.PROPERTY_SERVICE_NAME, "cosmosdb");
-
-        this.telemetryProxy.trackEvent(ClassUtils.getUserClass(this.getClass()).getSimpleName(), customProperties);
     }
 }
 
