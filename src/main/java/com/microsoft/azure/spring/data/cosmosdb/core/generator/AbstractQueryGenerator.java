@@ -58,6 +58,7 @@ public abstract class AbstractQueryGenerator {
             case LESS_THAN:
             case LESS_THAN_EQUAL:
             case GREATER_THAN:
+            case GREATER_THAN_EQUAL:
                 return this.generateUnaryQuery(criteria, parameters);
             case AND:
             case OR:
