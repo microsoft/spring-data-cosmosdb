@@ -8,6 +8,7 @@ before_script:
   - cat src/test/resources/application.properties
 
 script:
+  - mvn clean package
   - set -o pipefail
   - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
 

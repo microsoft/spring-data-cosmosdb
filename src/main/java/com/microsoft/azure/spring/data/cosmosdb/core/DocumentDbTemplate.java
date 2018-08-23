@@ -115,6 +115,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public <T> T findById(String collectionName, Object id, Class<T> entityClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(entityClass, "entityClass should not be null");
+        assertValidId(id);
 
         try {
             final RequestOptions options = new RequestOptions();
@@ -304,6 +305,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        assertValidId(id);
 
         log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
 
@@ -569,5 +571,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         return Arrays.asList(entityInfo.getPartitionKeyFieldName());
+    }
+
+    private void assertValidId(Object id) {
+        Assert.notNull(id, "id should not be null");
+        if (id instanceof String) {
+            Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
+        }
     }
 }
