@@ -23,6 +23,8 @@ public enum CriteriaType {
     AND("AND"),
     BEFORE("<"),
     AFTER(">"),
+    IS_NULL("IS NULL"),
+    IS_NOT_NULL("IS NOT NULL"),
     LESS_THAN("<"),
     LESS_THAN_EQUAL("<="),
     GREATER_THAN(">"),
@@ -39,6 +41,8 @@ public enum CriteriaType {
     static {
         final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
+        map.put(Part.Type.IS_NULL, CriteriaType.IS_NULL);
+        map.put(Part.Type.IS_NOT_NULL, CriteriaType.IS_NOT_NULL);
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
@@ -88,7 +92,7 @@ public enum CriteriaType {
      * @param type
      * @return True if contains, or false.
      */
-    public static boolean isBinary(CriteriaType type) {
+    public static boolean isClosed(CriteriaType type) {
         switch (type) {
             case AND:
             case OR:
@@ -104,8 +108,10 @@ public enum CriteriaType {
      * @param type
      * @return True if contains, or false.
      */
-    public static boolean isUnary(CriteriaType type) {
+    public static boolean isBinary(CriteriaType type) {
         switch (type) {
+            case AND:
+            case OR:
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -131,7 +137,16 @@ public enum CriteriaType {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+                return true;
+            default:
+                return false;
+        }
+    }
 
+    public static boolean isUnary(CriteriaType type) {
+        switch (type) {
+            case IS_NULL:
+            case IS_NOT_NULL:
                 return true;
             default:
                 return false;

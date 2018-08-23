@@ -28,9 +28,18 @@ import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocum
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
 
-    private String generateUnaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
-        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Unary criteria should have only one subject value");
+    private String generateUnaryQuery(@NonNull Criteria criteria) {
+        Assert.isTrue(criteria.getSubjectValues().isEmpty(), "Unary criteria should have no one subject value");
         Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
+
+        final String subject = criteria.getSubject();
+
+        return String.format("r.%s %s", subject, criteria.getType().getSqlKeyword());
+    }
+
+    private String generateBinaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Unary criteria should have only one subject value");
+        Assert.isTrue(CriteriaType.isBinary(criteria.getType()), "Criteria type should be unary operation");
 
         final String subject = criteria.getSubject();
         final Object subjectValue = toDocumentDBValue(criteria.getSubjectValues().get(0));
@@ -44,8 +53,9 @@ public abstract class AbstractQueryGenerator {
         }
     }
 
-    private String generateBinaryQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
-        Assert.isTrue(CriteriaType.isBinary(type), "Criteria type should be binary operation");
+    private String generateClosedQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
+        Assert.isTrue(CriteriaType.isClosed(type) && CriteriaType.isBinary(type),
+                "Criteria type should be binary and closure operation");
 
         return String.join(" ", left, type.getSqlKeyword(), right);
     }
@@ -56,6 +66,8 @@ public abstract class AbstractQueryGenerator {
         switch (type) {
             case ALL:
                 return "";
+            case IS_NULL:
+                return this.generateUnaryQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -65,7 +77,7 @@ public abstract class AbstractQueryGenerator {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
-                return this.generateUnaryQuery(criteria, parameters);
+                return this.generateBinaryQuery(criteria, parameters);
             case AND:
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");
@@ -73,7 +85,7 @@ public abstract class AbstractQueryGenerator {
                 final String left = generateQueryBody(criteria.getSubCriteria().get(0), parameters);
                 final String right = generateQueryBody(criteria.getSubCriteria().get(1), parameters);
 
-                return generateBinaryQuery(left, right, type);
+                return generateClosedQuery(left, right, type);
             default:
                 throw new UnsupportedOperationException("unsupported Criteria type" + type);
         }

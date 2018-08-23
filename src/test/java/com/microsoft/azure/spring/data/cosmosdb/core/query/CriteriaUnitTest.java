@@ -25,7 +25,7 @@ public class CriteriaUnitTest {
         Assert.assertEquals(criteria.getSubjectValues(), values);
         Assert.assertEquals(criteria.getType(), CriteriaType.IS_EQUAL);
         Assert.assertEquals(criteria.getSubject(), CRITERIA_KEY);
-        Assert.assertTrue(CriteriaType.isUnary(criteria.getType()));
+        Assert.assertTrue(CriteriaType.isBinary(criteria.getType()));
     }
 
     @Test
@@ -39,7 +39,7 @@ public class CriteriaUnitTest {
         Assert.assertNull(criteria.getSubjectValues());
         Assert.assertNull(criteria.getSubject());
         Assert.assertEquals(criteria.getType(), CriteriaType.AND);
-        Assert.assertTrue(CriteriaType.isBinary(criteria.getType()));
+        Assert.assertTrue(CriteriaType.isClosed(criteria.getType()));
 
         Assert.assertEquals(criteria.getSubCriteria().size(), 2);
         Assert.assertEquals(criteria.getSubCriteria().get(0), leftCriteria);

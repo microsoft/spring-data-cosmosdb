@@ -53,4 +53,12 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
     List<Project> findByStarCountGreaterThanEqual(Long count);
 
     List<Project> findByForkCountGreaterThanEqualAndCreator(Long count, String creator);
+
+    List<Project> findByNameIsNull();
+
+    List<Project> findByNameIsNullAndForkCount(Long forkCount);
+
+    List<Project> findByNameIsNotNull();
+
+    List<Project> findByNameIsNullAndHasReleased(boolean hasReleased);
 }
