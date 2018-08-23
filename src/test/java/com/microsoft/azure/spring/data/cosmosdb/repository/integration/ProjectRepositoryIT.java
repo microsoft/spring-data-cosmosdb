@@ -299,4 +299,62 @@ public class ProjectRepositoryIT {
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
+
+    @Test
+    public void testFindByNameIsNull() {
+        List<Project> projects = repository.findByNameIsNull();
+
+        Assert.assertTrue(projects.isEmpty());
+
+        final Project nullNameProject = new Project("id-999", null, CREATOR_0, true, STAR_COUNT_0,
+                FORK_COUNT_0);
+
+        this.repository.save(nullNameProject);
+        projects = repository.findByNameIsNull();
+
+        assertProjectListEquals(projects, Collections.singletonList(nullNameProject));
+    }
+
+    @Test
+    public void testFindByNameIsNotNull() {
+        List<Project> projects = repository.findByNameIsNotNull();
+
+        assertProjectListEquals(projects, PROJECTS);
+
+        this.repository.deleteAll();
+        this.repository.save(new Project("id-999", null, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0));
+
+        projects = repository.findByNameIsNotNull();
+
+        Assert.assertTrue(projects.isEmpty());
+    }
+
+    @Test
+    public void testFindByNameIsNullWithAnd() {
+        List<Project> projects = repository.findByNameIsNullAndForkCount(FORK_COUNT_MAX);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        final Project nullNameProject = new Project("id-999", null, CREATOR_0, true, STAR_COUNT_0,
+                FORK_COUNT_0);
+
+        this.repository.save(nullNameProject);
+        projects = repository.findByNameIsNullAndForkCount(FORK_COUNT_0);
+
+        assertProjectListEquals(projects, Collections.singletonList(nullNameProject));
+    }
+
+    @Test
+    public void testFindByNameIsNotNullWithAnd() {
+        List<Project> projects = repository.findByNameIsNotNullAndHasReleased(true);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3));
+
+        this.repository.deleteAll();
+        this.repository.save(new Project("id-999", null, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0));
+
+        projects = repository.findByNameIsNotNullAndHasReleased(true);
+
+        Assert.assertTrue(projects.isEmpty());
+    }
 }

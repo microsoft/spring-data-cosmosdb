@@ -97,14 +97,14 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindWithPartition() {
-        Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
+        Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
         DocumentQuery query = new DocumentQuery(criteria);
         List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON);
 
-        criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
+        criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
         result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
 
@@ -114,7 +114,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testFindByNonExistIdWithPartition() {
-        final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
+        final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final List<Person> result = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
@@ -183,7 +183,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testCountForPartitionedCollectionByQuery() {
         dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
@@ -193,7 +193,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testNonExistFieldValue() {
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList("non-exist-first-name"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
@@ -220,7 +220,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testPartitionedPaginationQuery() {
         dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);

@@ -56,7 +56,7 @@ public class DocumentDbTemplateIllegalTest {
     @Test
     public void deleteIllegalShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getMethod("delete", DocumentQuery.class, Class.class, String.class);
-        final Criteria criteria = Criteria.getUnaryInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
+        final Criteria criteria = Criteria.getInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         checkIllegalArgument(method, null, Person.class, DUMMY_COLL);

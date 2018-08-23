@@ -60,5 +60,5 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
 
     List<Project> findByNameIsNotNull();
 
-    List<Project> findByNameIsNullAndHasReleased(boolean hasReleased);
+    List<Project> findByNameIsNotNullAndHasReleased(boolean hasReleased);
 }

@@ -34,7 +34,7 @@ public abstract class AbstractQueryGenerator {
 
         final String subject = criteria.getSubject();
 
-        return String.format("r.%s %s", subject, criteria.getType().getSqlKeyword());
+        return String.format("%s(r.%s)", criteria.getType().getSqlKeyword(), subject);
     }
 
     private String generateBinaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
@@ -67,6 +67,7 @@ public abstract class AbstractQueryGenerator {
             case ALL:
                 return "";
             case IS_NULL:
+            case IS_NOT_NULL:
                 return this.generateUnaryQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
@@ -87,7 +88,7 @@ public abstract class AbstractQueryGenerator {
 
                 return generateClosedQuery(left, right, type);
             default:
-                throw new UnsupportedOperationException("unsupported Criteria type" + type);
+                throw new UnsupportedOperationException("unsupported Criteria type: " + type);
         }
     }
 

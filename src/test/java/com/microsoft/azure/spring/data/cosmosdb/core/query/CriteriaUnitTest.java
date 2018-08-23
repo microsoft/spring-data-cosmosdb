@@ -19,7 +19,7 @@ public class CriteriaUnitTest {
     @Test
     public void testUnaryCriteria() {
         final List<Object> values = Arrays.asList(CRITERIA_OBJECT);
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
 
         Assert.assertTrue(criteria.getSubCriteria().isEmpty());
         Assert.assertEquals(criteria.getSubjectValues(), values);
@@ -31,9 +31,9 @@ public class CriteriaUnitTest {
     @Test
     public void testBinaryCriteria() {
         final List<Object> values = Arrays.asList(CRITERIA_OBJECT);
-        final Criteria leftCriteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
-        final Criteria rightCriteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_OBJECT, values);
-        final Criteria criteria = Criteria.getBinaryInstance(CriteriaType.AND, leftCriteria, rightCriteria);
+        final Criteria leftCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
+        final Criteria rightCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_OBJECT, values);
+        final Criteria criteria = Criteria.getClosedInstance(CriteriaType.AND, leftCriteria, rightCriteria);
 
         Assert.assertNotNull(criteria.getSubCriteria());
         Assert.assertNull(criteria.getSubjectValues());

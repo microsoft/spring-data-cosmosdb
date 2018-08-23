@@ -25,9 +25,7 @@ public class Criteria {
         this.subCriteria = new ArrayList<>();
     }
 
-    public static Criteria getUnaryInstance(CriteriaType type, @NonNull String subject, @NonNull List<Object> values) {
-        Assert.isTrue(CriteriaType.isBinary(type), "type should be Unary operation");
-
+    public static Criteria getInstance(CriteriaType type, @NonNull String subject, @NonNull List<Object> values) {
         final Criteria criteria = new Criteria(type);
 
         criteria.subject = subject;
@@ -36,9 +34,7 @@ public class Criteria {
         return criteria;
     }
 
-    public static Criteria getBinaryInstance(CriteriaType type, @NonNull Criteria left, @NonNull Criteria right) {
-        Assert.isTrue(CriteriaType.isClosed(type), "type should be Binary operation");
-
+    public static Criteria getClosedInstance(CriteriaType type, @NonNull Criteria left, @NonNull Criteria right) {
         final Criteria criteria = new Criteria(type);
 
         criteria.subCriteria.add(left);
