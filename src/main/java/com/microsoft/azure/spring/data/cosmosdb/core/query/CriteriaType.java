@@ -26,7 +26,9 @@ public enum CriteriaType {
     LESS_THAN("<"),
     LESS_THAN_EQUAL("<="),
     GREATER_THAN(">"),
-    GREATER_THAN_EQUAL(">=");
+    GREATER_THAN_EQUAL(">="),
+    CONTAINING("CONTAINS"),
+    ENDS_WITH("ENDSWITH");
 
     @Getter
     private String sqlKeyword;
@@ -41,6 +43,8 @@ public enum CriteriaType {
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
+        map.put(Part.Type.CONTAINING, CriteriaType.CONTAINING);
+        map.put(Part.Type.ENDING_WITH, CriteriaType.ENDS_WITH);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
         map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
         map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
@@ -109,6 +113,25 @@ public enum CriteriaType {
             case LESS_THAN_EQUAL:
             case GREATER_THAN:
             case GREATER_THAN_EQUAL:
+            case CONTAINING:
+            case ENDS_WITH:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if CriteriaType operation is a function.
+     *
+     * @param type
+     * @return True if contains, or false.
+     */
+    public static boolean isFunction(CriteriaType type) {
+        switch (type) {
+            case CONTAINING:
+            case ENDS_WITH:
+
                 return true;
             default:
                 return false;
