@@ -301,6 +301,38 @@ public class ProjectRepositoryIT {
     }
 
     @Test
+    public void testFindByTrue() {
+        final List<Project> projects = repository.findByHasReleasedTrue();
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3));
+    }
+
+    @Test
+    public void testFindByFalse() {
+        final List<Project> projects = repository.findByHasReleasedFalse();
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_4));
+    }
+
+    @Test
+    public void testFindByTrueFalseWithAnd() {
+        List<Project> projects = repository.findByHasReleasedTrueAndCreator(CREATOR_3);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_3));
+
+        projects = repository.findByHasReleasedFalseAndCreator(CREATOR_3);
+        assertProjectListEquals(projects, Arrays.asList());
+    }
+
+    @Test
+    public void testFindByTrueFalseWithOr() {
+        List<Project> projects = repository.findByHasReleasedTrueOrCreator(CREATOR_0);
+        assertProjectListEquals(projects, PROJECTS);
+
+        projects = repository.findByHasReleasedFalseOrCreator(CREATOR_3);
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_3, PROJECT_4));
+    }
+
+    @Test
     public void testFindByNameIsNull() {
         List<Project> projects = repository.findByNameIsNull();
 
