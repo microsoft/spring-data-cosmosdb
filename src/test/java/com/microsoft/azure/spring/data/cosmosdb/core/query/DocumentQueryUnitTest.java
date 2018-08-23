@@ -7,6 +7,8 @@ package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 
@@ -23,8 +25,7 @@ public class DocumentQueryUnitTest {
         final DocumentQuery query = new DocumentQuery(criteria);
 
         Assert.assertEquals(query.getCriteria(), criteria);
-        Assert.assertTrue(query.getSubjectCriteria(criteria.getSubject()).isPresent());
-        Assert.assertEquals(query.getSubjectCriteria(criteria.getSubject()).get(), criteria);
-        Assert.assertFalse(query.getSubjectCriteria("").isPresent());
+        Assert.assertEquals(query.getSort(), Sort.unsorted());
+        Assert.assertEquals(query.getPageable(), Pageable.unpaged());
     }
 }
