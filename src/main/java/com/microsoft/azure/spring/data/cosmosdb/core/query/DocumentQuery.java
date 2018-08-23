@@ -69,7 +69,7 @@ public class DocumentQuery {
             return true;
         }
 
-        for (String keyName : partitionKeys) {
+        for (final String keyName : partitionKeys) {
             if (isCrossPartitionQuery(keyName)) {
                 return true;
             }
