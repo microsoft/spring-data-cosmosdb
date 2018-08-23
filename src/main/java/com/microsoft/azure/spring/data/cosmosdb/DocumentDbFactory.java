@@ -11,13 +11,8 @@ import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.GetHashMac;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProperties;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DocumentDbFactory {
 
@@ -52,7 +47,8 @@ public class DocumentDbFactory {
 
     public DocumentDbFactory(DocumentClient client) {
         if (client != null && client.getConnectionPolicy() != null) {
-            client.getConnectionPolicy().setUserAgentSuffix(this.getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
+            final ConnectionPolicy policy = client.getConnectionPolicy();
+            policy.setUserAgentSuffix(policy.getUserAgentSuffix() + this.getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
         }
 
         this.documentClient = client;
