@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
 
-
 public class AbstractDocumentDbConfiguratinUnitTest {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
@@ -61,8 +60,8 @@ public class AbstractDocumentDbConfiguratinUnitTest {
         private DocumentClient mockClient;
 
         @Override
-        public String getDatabase() {
-            return TestConstants.DB_NAME;
+        public DocumentDBConfig getConfig() {
+            return DocumentDBConfig.builder("fake-uri", "fake-key", TestConstants.DB_NAME).build();
         }
 
         @Override

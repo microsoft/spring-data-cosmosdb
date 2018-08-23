@@ -16,7 +16,6 @@ import java.util.UUID;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestConstants {
-
     private static final int SUFFIX_LENGTH = 3;
     private static final String DB_NAME_SUFFIX = UUID.randomUUID().toString().substring(0, SUFFIX_LENGTH);
 
