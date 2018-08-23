@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.common;
 import com.microsoft.applicationinsights.TelemetryClient;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +75,14 @@ public class TelemetryProxy {
         properties.put(TelemetryProperties.PROPERTY_VERSION, PROJECT_INFO);
 
         return properties;
+    }
+
+    public void trackCustomEvent(Class<?> clazz) {
+        final Map<String, String> customProperties = new HashMap<>();
+
+        customProperties.put(TelemetryProperties.PROPERTY_SERVICE_NAME, "cosmosdb");
+
+        this.trackEvent(ClassUtils.getUserClass(clazz).getSimpleName(), customProperties);
     }
 }
 
