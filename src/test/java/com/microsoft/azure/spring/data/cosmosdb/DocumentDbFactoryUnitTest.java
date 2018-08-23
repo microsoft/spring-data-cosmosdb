@@ -41,7 +41,5 @@ public class DocumentDbFactoryUnitTest {
 
         final String uaSuffix = factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix();
         assertThat(uaSuffix).contains(testUserAgentSuffix);
-
     }
 }
-
