@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder(builderMethodName = "hiddenBuilder")
+@Builder(builderMethodName = "defaultBuilder")
 public class DocumentDBConfig {
     private String uri;
 
@@ -26,7 +26,7 @@ public class DocumentDBConfig {
     private boolean allowTelemetry;
 
     public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
-        return hiddenBuilder()
+        return defaultBuilder()
                 .uri(uri)
                 .key(key)
                 .database(database)

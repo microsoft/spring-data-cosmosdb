@@ -93,7 +93,7 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     private String dbName;
 
     public DocumentDBConfig getConfig() {
-        return new DocumentDBConfig.Builder(uri, key, dbName).build();
+        return DocumentDBConfig.builder(uri, key, dbName).build();
     }
 }
 ```
