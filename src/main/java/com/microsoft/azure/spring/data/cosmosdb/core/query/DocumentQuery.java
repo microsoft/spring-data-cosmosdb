@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -51,6 +50,34 @@ public class DocumentQuery {
         return this;
     }
 
+    private boolean isCrossPartitionQuery(@NonNull String keyName) {
+        Assert.hasText(keyName, "PartitionKey should have text.");
+
+        final Optional<Criteria> criteria = this.getSubjectCriteria(this.criteria, keyName);
+
+        return criteria.map(criteria1 -> criteria1.getType() == CriteriaType.IS_EQUAL).orElse(true);
+    }
+
+    /**
+     * Indicate if DocumentQuery should enable cross partition query.
+     *
+     * @param partitionKeys The list of partitionKey names.
+     * @return
+     */
+    public boolean isCrossPartitionQuery(@NonNull List<String> partitionKeys) {
+        if (partitionKeys.isEmpty()) {
+            return true;
+        }
+
+        for (final String keyName : partitionKeys) {
+            if (isCrossPartitionQuery(keyName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
         if (keyName.equals(criteria.getSubject())) {
             return Optional.of(criteria);
@@ -67,50 +94,6 @@ public class DocumentQuery {
         }
 
         return Optional.empty();
-    }
-
-    /**
-     * Get the criteria with given subject name.
-     *
-     * @param subjectName the Name of method subject.
-     * @return Optional of criteria if success, or Optional.empty().
-     */
-    public Optional<Criteria> getSubjectCriteria(@NonNull String subjectName) {
-        if (StringUtils.hasText(subjectName)) {
-            return getSubjectCriteria(criteria, subjectName);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private boolean hasPartitionKeyOnly(@NonNull List<String> partitionKeys, @NonNull Criteria criteria) {
-        if (!partitionKeys.contains(criteria.getSubject())) {
-            return false;
-        }
-
-        final List<Criteria> subCriteriaList = criteria.getSubCriteria();
-
-        for (final Criteria c : subCriteriaList) {
-            if (!hasPartitionKeyOnly(partitionKeys, c)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if Document Query subjects only have partition Key
-     *
-     * @param partitionKeys the partitionKey name list.
-     * @return true if Query got only partition Key, or return false.
-     */
-    public boolean hasPartitionKeyOnly(@NonNull List<String> partitionKeys) {
-        if (partitionKeys.isEmpty()) {
-            return true;
-        } else {
-            return hasPartitionKeyOnly(partitionKeys, criteria);
-        }
     }
 
     /**

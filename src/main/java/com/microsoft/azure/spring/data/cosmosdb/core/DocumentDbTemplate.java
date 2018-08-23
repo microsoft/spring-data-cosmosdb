@@ -12,7 +12,6 @@ import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
-import com.microsoft.azure.spring.data.cosmosdb.core.generator.QuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
@@ -33,7 +32,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -345,18 +347,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> boolean isCrossPartitionQuery(@NonNull DocumentQuery query, @NonNull Class<T> domainClass) {
-        final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
-
-        if (!partitionKeyName.isPresent()) {
-            return true;
-        }
-
-        final List<String> partitionKeys = Arrays.asList(partitionKeyName.get());
-
-        return !query.hasPartitionKeyOnly(partitionKeys);
-    }
-
     private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
                                      @NonNull Class<T> domainClass, String collectionName) {
         final FeedResponse<Document> feedResponse = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
@@ -391,10 +381,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             query.validateSort(domainClass, isCollectionSupportSortByString(getDocCollection(collectionName)));
         }
 
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
 
-        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery(query, domainClass), domainClass, collectionName);
+        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
     }
 
     private Predicate<Index> isIndexingSupportSortByString() {
@@ -419,20 +409,21 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
                                          @NonNull String collectionName) {
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
-        final boolean isCrossPartition = isCrossPartitionQuery(query, domainClass);
-        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
+        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
 
         return response.getQueryIterable().toList();
     }
 
-    private void deleteDocument(@NonNull Document document, @NonNull String partitionKeyName) {
+    private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
         try {
             final RequestOptions options = new RequestOptions();
 
-            if (StringUtils.hasText(partitionKeyName)) {
-                options.setPartitionKey(new PartitionKey(document.get(partitionKeyName)));
+            Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
+
+            if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
+                options.setPartitionKey(new PartitionKey(document.get(partitionKeyNames.get(0))));
             }
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
@@ -460,9 +451,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final List<Document> results = findDocuments(query, domainClass, collectionName);
-        final Optional<String> partitionKeyName = getPartitionKeyFieldName(domainClass);
+        final List<String> partitionKeyName = getPartitionKeyNames(domainClass);
 
-        results.forEach(d -> deleteDocument(d, partitionKeyName.orElse("")));
+        results.forEach(d -> deleteDocument(d, partitionKeyName));
 
         return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
     }
@@ -485,10 +476,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         feedOptions.setPageSize(pageable.getPageSize());
-        feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery(query, domainClass));
+        feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
-        final QuerySpecGenerator generator = new FindQuerySpecGenerator();
-        final SqlQuerySpec sqlQuerySpec = generator.generate(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
 
         final Iterator<Document> it = response.getQueryIterator();
@@ -516,9 +506,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public long count(String collectionName) {
         Assert.hasText(collectionName, "collectionName should not be empty");
 
-        final QuerySpecGenerator generator = new CountQueryGenerator();
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final SqlQuerySpec querySpec = generator.generate(query);
+        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
 
         return getCountValue(querySpec, true, collectionName);
     }
@@ -528,10 +517,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null");
         Assert.hasText(collectionName, "collectionName should not be empty");
 
-        final QuerySpecGenerator generator = new CountQueryGenerator();
-        final SqlQuerySpec querySpec = generator.generate(query);
+        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
 
-        return getCountValue(querySpec, isCrossPartitionQuery(query, domainClass), collectionName);
+        return getCountValue(querySpec, isCrossPartitionQuery, collectionName);
     }
 
     private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
@@ -572,13 +561,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<String> getPartitionKeyFieldName(Class<T> domainClass) {
+    private List<String> getPartitionKeyNames(Class<?> domainClass) {
         final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
 
         if (entityInfo.getPartitionKeyFieldName() == null) {
-            return Optional.empty();
+            return new ArrayList<>();
         }
 
-        return Optional.of(entityInfo.getPartitionKeyFieldName());
+        return Arrays.asList(entityInfo.getPartitionKeyFieldName());
     }
 }

@@ -45,6 +45,7 @@ public class ProjectRepositoryIT {
     private static final String CREATOR_3 = "creator-3";
     private static final String FAKE_CREATOR = "fake-creator";
 
+    private static final Long STAR_COUNT_MIN = -1L;
     private static final Long STAR_COUNT_0 = 0L;
     private static final Long STAR_COUNT_1 = 1L;
     private static final Long STAR_COUNT_2 = 2L;
@@ -233,6 +234,51 @@ public class ProjectRepositoryIT {
     }
 
     @Test
+    public void testFindByLessThan() {
+        List<Project> projects = repository.findByStarCountLessThan(STAR_COUNT_0);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByStarCountLessThan(STAR_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_4));
+    }
+
+    @Test
+    public void testFindByLessThanEqual() {
+        List<Project> projects = repository.findByForkCountLessThanEqual(STAR_COUNT_MIN);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByForkCountLessThanEqual(STAR_COUNT_2);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4));
+    }
+
+    @Test
+    public void testFindByLessThanAndGreaterThan() {
+        List<Project> projects = repository.findByStarCountLessThanAndForkCountGreaterThan(STAR_COUNT_0, FORK_COUNT_3);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByStarCountLessThanAndForkCountGreaterThan(STAR_COUNT_3, FORK_COUNT_0);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2));
+    }
+
+    @Test
+    public void testFindByLessThanEqualsAndGreaterThanEquals() {
+        List<Project> projects = repository.findByForkCountLessThanEqualAndStarCountGreaterThan(
+                STAR_COUNT_MIN, FORK_COUNT_0);
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByForkCountLessThanEqualAndStarCountGreaterThan(STAR_COUNT_3, FORK_COUNT_0);
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2, PROJECT_3));
+    }
+
+    @Test
     public void testFindByGreaterThanEqual() {
         List<Project> projects = repository.findByStarCountGreaterThanEqual(STAR_COUNT_MAX);
 
@@ -250,8 +296,6 @@ public class ProjectRepositoryIT {
         Assert.assertTrue(projects.isEmpty());
 
         projects = repository.findByForkCountGreaterThanEqualAndCreator(FORK_COUNT_0, CREATOR_0);
-
-        final List<Project> reference = Arrays.asList(PROJECT_0, PROJECT_4);
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }

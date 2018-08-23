@@ -7,9 +7,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,18 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigurationSupport {
+    public abstract DocumentDBConfig getConfig();
 
-    public abstract String getDatabase();
+    @Bean
+    public DocumentClient documentClient() {
+        final DocumentDBConfig config = getConfig();
 
-    public abstract DocumentClient documentClient();
+        this.telemetryProxy = new TelemetryProxy(config.isAllowTelemetry());
+        this.telemetryProxy.trackCustomEvent(this.getClass());
+
+        return new DocumentClient(config.getUri(), config.getKey(), config.getConnectionPolicy(),
+                config.getConsistencyLevel());
+    }
 
     @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
     @Autowired(required = false)
@@ -35,17 +45,13 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
 
     @Bean
     public DocumentDbTemplate documentDbTemplate() throws ClassNotFoundException {
-        return new DocumentDbTemplate(this.documentDbFactory(), this.mappingDocumentDbConverter(), this.getDatabase());
+        final DocumentDBConfig config = getConfig();
+        return new DocumentDbTemplate(this.documentDbFactory(), this.mappingDocumentDbConverter(),
+                config.getDatabase());
     }
 
     @Bean
     public MappingDocumentDbConverter mappingDocumentDbConverter() throws ClassNotFoundException {
         return new MappingDocumentDbConverter(this.documentDbMappingContext(), objectMapper);
     }
-
-    protected String getMappingBasePackage() {
-        final Package mappingBasePackage = getClass().getPackage();
-        return mappingBasePackage == null ? null : mappingBasePackage.getName();
-    }
-
 }

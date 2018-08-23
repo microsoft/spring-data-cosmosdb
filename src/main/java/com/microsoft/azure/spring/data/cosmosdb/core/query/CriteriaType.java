@@ -23,6 +23,8 @@ public enum CriteriaType {
     AND("AND"),
     BEFORE("<"),
     AFTER(">"),
+    LESS_THAN("<"),
+    LESS_THAN_EQUAL("<="),
     GREATER_THAN(">"),
     GREATER_THAN_EQUAL(">=");
 
@@ -40,6 +42,8 @@ public enum CriteriaType {
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
+        map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
+        map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
@@ -101,6 +105,8 @@ public enum CriteriaType {
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
+            case LESS_THAN:
+            case LESS_THAN_EQUAL:
             case GREATER_THAN:
             case GREATER_THAN_EQUAL:
                 return true;
