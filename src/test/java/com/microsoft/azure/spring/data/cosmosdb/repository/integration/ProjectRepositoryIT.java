@@ -314,4 +314,56 @@ public class ProjectRepositoryIT {
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
     }
+
+    @Test
+    public void testFindByInWithAnd() {
+        List<Project> projects = repository.findByCreatorInAndStarCountIn(Arrays.asList(CREATOR_0, CREATOR_1),
+                Arrays.asList(STAR_COUNT_2, STAR_COUNT_3));
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByCreatorInAndStarCountIn(Arrays.asList(CREATOR_0, CREATOR_1),
+                Arrays.asList(STAR_COUNT_0, STAR_COUNT_2));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
+
+        projects = repository.findByCreatorInAndStarCountIn(Arrays.asList(CREATOR_0, CREATOR_1, CREATOR_2),
+                Arrays.asList(STAR_COUNT_0, STAR_COUNT_1, STAR_COUNT_2));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_4));
+    }
+
+    @Test
+    public void testFindByNotIn() {
+        List<Project> projects = repository.findByCreatorNotIn(
+                Arrays.asList(CREATOR_0, CREATOR_1, CREATOR_2, CREATOR_3));
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByCreatorNotIn(Arrays.asList(CREATOR_1, CREATOR_2));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_3, PROJECT_4));
+
+        projects = repository.findByCreatorNotIn(Arrays.asList(CREATOR_0, FAKE_CREATOR));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2, PROJECT_3));
+    }
+
+    @Test
+    public void testFindByInWithNotIn() {
+        List<Project> projects = repository.findByCreatorInAndStarCountNotIn(Collections.singletonList(FAKE_CREATOR),
+                Arrays.asList(STAR_COUNT_2, STAR_COUNT_3));
+
+        Assert.assertTrue(projects.isEmpty());
+
+        projects = repository.findByCreatorInAndStarCountNotIn(Arrays.asList(CREATOR_0, CREATOR_1),
+                Arrays.asList(STAR_COUNT_0, STAR_COUNT_2));
+
+        assertProjectListEquals(projects, Collections.singletonList(PROJECT_1));
+
+        projects = repository.findByCreatorInAndStarCountNotIn(Arrays.asList(CREATOR_0, CREATOR_1, CREATOR_2),
+                Arrays.asList(STAR_COUNT_1, STAR_COUNT_2));
+
+        assertProjectListEquals(projects, Arrays.asList(PROJECT_0, PROJECT_4));
+    }
 }

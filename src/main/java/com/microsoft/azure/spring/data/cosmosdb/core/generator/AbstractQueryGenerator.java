@@ -48,8 +48,7 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", left, type.getSqlKeyword(), right);
     }
 
-    private String generateINQuery(Criteria criteria) {
-        Assert.isTrue(CriteriaType.IN.equals(criteria.getType()), "Criteria type should be IN.");
+    private String generateInQuery(Criteria criteria) {
         Assert.isTrue(criteria.getSubjectValues().size() == 1, "Criteria should have only one subject value");
 
         if (!(criteria.getSubjectValues().get(0) instanceof Collection)) {
@@ -61,13 +60,19 @@ public abstract class AbstractQueryGenerator {
 
         values.forEach(o -> {
             if (o instanceof Integer || o instanceof Long) {
-                inRangeValues.add(String.format("%d", (Long) o));
+                inRangeValues.add(String.format("%d", o));
+            } else if (o instanceof String) {
+                inRangeValues.add(String.format("'%s'", (String) o));
+            } else if (o instanceof Boolean) {
+                inRangeValues.add(String.format("%b", (Boolean) o));
             } else {
-                inRangeValues.add(String.format("'%s'", o.toString()));
+                throw new IllegalQueryException("IN keyword Range only support Number and String type.");
             }
         });
 
-        return String.format("r.%s IN (%s)", criteria.getSubject(), String.join(",", inRangeValues));
+        final String inRange = String.join(",", inRangeValues);
+
+        return String.format("r.%s %s (%s)", criteria.getSubject(), criteria.getType().getSqlKeyword(), inRange);
     }
 
     private String generateQueryBody(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
@@ -77,7 +82,8 @@ public abstract class AbstractQueryGenerator {
             case ALL:
                 return "";
             case IN:
-                return this.generateINQuery(criteria);
+            case NOT_IN:
+                return this.generateInQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
             case AFTER:

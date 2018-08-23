@@ -24,6 +24,7 @@ public enum CriteriaType {
     BEFORE("<"),
     AFTER(">"),
     IN("IN"),
+    NOT_IN("NOT IN"),
     LESS_THAN("<"),
     LESS_THAN_EQUAL("<="),
     GREATER_THAN(">"),
@@ -42,6 +43,7 @@ public enum CriteriaType {
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
         map.put(Part.Type.IN, CriteriaType.IN);
+        map.put(Part.Type.NOT_IN, CriteriaType.NOT_IN);
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
         map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
@@ -104,6 +106,8 @@ public enum CriteriaType {
      */
     public static boolean isUnary(CriteriaType type) {
         switch (type) {
+            case IN:
+            case NOT_IN:
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
