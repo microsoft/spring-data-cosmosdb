@@ -61,7 +61,7 @@ public class AbstractDocumentDbConfiguratinUnitTest {
 
         @Override
         public DocumentDBConfig getConfig() {
-            return new DocumentDBConfig.Builder("fake-uri", "fake-key", TestConstants.DB_NAME).build();
+            return DocumentDBConfig.builder("fake-uri", "fake-key", TestConstants.DB_NAME).build();
         }
 
         @Override

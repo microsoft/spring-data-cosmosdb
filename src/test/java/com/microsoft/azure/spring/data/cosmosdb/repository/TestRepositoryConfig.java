@@ -27,6 +27,6 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
 
     @Override
     public DocumentDBConfig getConfig() {
-        return new DocumentDBConfig.Builder(documentDbUri, documentDbKey, database).build();
+        return DocumentDBConfig.builder(documentDbUri, documentDbKey, database).build();
     }
 }

@@ -7,68 +7,30 @@ package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
+import lombok.Builder;
 import lombok.Getter;
 
+@Getter
+@Builder(builderMethodName = "hiddenBuilder")
 public class DocumentDBConfig {
-    @Getter
     private String uri;
 
-    @Getter
     private String key;
 
-    @Getter
     private String database;
 
-    @Getter
     private ConnectionPolicy connectionPolicy;
 
-    @Getter
     private ConsistencyLevel consistencyLevel;
 
-    @Getter
     private boolean allowTelemetry;
 
-    public static class Builder {
-        private final String uri;
-        private final String key;
-        private final String database;
-
-        private ConnectionPolicy connectionPolicy = ConnectionPolicy.GetDefault();
-        private ConsistencyLevel consistencyLevel = ConsistencyLevel.Session;
-        private boolean allowTelemetry = true;
-
-        public Builder(String uri, String key, String database) {
-            this.uri = uri;
-            this.key = key;
-            this.database = database;
-        }
-
-        public Builder connectionPolicy(ConnectionPolicy policy) {
-            this.connectionPolicy = policy;
-            return this;
-        }
-
-        public Builder consistencyLevel(ConsistencyLevel level) {
-            this.consistencyLevel = level;
-            return this;
-        }
-
-        public Builder allowTelemetry(boolean allowTelemetry) {
-            this.allowTelemetry = allowTelemetry;
-            return this;
-        }
-
-        public DocumentDBConfig build() {
-            return new DocumentDBConfig(this);
-        }
-    }
-
-    private DocumentDBConfig(Builder builder) {
-        this.uri = builder.uri;
-        this.key = builder.key;
-        this.database = builder.database;
-        this.connectionPolicy = builder.connectionPolicy;
-        this.consistencyLevel = builder.consistencyLevel;
-        this.allowTelemetry = builder.allowTelemetry;
+    public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
+        return hiddenBuilder()
+                .uri(uri)
+                .key(key)
+                .database(database)
+                .connectionPolicy(ConnectionPolicy.GetDefault())
+                .consistencyLevel(ConsistencyLevel.Session);
     }
 }
