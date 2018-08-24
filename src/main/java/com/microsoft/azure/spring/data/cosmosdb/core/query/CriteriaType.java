@@ -31,8 +31,8 @@ public enum CriteriaType {
     GREATER_THAN_EQUAL(">="),
     CONTAINING("CONTAINS"),
     ENDS_WITH("ENDSWITH"),
-    TRUE("true"),
-    FALSE("false");
+    TRUE("= true"),
+    FALSE("= false");
 
     @Getter
     private String sqlKeyword;
@@ -127,7 +127,6 @@ public enum CriteriaType {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
-
                 return true;
             default:
                 return false;
@@ -160,8 +159,8 @@ public enum CriteriaType {
         switch (type) {
             case IS_NULL:
             case IS_NOT_NULL:
-                case TRUE:
-                    case FALSE:
+            case TRUE:
+            case FALSE:
                 return true;
             default:
                 return false;

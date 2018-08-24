@@ -33,8 +33,14 @@ public abstract class AbstractQueryGenerator {
         Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
 
         final String subject = criteria.getSubject();
-
-        return String.format("%s(r.%s)", criteria.getType().getSqlKeyword(), subject);
+        final CriteriaType criteriaType = criteria.getType();
+        switch (criteriaType) {
+            case TRUE:
+            case FALSE:
+                return String.format("r.%s %s", subject, criteria.getType().getSqlKeyword());
+            default:
+                return String.format("%s(r.%s)", criteria.getType().getSqlKeyword(), subject);
+        }
     }
 
     private String generateBinaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
@@ -68,6 +74,8 @@ public abstract class AbstractQueryGenerator {
                 return "";
             case IS_NULL:
             case IS_NOT_NULL:
+            case FALSE:
+            case TRUE:
                 return generateUnaryQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
