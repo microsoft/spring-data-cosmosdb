@@ -19,7 +19,7 @@ public class DocumentQueryUnitTest {
 
     @Test
     public void testDocumentQueryCreate() {
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY,
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY,
                 Arrays.asList(CRITERIA_OBJECT));
 
         final DocumentQuery query = new DocumentQuery(criteria);

@@ -19,27 +19,27 @@ public class CriteriaUnitTest {
     @Test
     public void testUnaryCriteria() {
         final List<Object> values = Arrays.asList(CRITERIA_OBJECT);
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
 
         Assert.assertTrue(criteria.getSubCriteria().isEmpty());
         Assert.assertEquals(criteria.getSubjectValues(), values);
         Assert.assertEquals(criteria.getType(), CriteriaType.IS_EQUAL);
         Assert.assertEquals(criteria.getSubject(), CRITERIA_KEY);
-        Assert.assertTrue(CriteriaType.isUnary(criteria.getType()));
+        Assert.assertTrue(CriteriaType.isBinary(criteria.getType()));
     }
 
     @Test
     public void testBinaryCriteria() {
         final List<Object> values = Arrays.asList(CRITERIA_OBJECT);
-        final Criteria leftCriteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
-        final Criteria rightCriteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, CRITERIA_OBJECT, values);
-        final Criteria criteria = Criteria.getBinaryInstance(CriteriaType.AND, leftCriteria, rightCriteria);
+        final Criteria leftCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
+        final Criteria rightCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_OBJECT, values);
+        final Criteria criteria = Criteria.getInstance(CriteriaType.AND, leftCriteria, rightCriteria);
 
         Assert.assertNotNull(criteria.getSubCriteria());
         Assert.assertNull(criteria.getSubjectValues());
         Assert.assertNull(criteria.getSubject());
         Assert.assertEquals(criteria.getType(), CriteriaType.AND);
-        Assert.assertTrue(CriteriaType.isBinary(criteria.getType()));
+        Assert.assertTrue(CriteriaType.isClosed(criteria.getType()));
 
         Assert.assertEquals(criteria.getSubCriteria().size(), 2);
         Assert.assertEquals(criteria.getSubCriteria().get(0), leftCriteria);

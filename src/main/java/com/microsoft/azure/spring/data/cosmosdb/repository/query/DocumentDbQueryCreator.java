@@ -63,19 +63,19 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
             values.add(parameters.next());
         }
 
-        return Criteria.getUnaryInstance(CriteriaType.toCriteriaType(type), subject, values);
+        return Criteria.getInstance(CriteriaType.toCriteriaType(type), subject, values);
     }
 
     @Override
     protected Criteria and(@NonNull Part part, @NonNull Criteria base, @NonNull Iterator<Object> parameters) {
         final Criteria right = this.create(part, parameters);
 
-        return Criteria.getBinaryInstance(CriteriaType.AND, base, right);
+        return Criteria.getInstance(CriteriaType.AND, base, right);
     }
 
     @Override
     protected Criteria or(@NonNull Criteria base, @NonNull Criteria criteria) {
-        return Criteria.getBinaryInstance(CriteriaType.OR, base, criteria);
+        return Criteria.getInstance(CriteriaType.OR, base, criteria);
     }
 
     @Override
