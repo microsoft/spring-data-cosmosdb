@@ -187,7 +187,7 @@ public class DocumentDbTemplateIT {
     public void testCountByQuery() {
         dbTemplate.insert(TEST_PERSON_2, null);
 
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
@@ -214,7 +214,7 @@ public class DocumentDbTemplateIT {
     public void testPaginationQuery() {
         dbTemplate.insert(TEST_PERSON_2, null);
 
-        final Criteria criteria = Criteria.getUnaryInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);

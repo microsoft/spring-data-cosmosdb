@@ -62,4 +62,12 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
     List<Project> findByCreatorNotIn(Collection<String> creators);
 
     List<Project> findByCreatorInAndStarCountNotIn(Collection<String> creators, Collection<Long> starCounts);
+
+    List<Project> findByNameIsNull();
+
+    List<Project> findByNameIsNullAndForkCount(Long forkCount);
+
+    List<Project> findByNameIsNotNull();
+
+    List<Project> findByNameIsNotNullAndHasReleased(boolean hasReleased);
 }

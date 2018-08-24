@@ -25,6 +25,8 @@ public enum CriteriaType {
     AFTER(">"),
     IN("IN"),
     NOT_IN("NOT IN"),
+    IS_NULL("IS_NULL"),
+    IS_NOT_NULL("NOT IS_NULL"),
     LESS_THAN("<"),
     LESS_THAN_EQUAL("<="),
     GREATER_THAN(">"),
@@ -41,6 +43,8 @@ public enum CriteriaType {
     static {
         final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
+        map.put(Part.Type.IS_NULL, CriteriaType.IS_NULL);
+        map.put(Part.Type.IS_NOT_NULL, CriteriaType.IS_NOT_NULL);
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
@@ -87,12 +91,13 @@ public enum CriteriaType {
     }
 
     /**
-     * Check if CriteriaType operation contains two subjects.
+     * Check if CriteriaType operation is closure, with format of (A ops A -> A).
+     * Example: AND, OR.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
-    public static boolean isBinary(CriteriaType type) {
+    public static boolean isClosed(CriteriaType type) {
         switch (type) {
             case AND:
             case OR:
@@ -103,15 +108,18 @@ public enum CriteriaType {
     }
 
     /**
-     * Check if CriteriaType operation contains only one subjects.
+     * Check if CriteriaType operation is binary, with format of (A ops A -> B).
+     * Example: IS_EQUAL, AFTER.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
-    public static boolean isUnary(CriteriaType type) {
+    public static boolean isBinary(CriteriaType type) {
         switch (type) {
             case IN:
             case NOT_IN:
+            case AND:
+            case OR:
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -131,12 +139,28 @@ public enum CriteriaType {
      * Check if CriteriaType operation is a function.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
     public static boolean isFunction(CriteriaType type) {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if CriteriaType operation is unary, with format of (ops A -> B).
+     *
+     * @param type
+     * @return True if match, or false.
+     */
+    public static boolean isUnary(CriteriaType type) {
+        switch (type) {
+            case IS_NULL:
+            case IS_NOT_NULL:
                 return true;
             default:
                 return false;
