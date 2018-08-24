@@ -32,7 +32,9 @@ public enum CriteriaType {
     GREATER_THAN(">"),
     GREATER_THAN_EQUAL(">="),
     CONTAINING("CONTAINS"),
-    ENDS_WITH("ENDSWITH");
+    ENDS_WITH("ENDSWITH"),
+    TRUE("= true"),
+    FALSE("= false");
 
     @Getter
     private String sqlKeyword;
@@ -56,6 +58,8 @@ public enum CriteriaType {
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
         map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
         map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
+        map.put(Part.Type.TRUE, CriteriaType.TRUE);
+        map.put(Part.Type.FALSE, CriteriaType.FALSE);
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
@@ -145,6 +149,8 @@ public enum CriteriaType {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+            case IS_NULL:
+            case IS_NOT_NULL:
                 return true;
             default:
                 return false;
@@ -161,6 +167,8 @@ public enum CriteriaType {
         switch (type) {
             case IS_NULL:
             case IS_NOT_NULL:
+            case TRUE:
+            case FALSE:
                 return true;
             default:
                 return false;
