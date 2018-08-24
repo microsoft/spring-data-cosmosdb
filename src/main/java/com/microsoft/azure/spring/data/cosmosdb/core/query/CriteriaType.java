@@ -87,10 +87,11 @@ public enum CriteriaType {
     }
 
     /**
-     * Check if CriteriaType operation contains two subjects.
+     * Check if CriteriaType operation is closure, with format of (A ops A -> A).
+     * Example: AND, OR.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
     public static boolean isClosed(CriteriaType type) {
         switch (type) {
@@ -103,10 +104,11 @@ public enum CriteriaType {
     }
 
     /**
-     * Check if CriteriaType operation contains only one subjects.
+     * Check if CriteriaType operation is binary, with format of (A ops A -> B).
+     * Example: IS_EQUAL, AFTER.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
     public static boolean isBinary(CriteriaType type) {
         switch (type) {
@@ -131,7 +133,7 @@ public enum CriteriaType {
      * Check if CriteriaType operation is a function.
      *
      * @param type
-     * @return True if contains, or false.
+     * @return True if match, or false.
      */
     public static boolean isFunction(CriteriaType type) {
         switch (type) {
@@ -143,6 +145,12 @@ public enum CriteriaType {
         }
     }
 
+    /**
+     * Check if CriteriaType operation is unary, with format of (ops A -> B).
+     *
+     * @param type
+     * @return True if match, or false.
+     */
     public static boolean isUnary(CriteriaType type) {
         switch (type) {
             case IS_NULL:

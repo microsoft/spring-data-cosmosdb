@@ -38,8 +38,8 @@ public abstract class AbstractQueryGenerator {
     }
 
     private String generateBinaryQuery(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
-        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Unary criteria should have only one subject value");
-        Assert.isTrue(CriteriaType.isBinary(criteria.getType()), "Criteria type should be unary operation");
+        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Binary criteria should have only one subject value");
+        Assert.isTrue(CriteriaType.isBinary(criteria.getType()), "Criteria type should be binary operation");
 
         final String subject = criteria.getSubject();
         final Object subjectValue = toDocumentDBValue(criteria.getSubjectValues().get(0));
@@ -68,7 +68,7 @@ public abstract class AbstractQueryGenerator {
                 return "";
             case IS_NULL:
             case IS_NOT_NULL:
-                return this.generateUnaryQuery(criteria);
+                return generateUnaryQuery(criteria);
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -78,7 +78,7 @@ public abstract class AbstractQueryGenerator {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
-                return this.generateBinaryQuery(criteria, parameters);
+                return generateBinaryQuery(criteria, parameters);
             case AND:
             case OR:
                 Assert.isTrue(criteria.getSubCriteria().size() == 2, "criteria should have two SubCriteria");

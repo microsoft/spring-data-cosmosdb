@@ -70,12 +70,12 @@ public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, 
     protected Criteria and(@NonNull Part part, @NonNull Criteria base, @NonNull Iterator<Object> parameters) {
         final Criteria right = this.create(part, parameters);
 
-        return Criteria.getClosedInstance(CriteriaType.AND, base, right);
+        return Criteria.getInstance(CriteriaType.AND, base, right);
     }
 
     @Override
     protected Criteria or(@NonNull Criteria base, @NonNull Criteria criteria) {
-        return Criteria.getClosedInstance(CriteriaType.OR, base, criteria);
+        return Criteria.getInstance(CriteriaType.OR, base, criteria);
     }
 
     @Override

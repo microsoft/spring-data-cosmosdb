@@ -33,7 +33,7 @@ public class CriteriaUnitTest {
         final List<Object> values = Arrays.asList(CRITERIA_OBJECT);
         final Criteria leftCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
         final Criteria rightCriteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_OBJECT, values);
-        final Criteria criteria = Criteria.getClosedInstance(CriteriaType.AND, leftCriteria, rightCriteria);
+        final Criteria criteria = Criteria.getInstance(CriteriaType.AND, leftCriteria, rightCriteria);
 
         Assert.assertNotNull(criteria.getSubCriteria());
         Assert.assertNull(criteria.getSubjectValues());
