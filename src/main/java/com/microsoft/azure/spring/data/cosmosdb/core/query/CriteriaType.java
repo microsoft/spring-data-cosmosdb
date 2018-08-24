@@ -143,6 +143,8 @@ public enum CriteriaType {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+            case IS_NULL:
+            case IS_NOT_NULL:
                 return true;
             default:
                 return false;

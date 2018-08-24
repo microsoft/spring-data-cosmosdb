@@ -31,15 +31,12 @@ public abstract class AbstractQueryGenerator {
     private String generateUnaryQuery(@NonNull Criteria criteria) {
         Assert.isTrue(criteria.getSubjectValues().isEmpty(), "Unary criteria should have no one subject value");
         Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
-
         final String subject = criteria.getSubject();
-        final CriteriaType criteriaType = criteria.getType();
-        switch (criteriaType) {
-            case TRUE:
-            case FALSE:
-                return String.format("r.%s %s", subject, criteria.getType().getSqlKeyword());
-            default:
-                return String.format("%s(r.%s)", criteria.getType().getSqlKeyword(), subject);
+
+        if (CriteriaType.isFunction(criteria.getType())) {
+            return String.format("%s(r.%s)", criteria.getType().getSqlKeyword(), subject);
+        } else {
+            return String.format("r.%s %s", subject, criteria.getType().getSqlKeyword());
         }
     }
 

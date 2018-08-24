@@ -386,7 +386,6 @@ public class ProjectRepositoryIT {
         this.repository.save(new Project("id-999", null, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0));
 
         projects = repository.findByNameIsNotNullAndHasReleased(true);
-
         Assert.assertTrue(projects.isEmpty());
     }
 }
