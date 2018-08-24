@@ -55,7 +55,7 @@ public class Application {
     public void setup() {
         this.repository.save(user);
         this.repository.findByEmailOrName(this.user.getEmail(), this.user.getName());
-        this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "name")));
+        this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count")));
         this.repository.findByNameIn(Arrays.asList(this.user.getName(), "fake-name"));
     }
 

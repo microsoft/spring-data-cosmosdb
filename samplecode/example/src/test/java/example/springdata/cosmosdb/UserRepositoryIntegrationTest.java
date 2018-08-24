@@ -99,15 +99,15 @@ public class UserRepositoryIntegrationTest {
 
         resultList = this.repository.findByEmailOrName(user.getEmail(), user.getName());
         result = resultList.get(0);
-        Assert.isTrue(result.getId() == user.getId(), "should be the same Id");
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
         resultList = this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count")));
         result = resultList.get(0);
-        Assert.isTrue(result.getId() == user.getId(), "should be the same Id");
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
         resultList = this.repository.findByNameIn(Arrays.asList(user.getName(), "fake-name"));
         result = resultList.get(0);
-        Assert.isTrue(result.getId() == user.getId(), "should be the same Id");
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
     }
 }
 
