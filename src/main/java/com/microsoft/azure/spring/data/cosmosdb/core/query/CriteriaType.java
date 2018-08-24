@@ -34,7 +34,8 @@ public enum CriteriaType {
     CONTAINING("CONTAINS"),
     ENDS_WITH("ENDSWITH"),
     TRUE("= true"),
-    FALSE("= false");
+    FALSE("= false"),
+    BETWEEN("BETWEEN");
 
     @Getter
     private String sqlKeyword;
@@ -60,6 +61,7 @@ public enum CriteriaType {
         map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
         map.put(Part.Type.TRUE, CriteriaType.TRUE);
         map.put(Part.Type.FALSE, CriteriaType.FALSE);
+        map.put(Part.Type.BETWEEN, CriteriaType.BETWEEN);
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }

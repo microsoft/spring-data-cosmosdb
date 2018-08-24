@@ -34,6 +34,9 @@ public class MemoRepositoryIT {
     private static Date memoDate;
     private static Date memoDateBefore;
     private static Date memoDateAfter;
+    private static Date futureDate1;
+    private static Date futureDate2;
+
     private static Memo testMemo1;
     private static Memo testMemo2;
     private static Memo testMemo3;
@@ -46,6 +49,8 @@ public class MemoRepositoryIT {
         memoDate = DATE_FORMAT.parse(TestConstants.DATE_STRING);
         memoDateBefore = DATE_FORMAT.parse(TestConstants.DATE_BEFORE_STRING);
         memoDateAfter = DATE_FORMAT.parse(TestConstants.DATE_AFTER_STRING);
+        futureDate1 = DATE_FORMAT.parse(TestConstants.DATE_FUTURE_STRING_1);
+        futureDate2 = DATE_FORMAT.parse(TestConstants.DATE_FUTURE_STRING_2);
         testMemo1 = new Memo(TestConstants.ID_1, TestConstants.MESSAGE, memoDateBefore, Importance.HIGH);
         testMemo2 = new Memo(TestConstants.ID_2, TestConstants.NEW_MESSAGE, memoDate, Importance.LOW);
         testMemo3 = new Memo(TestConstants.ID_3, TestConstants.NEW_MESSAGE, memoDateAfter, Importance.LOW);
@@ -168,6 +173,47 @@ public class MemoRepositoryIT {
         memos = this.repository.findByDateAfterOrMessage(memoDateBefore, TestConstants.MESSAGE);
         final List<Memo> reference = Arrays.asList(testMemo1, testMemo2, testMemo3);
 
+        memos.sort(Comparator.comparing(Memo::getId));
+        reference.sort(Comparator.comparing(Memo::getId));
+
+        Assert.assertEquals(memos.size(), reference.size());
+        Assert.assertEquals(memos, reference);
+    }
+
+    @Test
+    public void testFindByBetween() {
+        List<Memo> memos = this.repository
+                .findByDateBetween(testMemo1.getDate(), testMemo3.getDate());
+        List<Memo> reference = Arrays.asList(testMemo1, testMemo2, testMemo3);
+
+        assertMemoListEquals(memos, reference);
+
+        memos = this.repository.findByDateBetween(testMemo1.getDate(), testMemo2.getDate());
+        reference = Arrays.asList(testMemo1, testMemo2);
+
+        assertMemoListEquals(memos, reference);
+
+        memos = this.repository.findByDateBetween(futureDate1, futureDate2);
+        reference = Arrays.asList();
+
+        assertMemoListEquals(memos, reference);
+    }
+
+    @Test
+    public void testFindByBetweenWithAnd() {
+        List<Memo> memos = this.repository
+                .findByDateBetweenAndMessage(testMemo1.getDate(), testMemo2.getDate(), TestConstants.MESSAGE);
+        assertMemoListEquals(memos, Arrays.asList(testMemo1));
+    }
+
+    @Test
+    public void testFindByBetweenWithOr() {
+        List<Memo> memos = this.repository
+                .findByDateBetweenOrMessage(testMemo1.getDate(), testMemo2.getDate(), TestConstants.NEW_MESSAGE);
+        assertMemoListEquals(memos, Arrays.asList(testMemo1, testMemo2, testMemo3));
+    }
+
+    private void assertMemoListEquals(List<Memo> memos, List<Memo> reference) {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
