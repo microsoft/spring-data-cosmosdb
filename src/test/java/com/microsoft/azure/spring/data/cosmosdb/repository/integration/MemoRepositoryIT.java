@@ -201,14 +201,14 @@ public class MemoRepositoryIT {
 
     @Test
     public void testFindByBetweenWithAnd() {
-        List<Memo> memos = this.repository
+        final List<Memo> memos = this.repository
                 .findByDateBetweenAndMessage(testMemo1.getDate(), testMemo2.getDate(), TestConstants.MESSAGE);
         assertMemoListEquals(memos, Arrays.asList(testMemo1));
     }
 
     @Test
     public void testFindByBetweenWithOr() {
-        List<Memo> memos = this.repository
+        final List<Memo> memos = this.repository
                 .findByDateBetweenOrMessage(testMemo1.getDate(), testMemo2.getDate(), TestConstants.NEW_MESSAGE);
         assertMemoListEquals(memos, Arrays.asList(testMemo1, testMemo2, testMemo3));
     }
