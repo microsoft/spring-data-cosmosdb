@@ -5,10 +5,13 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.CRITERIA_KEY;
@@ -44,5 +47,23 @@ public class CriteriaUnitTest {
         Assert.assertEquals(criteria.getSubCriteria().size(), 2);
         Assert.assertEquals(criteria.getSubCriteria().get(0), leftCriteria);
         Assert.assertEquals(criteria.getSubCriteria().get(1), rightCriteria);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testInvalidInKeywordParameter() {
+        final List<Object> values = Collections.singletonList(CRITERIA_OBJECT);
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IN, CRITERIA_KEY, values);
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        new FindQuerySpecGenerator().generate(query);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testInvalidInKeywordType() {
+        final List<Object> values = Collections.singletonList(new IllegalQueryException(""));
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IN, CRITERIA_KEY, values);
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        new FindQuerySpecGenerator().generate(query);
     }
 }

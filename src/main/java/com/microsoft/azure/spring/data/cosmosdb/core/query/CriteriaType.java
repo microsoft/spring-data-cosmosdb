@@ -23,6 +23,8 @@ public enum CriteriaType {
     AND("AND"),
     BEFORE("<"),
     AFTER(">"),
+    IN("IN"),
+    NOT_IN("NOT IN"),
     IS_NULL("IS_NULL"),
     IS_NOT_NULL("NOT IS_NULL"),
     LESS_THAN("<"),
@@ -46,6 +48,8 @@ public enum CriteriaType {
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
         map.put(Part.Type.BEFORE, CriteriaType.BEFORE);
         map.put(Part.Type.AFTER, CriteriaType.AFTER);
+        map.put(Part.Type.IN, CriteriaType.IN);
+        map.put(Part.Type.NOT_IN, CriteriaType.NOT_IN);
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.CONTAINING, CriteriaType.CONTAINING);
         map.put(Part.Type.ENDING_WITH, CriteriaType.ENDS_WITH);
@@ -112,6 +116,8 @@ public enum CriteriaType {
      */
     public static boolean isBinary(CriteriaType type) {
         switch (type) {
+            case IN:
+            case NOT_IN:
             case AND:
             case OR:
             case IS_EQUAL:

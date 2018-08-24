@@ -55,7 +55,12 @@ public class DocumentQuery {
 
         final Optional<Criteria> criteria = this.getSubjectCriteria(this.criteria, keyName);
 
-        return criteria.map(criteria1 -> criteria1.getType() == CriteriaType.IS_EQUAL).orElse(true);
+        return criteria.map(criteria1 -> criteria1.getType() != CriteriaType.IS_EQUAL).orElse(true);
+    }
+
+    private boolean hasKeywordOr() {
+        // If there is OR keyword in DocumentQuery, the top node of Criteria must be OR type.
+        return this.criteria.getType() == CriteriaType.OR;
     }
 
     /**
@@ -75,7 +80,7 @@ public class DocumentQuery {
             }
         }
 
-        return false;
+        return this.hasKeywordOr();
     }
 
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
