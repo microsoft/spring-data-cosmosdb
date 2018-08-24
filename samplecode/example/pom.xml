@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.microsoft.azure</groupId>
 			<artifactId>spring-data-cosmosdb</artifactId>
-			<version>2.0.3</version>
+			<version>2.0.4</version>
 		</dependency>
 
 		<dependency>
@@ -60,7 +60,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>example.springdata.documentdb.Application</mainClass>
+							<mainClass>example.springdata.cosmosdb.Application</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
