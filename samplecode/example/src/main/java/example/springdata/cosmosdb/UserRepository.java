@@ -17,6 +17,8 @@
 package example.springdata.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
@@ -37,5 +39,7 @@ public interface UserRepository extends DocumentDbRepository<User, String> {
     List<User> findByCount(Long count, Sort sort);
 
     List<User> findByNameIn(Collection<String> names);
+
+    Page<User> findByAddress(Address address, Pageable pageable);
 }
 
