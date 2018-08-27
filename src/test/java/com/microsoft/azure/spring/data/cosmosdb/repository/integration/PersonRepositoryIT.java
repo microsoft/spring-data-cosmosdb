@@ -51,15 +51,15 @@ public class PersonRepositoryIT {
     @Autowired
     private PersonRepository repository;
 
-    @Before
-    public void setup() {
-        this.repository.saveAll(PEOPLE);
-    }
+//    @Before
+//    public void setup() {
+//        this.repository.saveAll(PEOPLE);
+//    }
 
-    @After
-    public void cleanup() {
-        this.repository.deleteAll();
-    }
+//    @After
+//    public void cleanup() {
+//        this.repository.deleteAll();
+//    }
 
     @Test
     public void testFindByContaining() {
@@ -88,6 +88,46 @@ public class PersonRepositoryIT {
         final List<Person> people = repository.findByFirstNameEndsWith("en");
         final List<Person> reference = Arrays.asList(PERSON_3);
 
+        people.sort(Comparator.comparing(Person::getId));
+        reference.sort(Comparator.comparing(Person::getId));
+
+        Assert.assertEquals(people, reference);
+    }
+
+    @Test
+    public void testFindByStartsWith() {
+        List<Person> people = repository.findByFirstNameStartsWith("Z");
+
+        assertPeopleEquals(people, Arrays.asList(PERSON_2, PERSON_3));
+
+        people = repository.findByLastNameStartsWith("C");
+
+        assertPeopleEquals(people, Arrays.asList(PERSON_0, PERSON_1));
+    }
+
+    @Test
+    public void testFindByStartsWithAndEndsWith() {
+        List<Person> people = repository.findByFirstNameStartsWithAndLastNameEndingWith("Z", "H");
+
+        assertPeopleEquals(people, Arrays.asList(PERSON_3));
+
+        people = repository.findByFirstNameStartsWithAndLastNameEndingWith("Z", "en");
+
+        assertPeopleEquals(people, Arrays.asList());
+    }
+
+    @Test
+    public void testFindByStartsWithOrContaining() {
+        List<Person> people = repository.findByFirstNameStartsWithOrLastNameContaining("Zhen", "C");
+
+        assertPeopleEquals(people, PEOPLE);
+
+        people = repository.findByFirstNameStartsWithOrLastNameContaining("M", "N");
+
+        assertPeopleEquals(people, Arrays.asList(PERSON_0, PERSON_2));
+    }
+
+    private void assertPeopleEquals(List<Person> people, List<Person> reference) {
         people.sort(Comparator.comparing(Person::getId));
         reference.sort(Comparator.comparing(Person::getId));
 

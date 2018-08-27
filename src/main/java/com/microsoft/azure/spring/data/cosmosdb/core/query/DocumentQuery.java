@@ -132,4 +132,13 @@ public class DocumentQuery {
             throw new IllegalQueryException("order by String must enable indexing with Range and max Precision.");
         }
     }
+
+    public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartswith) {
+        final Field[] fields = FieldUtils.getAllFields(domainClass);
+        final Optional<Field> field = Arrays.stream(fields)
+                .filter(f -> f.getName().equals(this.criteria.getSubject())).findFirst();
+        if (field.get().getType() == String.class && !isCollectionSupportStartswith) {
+            throw new IllegalQueryException("STARTSWITH keyword must enable indexing with Range and max Precision.");
+        }
+    }
 }

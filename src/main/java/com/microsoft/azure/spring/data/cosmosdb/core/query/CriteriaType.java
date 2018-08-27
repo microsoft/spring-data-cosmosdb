@@ -33,6 +33,7 @@ public enum CriteriaType {
     GREATER_THAN_EQUAL(">="),
     CONTAINING("CONTAINS"),
     ENDS_WITH("ENDSWITH"),
+    STARTS_WITH("STARTSWITH"),
     TRUE("= true"),
     FALSE("= false"),
     BETWEEN("BETWEEN");
@@ -56,6 +57,7 @@ public enum CriteriaType {
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.CONTAINING, CriteriaType.CONTAINING);
         map.put(Part.Type.ENDING_WITH, CriteriaType.ENDS_WITH);
+        map.put(Part.Type.STARTING_WITH, CriteriaType.STARTS_WITH);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
         map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
         map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
@@ -135,6 +137,7 @@ public enum CriteriaType {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
                 return true;
             default:
                 return false;
@@ -151,6 +154,7 @@ public enum CriteriaType {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
             case IS_NULL:
             case IS_NOT_NULL:
                 return true;

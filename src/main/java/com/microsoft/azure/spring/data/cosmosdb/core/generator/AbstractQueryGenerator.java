@@ -128,6 +128,7 @@ public abstract class AbstractQueryGenerator {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
                 return generateBinaryQuery(criteria, parameters);
             case AND:
             case OR:

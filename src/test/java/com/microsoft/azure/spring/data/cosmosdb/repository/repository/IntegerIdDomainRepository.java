@@ -9,7 +9,10 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface IntegerIdDomainRepository extends DocumentDbRepository<IntegerIdDomain, Integer> {
 
+    List<IntegerIdDomain> findByNameStartsWith(String name);
 }

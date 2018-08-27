@@ -382,6 +382,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
             query.validateSort(domainClass, isCollectionSupportSortByString(getDocCollection(collectionName)));
         }
+        if (query.getCriteria().getType().equals(CriteriaType.STARTS_WITH)) {
+            query.validateStartsWith(domainClass, isCollectionSupportStartsWith(getDocCollection(collectionName)));
+        }
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
@@ -407,6 +410,26 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
 
         return indices.stream().anyMatch(isIndexingSupportSortByString());
+    }
+
+    private Predicate<Index> isIndexingSupportStartsWith() {
+        return index -> {
+            if (index instanceof RangeIndex) {
+                final RangeIndex rangeIndex = (RangeIndex) index;
+                return rangeIndex.getDataType() == DataType.String;
+            }
+
+            return false;
+        };
+    }
+
+    private boolean isCollectionSupportStartsWith(@NonNull DocumentCollection collection) {
+        final IndexingPolicy policy = collection.getIndexingPolicy();
+        final List<Index> indices = new ArrayList<>();
+
+        policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
+
+        return indices.stream().anyMatch(isIndexingSupportStartsWith());
     }
 
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,

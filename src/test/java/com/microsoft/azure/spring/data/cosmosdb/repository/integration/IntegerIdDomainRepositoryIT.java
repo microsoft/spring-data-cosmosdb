@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -73,4 +75,12 @@ public class IntegerIdDomainRepositoryIT {
 
         private String location;
     }
+
+    @Test
+    public void testStartsWith() {
+        final List<IntegerIdDomain> integerIdDomainList = repository.findByNameStartsWith("p");
+        final List<IntegerIdDomain> reference = Arrays.asList(DOMAIN);
+        Assert.assertEquals(integerIdDomainList, reference);
+    }
+
 }
