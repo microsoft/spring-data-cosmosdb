@@ -5,7 +5,9 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -13,6 +15,7 @@ import org.springframework.data.annotation.Id;
 @NoArgsConstructor
 @Data
 @Document
+@DocumentIndexingPolicy(includePaths = TestConstants.STARTSWITH_INCLUDEDPATH)
 public class IntegerIdDomain {
 
     @Id
