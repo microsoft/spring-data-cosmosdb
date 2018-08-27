@@ -92,6 +92,8 @@ public class TestConstants {
     public static final String DATE_STRING = "8/8/2017";
     public static final String DATE_BEFORE_STRING = "8/1/2017";
     public static final String DATE_AFTER_STRING = "8/13/2017";
+    public static final String DATE_FUTURE_STRING_1 = "9/13/2017";
+    public static final String DATE_FUTURE_STRING_2 = "9/14/2017";
     public static final String DATE_FORMAT = "dd/MM/yyyy";
     public static final String DATE_TIMEZONE_STRING = "1/1/2000 00:00 GMT";
     public static final String DATE_TIMEZONE_FORMAT = "dd/MM/yyyy HH:mm ZZZ";
