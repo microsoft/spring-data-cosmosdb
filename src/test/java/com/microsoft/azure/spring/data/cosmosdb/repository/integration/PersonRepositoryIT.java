@@ -128,7 +128,7 @@ public class PersonRepositoryIT {
 
     @Test
     public void testFindByContainingAndNot() {
-        List<Person> people = repository.findByFirstNameContainingAndLastNameNot("Zhe", "N");
+        final List<Person> people = repository.findByFirstNameContainingAndLastNameNot("Zhe", "N");
 
         assertPeopleEquals(people, Arrays.asList(PERSON_3));
     }
