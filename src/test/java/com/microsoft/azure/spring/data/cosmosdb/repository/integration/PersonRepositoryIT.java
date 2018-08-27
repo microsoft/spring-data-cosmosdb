@@ -51,25 +51,22 @@ public class PersonRepositoryIT {
     @Autowired
     private PersonRepository repository;
 
-//    @Before
-//    public void setup() {
-//        this.repository.saveAll(PEOPLE);
-//    }
+    @Before
+    public void setup() {
+        this.repository.saveAll(PEOPLE);
+    }
 
-//    @After
-//    public void cleanup() {
-//        this.repository.deleteAll();
-//    }
+    @After
+    public void cleanup() {
+        this.repository.deleteAll();
+    }
 
     @Test
     public void testFindByContaining() {
         final List<Person> people = repository.findByFirstNameContaining(SUB_FIRST_NAME);
         final List<Person> reference = Arrays.asList(PERSON_1, PERSON_2);
 
-        people.sort(Comparator.comparing(Person::getId));
-        reference.sort(Comparator.comparing(Person::getId));
-
-        Assert.assertEquals(people, reference);
+        assertPeopleEquals(people, reference);
     }
 
     @Test
@@ -77,10 +74,7 @@ public class PersonRepositoryIT {
         final List<Person> people = repository.findByFirstNameContainingAndLastNameContaining("eng", "h");
         final List<Person> reference = Arrays.asList(PERSON_1);
 
-        people.sort(Comparator.comparing(Person::getId));
-        reference.sort(Comparator.comparing(Person::getId));
-
-        Assert.assertEquals(people, reference);
+        assertPeopleEquals(people, reference);
     }
 
     @Test
@@ -97,13 +91,6 @@ public class PersonRepositoryIT {
         final List<Person> reference = Arrays.asList(PERSON_1, PERSON_2, PERSON_3);
 
         assertPeopleEquals(people, reference);
-    }
-
-    public void assertPeopleEquals(List<Person> people, List<Person> reference) {
-        people.sort(Comparator.comparing(Person::getId));
-        reference.sort(Comparator.comparing(Person::getId));
-
-        Assert.assertEquals(people, reference);
     }
 
     @Test

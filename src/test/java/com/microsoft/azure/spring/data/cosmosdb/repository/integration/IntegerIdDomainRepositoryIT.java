@@ -82,5 +82,4 @@ public class IntegerIdDomainRepositoryIT {
         final List<IntegerIdDomain> reference = Arrays.asList(DOMAIN);
         Assert.assertEquals(integerIdDomainList, reference);
     }
-
 }
