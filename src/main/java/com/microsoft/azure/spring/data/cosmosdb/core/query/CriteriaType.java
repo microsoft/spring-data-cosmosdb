@@ -21,6 +21,7 @@ public enum CriteriaType {
     IS_EQUAL("="),
     OR("OR"),
     AND("AND"),
+    NOT("<>"),
     BEFORE("<"),
     AFTER(">"),
     IN("IN"),
@@ -46,6 +47,7 @@ public enum CriteriaType {
     static {
         final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
+        map.put(Part.Type.NEGATING_SIMPLE_PROPERTY, CriteriaType.NOT);
         map.put(Part.Type.IS_NULL, CriteriaType.IS_NULL);
         map.put(Part.Type.IS_NOT_NULL, CriteriaType.IS_NOT_NULL);
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
@@ -126,6 +128,7 @@ public enum CriteriaType {
             case NOT_IN:
             case AND:
             case OR:
+            case NOT:
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
