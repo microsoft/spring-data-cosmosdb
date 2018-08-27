@@ -78,8 +78,7 @@ public class IntegerIdDomainRepositoryIT {
 
     @Test
     public void testStartsWith() {
-        final List<IntegerIdDomain> integerIdDomainList = repository.findByNameStartsWith("p");
-        final List<IntegerIdDomain> reference = Arrays.asList(DOMAIN);
-        Assert.assertEquals(integerIdDomainList, reference);
+        final List<IntegerIdDomain> integerIdDomains = repository.findByNameStartsWith("p");
+        Assert.assertEquals(integerIdDomains, Arrays.asList(DOMAIN));
     }
 }

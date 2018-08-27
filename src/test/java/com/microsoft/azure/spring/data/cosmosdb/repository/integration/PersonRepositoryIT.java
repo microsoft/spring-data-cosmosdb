@@ -126,6 +126,13 @@ public class PersonRepositoryIT {
         assertPeopleEquals(people, Arrays.asList(PERSON_0, PERSON_2));
     }
 
+    @Test
+    public void testFindByContainingAndNot() {
+        List<Person> people = repository.findByFirstNameContainingAndLastNameNot("Zhe", "N");
+
+        assertPeopleEquals(people, Arrays.asList(PERSON_3));
+    }
+
     private void assertPeopleEquals(List<Person> people, List<Person> reference) {
         people.sort(Comparator.comparing(Person::getId));
         reference.sort(Comparator.comparing(Person::getId));

@@ -29,4 +29,6 @@ public interface PersonRepository extends DocumentDbRepository<Person, String> {
     List<Person> findByFirstNameStartsWithOrLastNameContaining(String firstName, String lastName);
 
     List<Person> findByFirstNameNot(String firstName);
+
+    List<Person> findByFirstNameContainingAndLastNameNot(String firstName, String lastName);
 }
