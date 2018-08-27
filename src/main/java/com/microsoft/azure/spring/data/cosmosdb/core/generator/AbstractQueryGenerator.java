@@ -120,6 +120,7 @@ public abstract class AbstractQueryGenerator {
             case TRUE:
                 return generateUnaryQuery(criteria);
             case IS_EQUAL:
+            case NOT:
             case BEFORE:
             case AFTER:
             case LESS_THAN:

@@ -88,6 +88,18 @@ public class PersonRepositoryIT {
         final List<Person> people = repository.findByFirstNameEndsWith("en");
         final List<Person> reference = Arrays.asList(PERSON_3);
 
+        assertPeopleEquals(people, reference);
+    }
+
+    @Test
+    public void testFindByNot() {
+        final List<Person> people = repository.findByFirstNameNot("Mary");
+        final List<Person> reference = Arrays.asList(PERSON_1, PERSON_2, PERSON_3);
+
+        assertPeopleEquals(people, reference);
+    }
+
+    public void assertPeopleEquals(List<Person> people, List<Person> reference) {
         people.sort(Comparator.comparing(Person::getId));
         reference.sort(Comparator.comparing(Person::getId));
 
