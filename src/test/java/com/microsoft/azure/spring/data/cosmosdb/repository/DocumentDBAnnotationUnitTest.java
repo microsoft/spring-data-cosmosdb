@@ -10,7 +10,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.domain.DefaultDomain;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
@@ -20,29 +20,29 @@ import org.springframework.util.Assert;
 
 
 public class DocumentDBAnnotationUnitTest {
-    private DocumentDbEntityInformation<Person, String> personInfo;
+    private DocumentDbEntityInformation<DefaultDomain, String> defaultDomainInfo;
     private DocumentDbEntityInformation<Role, String> roleInfo;
 
     @Before
     public void setUp() {
-        personInfo = new DocumentDbEntityInformation<>(Person.class);
+        defaultDomainInfo = new DocumentDbEntityInformation<>(DefaultDomain.class);
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
     }
 
     @Test
     public void testDefaultIndexingPolicyAnnotation() {
-        final IndexingPolicy policy = personInfo.getIndexingPolicy();
-        final Document documentAnnotation = Person.class.getAnnotation(Document.class);
-        final DocumentIndexingPolicy policyAnnotation = Person.class.getAnnotation(DocumentIndexingPolicy.class);
+        final IndexingPolicy policy = defaultDomainInfo.getIndexingPolicy();
+        final Document documentAnnotation = DefaultDomain.class.getAnnotation(Document.class);
+        final DocumentIndexingPolicy policyAnnotation = DefaultDomain.class.getAnnotation(DocumentIndexingPolicy.class);
 
-        Assert.isNull(documentAnnotation, "Person class should not have Document annotation");
-        Assert.isNull(policyAnnotation, "Person class should not have DocumentIndexingPolicy annotation");
-        Assert.notNull(policy, "Person class collection policy should not be null");
+        Assert.isNull(documentAnnotation, "DefaultDomain class should not have Document annotation");
+        Assert.isNull(policyAnnotation, "DefaultDomain class should not have DocumentIndexingPolicy annotation");
+        Assert.notNull(policy, "DefaultDomain class collection policy should not be null");
 
         // CollectionName, RequestUnit, Automatic and IndexingMode
-        Assert.isTrue(personInfo.getCollectionName().equals(TestConstants.DEFAULT_COLLECTION_NAME),
+        Assert.isTrue(defaultDomainInfo.getCollectionName().equals(TestConstants.DEFAULT_COLLECTION_NAME),
                 "should be default collection name");
-        Assert.isTrue(personInfo.getRequestUnit() == TestConstants.DEFAULT_REQUEST_UNIT,
+        Assert.isTrue(defaultDomainInfo.getRequestUnit() == TestConstants.DEFAULT_REQUEST_UNIT,
                 "should be default request unit");
         Assert.isTrue(policy.getAutomatic() == TestConstants.DEFAULT_INDEXINGPOLICY_AUTOMATIC,
                 "should be default indexing policy automatic");
@@ -65,9 +65,9 @@ public class DocumentDBAnnotationUnitTest {
         final DocumentIndexingPolicy policyAnnotation = Role.class.getAnnotation(DocumentIndexingPolicy.class);
 
         // CollectionName, RequestUnit, Automatic and IndexingMode
-        Assert.notNull(documentAnnotation, "Person class should have Document annotation");
-        Assert.notNull(policyAnnotation, "Person class should have DocumentIndexingPolicy annotation");
-        Assert.notNull(policy, "Person class collection policy should not be null");
+        Assert.notNull(documentAnnotation, "Role class should have Document annotation");
+        Assert.notNull(policyAnnotation, "Role class should have DocumentIndexingPolicy annotation");
+        Assert.notNull(policy, "Role class collection policy should not be null");
 
         Assert.isTrue(roleInfo.getCollectionName().equals(TestConstants.ROLE_COLLECTION_NAME),
                 "should be Role(class) collection name");
@@ -85,7 +85,7 @@ public class DocumentDBAnnotationUnitTest {
 
     @Test
     public void testDefaultDocumentAnnotationTimeToLive() {
-        final Integer timeToLive = personInfo.getTimeToLive();
+        final Integer timeToLive = defaultDomainInfo.getTimeToLive();
 
         Assert.notNull(timeToLive, "timeToLive should not be null");
         Assert.isTrue(timeToLive == TestConstants.DEFAULT_TIME_TO_LIVE, "should be default time to live");

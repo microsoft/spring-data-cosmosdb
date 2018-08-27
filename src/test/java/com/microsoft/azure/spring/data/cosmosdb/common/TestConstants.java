@@ -26,7 +26,7 @@ public class TestConstants {
     public static final List<Address> ADDRESSES = Arrays.asList(ADDRESS_1, ADDRESS_2);
 
     public static final int DEFAULT_TIME_TO_LIVE = -1;
-    public static final String DEFAULT_COLLECTION_NAME = "Person";
+    public static final String DEFAULT_COLLECTION_NAME = "DefaultDomain";
     public static final int DEFAULT_REQUEST_UNIT = 4000;
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
