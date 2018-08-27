@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example.springdata.documentdb;
+package example.springdata.cosmosdb;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
@@ -41,6 +42,7 @@ public class UserRepositoryIntegrationTest {
     private static final String ROLE_CONTRIBUTOR = "contributor";
     private static final int COST_CREATOR = 234;
     private static final int COST_CONTRIBUTOR = 666;
+    private static final Long COUNT = 123L;
 
     @Autowired
     private UserRepository repository;
@@ -60,7 +62,7 @@ public class UserRepositoryIntegrationTest {
         final Address address = new Address(POSTAL_CODE, STREET, CITY);
         final Role creator = new Role(ROLE_CREATOR, COST_CREATOR);
         final Role contributor = new Role(ROLE_CONTRIBUTOR, COST_CONTRIBUTOR);
-        final User user = new User(ID, EMAIL, NAME, address, Arrays.asList(creator, contributor));
+        final User user = new User(ID, EMAIL, NAME, COUNT, address, Arrays.asList(creator, contributor));
 
         this.repository.save(user);
 
@@ -94,6 +96,18 @@ public class UserRepositoryIntegrationTest {
                 "should be same postalCode");
         Assert.isTrue(result.getAddress().getCity().equals(user.getAddress().getCity()), "should be same City");
         Assert.isTrue(result.getAddress().getStreet().equals(user.getAddress().getStreet()), "should be same street");
+
+        resultList = this.repository.findByEmailOrName(user.getEmail(), user.getName());
+        result = resultList.get(0);
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
+
+        resultList = this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count")));
+        result = resultList.get(0);
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
+
+        resultList = this.repository.findByNameIn(Arrays.asList(user.getName(), "fake-name"));
+        result = resultList.get(0);
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
     }
 }
 

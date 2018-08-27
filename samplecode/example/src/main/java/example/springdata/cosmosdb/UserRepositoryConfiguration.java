@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example.springdata.documentdb;
+package example.springdata.cosmosdb;
 
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
@@ -36,15 +33,8 @@ public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration
     @Autowired
     private DocumentDbProperties properties;
 
-    @Bean
     @Override
-    public DocumentClient documentClient() {
-        return new DocumentClient(this.properties.getUri(), this.properties.getKey(),
-                ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-    }
-
-    @Override
-    public String getDatabase() {
-        return this.properties.getDatabase();
+    public DocumentDBConfig getConfig() {
+        return DocumentDBConfig.builder(properties.getUri(), properties.getKey(), properties.getDatabase()).build();
     }
 }
