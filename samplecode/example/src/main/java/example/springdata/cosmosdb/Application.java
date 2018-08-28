@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example.springdata.documentdb;
+package example.springdata.cosmosdb;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,11 +37,12 @@ public class Application {
     private static final String ROLE_CONTRIBUTOR = "contributor";
     private static final int COST_CREATOR = 234;
     private static final int COST_CONTRIBUTOR = 666;
+    private static final Long COUNT = 123L;
 
     private final Address address = new Address(POSTAL_CODE, STREET, CITY);
     private final Role creator = new Role(ROLE_CREATOR, COST_CREATOR);
     private final Role contributor = new Role(ROLE_CONTRIBUTOR, COST_CONTRIBUTOR);
-    private final User user = new User(ID, EMAIL, NAME, address, Arrays.asList(creator, contributor));
+    private final User user = new User(ID, EMAIL, NAME, COUNT, address, Arrays.asList(creator, contributor));
 
     @Autowired
     private UserRepository repository;
@@ -52,6 +54,9 @@ public class Application {
     @PostConstruct
     public void setup() {
         this.repository.save(user);
+        this.repository.findByEmailOrName(this.user.getEmail(), this.user.getName());
+        this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count")));
+        this.repository.findByNameIn(Arrays.asList(this.user.getName(), "fake-name"));
     }
 
     @PreDestroy

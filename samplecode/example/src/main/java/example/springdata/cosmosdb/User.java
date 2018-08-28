@@ -13,20 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example.springdata.documentdb;
 
+package example.springdata.cosmosdb;
+
+import com.microsoft.azure.documentdb.IndexingMode;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
 
-@NoArgsConstructor
+import java.util.List;
+
+@Document(collection = "mycollection")
+@DocumentIndexingPolicy(mode = IndexingMode.Lazy)
 @AllArgsConstructor
-@Setter
+@NoArgsConstructor
 @Getter
-public class Role {
+@Setter
+public class User {
+
+    @Id
+    private String id;
+
+    private String email;
 
     private String name;
 
-    int cost;
+    private Long count;
+
+    private Address address;
+
+    private List<Role> roleList;
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s %s %s", this.id, this.email, this.name, this.address.toString());
+    }
 }
+

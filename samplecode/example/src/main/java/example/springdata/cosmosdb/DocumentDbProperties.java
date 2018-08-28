@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example.springdata.documentdb;
+package example.springdata.cosmosdb;
 
 import lombok.Getter;
 import lombok.Setter;
