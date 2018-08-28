@@ -13,7 +13,13 @@ import lombok.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TelemetryProxy {
+public class TelemetryEventTracker {
+
+    private static final String PROPERTY_INSTALLATION_ID = "installationId";
+
+    private static final String PROPERTY_VERSION = "version";
+
+    private static final String PROPERTY_SERVICE_NAME = "serviceName";
 
     private static final String PROJECT_INFO = "spring-data-cosmosdb/" + PropertyLoader.getProjectVersion();
 
@@ -24,7 +30,7 @@ public class TelemetryProxy {
     private final TelemetryClient client;
 
 
-    public TelemetryProxy(boolean isTelemetryAllowed) {
+    public TelemetryEventTracker(boolean isTelemetryAllowed) {
         this.client = new TelemetryClient();
         this.isTelemetryAllowed = isTelemetryAllowed;
     }
@@ -39,9 +45,9 @@ public class TelemetryProxy {
     private Map<String, String> getDefaultProperties() {
         final Map<String, String> properties = new HashMap<>();
 
-        properties.put(TelemetryProperties.PROPERTY_INSTALLATION_ID, MacAddress.getHashMac());
-        properties.put(TelemetryProperties.PROPERTY_VERSION, PROJECT_INFO);
-        properties.put(TelemetryProperties.PROPERTY_SERVICE_NAME, "cosmosdb");
+        properties.put(PROPERTY_VERSION, PROJECT_INFO);
+        properties.put(PROPERTY_SERVICE_NAME, "cosmosdb");
+        properties.put(PROPERTY_INSTALLATION_ID, MacAddress.getHashMac());
 
         return properties;
     }
