@@ -75,10 +75,4 @@ public class IntegerIdDomainRepositoryIT {
 
         private String location;
     }
-
-    @Test
-    public void testStartsWith() {
-        final List<IntegerIdDomain> integerIdDomains = repository.findByNameStartsWith("p");
-        Assert.assertEquals(integerIdDomains, Arrays.asList(DOMAIN));
-    }
 }

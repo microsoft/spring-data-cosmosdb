@@ -14,5 +14,4 @@ import java.util.List;
 @Repository
 public interface IntegerIdDomainRepository extends DocumentDbRepository<IntegerIdDomain, Integer> {
 
-    List<IntegerIdDomain> findByNameStartsWith(String name);
 }
