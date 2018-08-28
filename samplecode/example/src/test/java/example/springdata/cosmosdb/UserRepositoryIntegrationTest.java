@@ -15,11 +15,14 @@
  */
 package example.springdata.cosmosdb;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -106,6 +109,13 @@ public class UserRepositoryIntegrationTest {
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
         resultList = this.repository.findByNameIn(Arrays.asList(user.getName(), "fake-name"));
+        result = resultList.get(0);
+        Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
+
+        // Test for findByAddress
+        final Pageable pageable = new DocumentDbPageRequest(0, 2, null);
+        Page<User> page = this.repository.findByAddress(address, pageable);
+        resultList = page.getContent();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
     }
