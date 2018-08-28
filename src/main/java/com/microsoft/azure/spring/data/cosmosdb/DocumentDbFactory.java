@@ -9,7 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.spring.data.cosmosdb.common.GetHashMac;
+import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
 import org.springframework.util.Assert;
@@ -24,8 +24,8 @@ public class DocumentDbFactory {
     private String getUserAgentSuffix(boolean isTelemetryAllowed) {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
-        if (isTelemetryAllowed && GetHashMac.getHashMac() != null) {
-            suffix += ";" + GetHashMac.getHashMac();
+        if (isTelemetryAllowed && MacAddress.getHashMac() != null) {
+            suffix += ";" + MacAddress.getHashMac();
         }
 
         return suffix;
