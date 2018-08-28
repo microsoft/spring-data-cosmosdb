@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
-import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -15,7 +13,6 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-@DocumentIndexingPolicy(includePaths = TestConstants.STARTSWITH_INCLUDEDPATH)
 public class Person {
     private String id;
     private String firstName;
