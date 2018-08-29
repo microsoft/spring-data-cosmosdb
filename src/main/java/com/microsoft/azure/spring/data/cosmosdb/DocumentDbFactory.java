@@ -9,23 +9,23 @@ package com.microsoft.azure.spring.data.cosmosdb;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.spring.data.cosmosdb.common.GetHashMac;
+import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
+import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
     private DocumentClient documentClient;
-    private final TelemetryProxy telemetryProxy;
+    private final TelemetryEventTracker telemetryEventTracker;
     private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
     private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
     private String getUserAgentSuffix(boolean isTelemetryAllowed) {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
-        if (isTelemetryAllowed && GetHashMac.getHashMac() != null) {
-            suffix += ";" + GetHashMac.getHashMac();
+        if (isTelemetryAllowed) {
+            suffix += ";" + MacAddress.getHashMac();
         }
 
         return suffix;
@@ -40,9 +40,9 @@ public class DocumentDbFactory {
         policy.setUserAgentSuffix(getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
 
         this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
-        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
+        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED);
 
-        this.telemetryProxy.trackCustomEvent(this.getClass());
+        this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 
     public DocumentDbFactory(DocumentClient client) {
@@ -52,12 +52,11 @@ public class DocumentDbFactory {
         }
 
         this.documentClient = client;
-        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
-        this.telemetryProxy.trackCustomEvent(this.getClass());
+        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED);
+        this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 
     public DocumentClient getDocumentClient() {
         return documentClient;
     }
 }
-

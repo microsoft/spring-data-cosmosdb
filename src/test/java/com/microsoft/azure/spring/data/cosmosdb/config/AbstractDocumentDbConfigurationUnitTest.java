@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
 
-public class AbstractDocumentDbConfiguratinUnitTest {
+public class AbstractDocumentDbConfigurationUnitTest {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
     @Rule
