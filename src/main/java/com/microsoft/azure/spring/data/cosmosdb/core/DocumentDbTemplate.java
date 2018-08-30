@@ -392,7 +392,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return;
         }
 
-        DocumentCollection documentCollection = getDocCollection(collectionName);
+        final DocumentCollection documentCollection = getDocCollection(collectionName);
         if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
             query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
         }

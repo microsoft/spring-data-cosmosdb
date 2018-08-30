@@ -93,7 +93,7 @@ public class DocumentQuery {
         } else if (criteria.getSubCriteria().size() == 0) {
             return Optional.empty();
         } else {
-            for (Criteria subCriteria: criteria.getSubCriteria()) {
+            for (final Criteria subCriteria: criteria.getSubCriteria()) {
                 if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
                     return Optional.of(subCriteria);
                 }
