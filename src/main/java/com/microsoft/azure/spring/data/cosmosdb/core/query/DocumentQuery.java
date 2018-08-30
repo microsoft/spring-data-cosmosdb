@@ -90,15 +90,14 @@ public class DocumentQuery {
     private Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType, @NonNull Criteria criteria) {
         if (criteria.getType().equals(criteriaType)) {
             return Optional.of(criteria);
-        } else if (criteria.getSubCriteria().size() == 0) {
-            return Optional.empty();
-        } else {
-            for (final Criteria subCriteria: criteria.getSubCriteria()) {
-                if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
-                    return Optional.of(subCriteria);
-                }
+        }
+
+        for (final Criteria subCriteria: criteria.getSubCriteria()) {
+            if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
+                return Optional.of(subCriteria);
             }
         }
+
         return Optional.empty();
     }
 
