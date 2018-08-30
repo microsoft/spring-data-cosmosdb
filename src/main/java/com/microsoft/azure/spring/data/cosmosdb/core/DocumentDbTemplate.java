@@ -20,6 +20,8 @@ import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationExcept
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
+    @Getter(AccessLevel.PRIVATE)
+    private final DocumentClient documentClient;
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
@@ -58,20 +62,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         this.databaseName = dbName;
         this.documentDbFactory = documentDbFactory;
+        this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
         this.collectionCache = new ArrayList<>();
     }
 
-    public DocumentDbTemplate(DocumentClient client, MappingDocumentDbConverter mappingDocumentDbConverter,
-                              String dbName) {
-        this(new DocumentDbFactory(client), mappingDocumentDbConverter, dbName);
-    }
-
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    }
-
-    private DocumentClient getDocumentClient() {
-        return this.documentDbFactory.getDocumentClient();
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {

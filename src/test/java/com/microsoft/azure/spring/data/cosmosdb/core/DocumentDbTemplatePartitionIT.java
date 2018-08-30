@@ -7,11 +7,10 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
@@ -60,9 +59,7 @@ public class DocumentDbTemplatePartitionIT {
     @Value("${cosmosdb.key}")
     private String documentDbKey;
 
-    private DocumentClient documentClient;
     private DocumentDbTemplate dbTemplate;
-
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
     private ObjectMapper objectMapper;
@@ -74,15 +71,16 @@ public class DocumentDbTemplatePartitionIT {
 
     @Before
     public void setup() throws ClassNotFoundException {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+
         mappingContext = new DocumentDbMappingContext();
         objectMapper = new ObjectMapper();
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-        documentClient = new DocumentClient(documentDbUri, documentDbKey,
-                ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
 
-        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, TestConstants.DB_NAME);
         personInfo = new DocumentDbEntityInformation<>(Person.class);
         collectionName = personInfo.getCollectionName();
 
