@@ -152,11 +152,17 @@ public class DocumentQuery {
         }
     }
 
-    public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartswith) {
+    /**
+     * Validate if starts with is valid for cosmosdb.
+     *
+     * @param domainClass                    class of domain
+     * @param isCollectionSupportStartsWith  indicate if collection support starts with keyword.
+     */
+    public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartsWith) {
         if (this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;
         }
-        if (!isCollectionSupportStartswith) {
+        if (!isCollectionSupportStartsWith) {
             throw new IllegalQueryException("STARTSWITH keyword must enable indexing with Range and max Precision.");
         }
     }
