@@ -83,6 +83,25 @@ public class DocumentQuery {
         return this.hasKeywordOr();
     }
 
+    public Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType) {
+        return getCriteriaByType(criteriaType, this.criteria);
+    }
+
+    private Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType, @NonNull Criteria criteria) {
+        if (criteria.getType().equals(criteriaType)) {
+            return Optional.of(criteria);
+        } else if (criteria.getSubCriteria().size() == 0) {
+            return Optional.empty();
+        } else {
+            for (Criteria subCriteria: criteria.getSubCriteria()) {
+                if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
+                    return Optional.of(subCriteria);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
         if (keyName.equals(criteria.getSubject())) {
             return Optional.of(criteria);
@@ -134,10 +153,10 @@ public class DocumentQuery {
     }
 
     public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartswith) {
-        final Field[] fields = FieldUtils.getAllFields(domainClass);
-        final Optional<Field> field = Arrays.stream(fields)
-                .filter(f -> f.getName().equals(this.criteria.getSubject())).findFirst();
-        if (field.get().getType() == String.class && !isCollectionSupportStartswith) {
+        if (this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            return;
+        }
+        if (!isCollectionSupportStartswith) {
             throw new IllegalQueryException("STARTSWITH keyword must enable indexing with Range and max Precision.");
         }
     }
