@@ -13,10 +13,4 @@ import java.util.List;
 
 @Repository
 public interface PersonRepository extends DocumentDbRepository<Person, String> {
-
-    List<Person> findByFirstNameContaining(String firstName);
-
-    List<Person> findByFirstNameContainingAndLastNameContaining(String firstName, String lastName);
-
-    List<Person> findByFirstNameEndsWith(String firstName);
 }
