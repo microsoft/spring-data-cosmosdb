@@ -83,6 +83,24 @@ public class DocumentQuery {
         return this.hasKeywordOr();
     }
 
+    public Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType) {
+        return getCriteriaByType(criteriaType, this.criteria);
+    }
+
+    private Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType, @NonNull Criteria criteria) {
+        if (criteria.getType().equals(criteriaType)) {
+            return Optional.of(criteria);
+        }
+
+        for (final Criteria subCriteria: criteria.getSubCriteria()) {
+            if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
+                return Optional.of(subCriteria);
+            }
+        }
+
+        return Optional.empty();
+    }
+
     private Optional<Criteria> getSubjectCriteria(@NonNull Criteria criteria, @NonNull String keyName) {
         if (keyName.equals(criteria.getSubject())) {
             return Optional.of(criteria);
@@ -130,6 +148,21 @@ public class DocumentQuery {
             throw new IllegalQueryException("order name must be consistence with domainClass");
         } else if (field.get().getType() == String.class && !isCollectionSupportSortByString) {
             throw new IllegalQueryException("order by String must enable indexing with Range and max Precision.");
+        }
+    }
+
+    /**
+     * Validate if starts with is valid for cosmosdb.
+     *
+     * @param domainClass                    class of domain
+     * @param isCollectionSupportStartsWith  indicate if collection support starts with keyword.
+     */
+    public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartsWith) {
+        if (this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            return;
+        }
+        if (!isCollectionSupportStartsWith) {
+            throw new IllegalQueryException("STARTSWITH keyword must enable indexing with Range and max Precision.");
         }
     }
 }

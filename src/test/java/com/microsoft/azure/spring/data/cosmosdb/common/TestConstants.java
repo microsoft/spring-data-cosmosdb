@@ -75,6 +75,16 @@ public class TestConstants {
             "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":-1}," +
             "]}";
 
+    public static final String STARTSWITH_INCLUDEDPATH =
+            "{\"path\":\"/*\",\"indexes\":[" +
+                    "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":-1}," +
+                    "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":3}" +
+                    "]}";
+
+    public static final String[] PERSON_INCLUDEDPATHS = {
+            STARTSWITH_INCLUDEDPATH
+    };
+
     public static final String DB_NAME = String.join("-", "testdb", DB_NAME_SUFFIX);
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";

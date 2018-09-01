@@ -379,9 +379,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(domainClass, isCollectionSupportSortByString(getDocCollection(collectionName)));
-        }
+        validateQuery(query, domainClass, collectionName);
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
@@ -389,25 +387,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
     }
 
-    private Predicate<Index> isIndexingSupportSortByString() {
-        return index -> {
-            if (index instanceof RangeIndex) {
-                final RangeIndex rangeIndex = (RangeIndex) index;
-                return rangeIndex.getDataType() == DataType.String && rangeIndex.getPrecision() == -1;
-            }
+    private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
+        if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            return;
+        }
 
-            return false;
-        };
+        final DocumentCollection documentCollection = getDocCollection(collectionName);
+        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
+            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
+        }
+        if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            query.validateStartsWith(domainClass, QueryValidator.isCollectionSupportStartsWith(documentCollection));
+        }
     }
 
-    private boolean isCollectionSupportSortByString(@NonNull DocumentCollection collection) {
-        final IndexingPolicy policy = collection.getIndexingPolicy();
-        final List<Index> indices = new ArrayList<>();
-
-        policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
-
-        return indices.stream().anyMatch(isIndexingSupportSortByString());
-    }
 
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
                                          @NonNull String collectionName) {
