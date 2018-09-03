@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
+import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,7 @@ import java.util.*;
 
 
 public abstract class DocumentDbConfigurationSupport {
-    protected TelemetryProxy telemetryProxy;
+    protected TelemetryEventTracker telemetryEventTracker;
 
     @Bean
     public DocumentDbMappingContext documentDbMappingContext() throws ClassNotFoundException {

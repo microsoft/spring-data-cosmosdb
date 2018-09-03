@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestConstants {
-    private static final int SUFFIX_LENGTH = 3;
+    private static final int SUFFIX_LENGTH = 1;
     private static final String DB_NAME_SUFFIX = UUID.randomUUID().toString().substring(0, SUFFIX_LENGTH);
 
     private static final Address ADDRESS_1 = new Address("201107", "Zixing Road", "Shanghai");
@@ -75,6 +75,16 @@ public class TestConstants {
             "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":-1}," +
             "]}";
 
+    public static final String STARTSWITH_INCLUDEDPATH =
+            "{\"path\":\"/*\",\"indexes\":[" +
+                    "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":-1}," +
+                    "{\"kind\":\"Range\",\"dataType\":\"String\",\"precision\":3}" +
+                    "]}";
+
+    public static final String[] PERSON_INCLUDEDPATHS = {
+            STARTSWITH_INCLUDEDPATH
+    };
+
     public static final String DB_NAME = String.join("-", "testdb", DB_NAME_SUFFIX);
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
@@ -92,6 +102,8 @@ public class TestConstants {
     public static final String DATE_STRING = "8/8/2017";
     public static final String DATE_BEFORE_STRING = "8/1/2017";
     public static final String DATE_AFTER_STRING = "8/13/2017";
+    public static final String DATE_FUTURE_STRING_1 = "9/13/2017";
+    public static final String DATE_FUTURE_STRING_2 = "9/14/2017";
     public static final String DATE_FORMAT = "dd/MM/yyyy";
     public static final String DATE_TIMEZONE_STRING = "1/1/2000 00:00 GMT";
     public static final String DATE_TIMEZONE_FORMAT = "dd/MM/yyyy HH:mm ZZZ";

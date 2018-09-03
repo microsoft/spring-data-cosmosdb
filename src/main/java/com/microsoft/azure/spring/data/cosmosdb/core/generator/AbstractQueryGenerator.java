@@ -58,6 +58,18 @@ public abstract class AbstractQueryGenerator {
         }
     }
 
+    private String generateBetween(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
+        final String subject = criteria.getSubject();
+        final Object value1 = toDocumentDBValue(criteria.getSubjectValues().get(0));
+        final Object value2 = toDocumentDBValue(criteria.getSubjectValues().get(1));
+        final String subject1 = "start";
+        final String subject2 = "end";
+        parameters.add(Pair.with(subject1, value1));
+        parameters.add(Pair.with(subject2, value2));
+
+        return String.format("(r.%s %s @%s AND @%s)", subject, criteria.getType().getSqlKeyword(), subject1, subject2);
+    }
+
     private String generateClosedQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
         Assert.isTrue(CriteriaType.isClosed(type) && CriteriaType.isBinary(type),
                 "Criteria type should be binary and closure operation");
@@ -100,12 +112,15 @@ public abstract class AbstractQueryGenerator {
             case IN:
             case NOT_IN:
                 return generateInQuery(criteria);
+            case BETWEEN:
+                return generateBetween(criteria, parameters);
             case IS_NULL:
             case IS_NOT_NULL:
             case FALSE:
             case TRUE:
                 return generateUnaryQuery(criteria);
             case IS_EQUAL:
+            case NOT:
             case BEFORE:
             case AFTER:
             case LESS_THAN:
@@ -114,6 +129,7 @@ public abstract class AbstractQueryGenerator {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
                 return generateBinaryQuery(criteria, parameters);
             case AND:
             case OR:

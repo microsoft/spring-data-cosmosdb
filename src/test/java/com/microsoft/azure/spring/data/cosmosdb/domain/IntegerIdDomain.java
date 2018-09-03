@@ -6,16 +6,12 @@
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 @Document
 public class IntegerIdDomain {
 

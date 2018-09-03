@@ -7,8 +7,10 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
@@ -58,6 +60,9 @@ public class DocumentDBAnnotationIT {
 
     @Before
     public void setUp() throws ClassNotFoundException {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
+        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
         sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
         dbContext = new DocumentDbMappingContext();
@@ -67,7 +72,7 @@ public class DocumentDBAnnotationIT {
 
         mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-        dbTemplate = new DocumentDbTemplate(dbClient, mappingConverter, TestConstants.DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
 
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo, null);
         collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo, null);

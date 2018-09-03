@@ -7,57 +7,54 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.spring.data.cosmosdb.common.GetHashMac;
+import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryProxy;
+import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import lombok.NonNull;
 import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
-    private DocumentClient documentClient;
-    private final TelemetryProxy telemetryProxy;
+    private final DocumentDBConfig config;
+
+    private final TelemetryEventTracker telemetryEventTracker;
+
     private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
+
     private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
-    private String getUserAgentSuffix(boolean isTelemetryAllowed) {
+    private String getUserAgentSuffix() {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
-        if (isTelemetryAllowed && GetHashMac.getHashMac() != null) {
-            suffix += ";" + GetHashMac.getHashMac();
+        if (IS_TELEMETRY_ALLOWED) {
+            suffix += ";" + MacAddress.getHashMac();
         }
 
         return suffix;
     }
 
-    public DocumentDbFactory(String host, String key) {
-        Assert.hasText(host, "host must not be empty!");
-        Assert.hasText(key, "key must not be empty!");
+    public DocumentDbFactory(@NonNull DocumentDBConfig config) {
+        validateConfig(config);
 
-        final ConnectionPolicy policy = ConnectionPolicy.GetDefault();
-
-        policy.setUserAgentSuffix(getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
-
-        this.documentClient = new DocumentClient(host, key, policy, ConsistencyLevel.Session);
-        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
-
-        this.telemetryProxy.trackCustomEvent(this.getClass());
-    }
-
-    public DocumentDbFactory(DocumentClient client) {
-        if (client != null && client.getConnectionPolicy() != null) {
-            final ConnectionPolicy policy = client.getConnectionPolicy();
-            policy.setUserAgentSuffix(policy.getUserAgentSuffix() + this.getUserAgentSuffix(IS_TELEMETRY_ALLOWED));
-        }
-
-        this.documentClient = client;
-        this.telemetryProxy = new TelemetryProxy(IS_TELEMETRY_ALLOWED);
-        this.telemetryProxy.trackCustomEvent(this.getClass());
+        this.config = config;
+        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED);
+        this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 
     public DocumentClient getDocumentClient() {
-        return documentClient;
+        final ConnectionPolicy policy = config.getConnectionPolicy();
+
+        policy.setUserAgentSuffix(getUserAgentSuffix());
+
+        return new DocumentClient(config.getUri(), config.getKey(), policy, config.getConsistencyLevel());
+    }
+
+    private void validateConfig(@NonNull DocumentDBConfig config) {
+        Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
+        Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        Assert.hasText(config.getDatabase(), "cosmosdb database should have text!");
+        Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
     }
 }
-

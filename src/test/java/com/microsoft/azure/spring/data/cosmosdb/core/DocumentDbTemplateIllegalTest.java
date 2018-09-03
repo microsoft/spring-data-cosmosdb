@@ -5,10 +5,10 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -41,15 +41,12 @@ public class DocumentDbTemplateIllegalTest {
     private Class dbTemplateClass;
 
     @Mock
-    DocumentClient documentClient;
-
-    @Mock
     MappingDocumentDbConverter dbConverter;
 
     @Before
     public void setUp() {
-        this.dbTemplate = new DocumentDbTemplate(new DocumentDbFactory(documentClient), dbConverter,
-                TestConstants.DB_NAME);
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder("http://uri", "key", TestConstants.DB_NAME).build();
+        this.dbTemplate = new DocumentDbTemplate(new DocumentDbFactory(dbConfig), dbConverter, TestConstants.DB_NAME);
         dbTemplateClass = dbTemplate.getClass();
     }
 

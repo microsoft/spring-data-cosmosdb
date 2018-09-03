@@ -30,4 +30,10 @@ public interface MemoRepository extends DocumentDbRepository<Memo, String> {
     List<Memo> findByDateAfterAndMessage(Date date, String message);
 
     List<Memo> findByDateAfterOrMessage(Date date, String message);
+
+    List<Memo> findByDateBetween(Date startDate, Date endDate);
+
+    List<Memo> findByDateBetweenAndMessage(Date startDate, Date endDate, String message);
+
+    List<Memo> findByDateBetweenOrMessage(Date startDate, Date endDate, String message);
 }

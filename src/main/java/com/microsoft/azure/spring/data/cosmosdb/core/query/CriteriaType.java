@@ -21,6 +21,7 @@ public enum CriteriaType {
     IS_EQUAL("="),
     OR("OR"),
     AND("AND"),
+    NOT("<>"),
     BEFORE("<"),
     AFTER(">"),
     IN("IN"),
@@ -33,8 +34,10 @@ public enum CriteriaType {
     GREATER_THAN_EQUAL(">="),
     CONTAINING("CONTAINS"),
     ENDS_WITH("ENDSWITH"),
+    STARTS_WITH("STARTSWITH"),
     TRUE("= true"),
-    FALSE("= false");
+    FALSE("= false"),
+    BETWEEN("BETWEEN");
 
     @Getter
     private String sqlKeyword;
@@ -45,6 +48,7 @@ public enum CriteriaType {
     static {
         final Map<Part.Type, CriteriaType> map = new HashMap<>();
 
+        map.put(Part.Type.NEGATING_SIMPLE_PROPERTY, CriteriaType.NOT);
         map.put(Part.Type.IS_NULL, CriteriaType.IS_NULL);
         map.put(Part.Type.IS_NOT_NULL, CriteriaType.IS_NOT_NULL);
         map.put(Part.Type.SIMPLE_PROPERTY, CriteriaType.IS_EQUAL);
@@ -55,11 +59,13 @@ public enum CriteriaType {
         map.put(Part.Type.GREATER_THAN, CriteriaType.GREATER_THAN);
         map.put(Part.Type.CONTAINING, CriteriaType.CONTAINING);
         map.put(Part.Type.ENDING_WITH, CriteriaType.ENDS_WITH);
+        map.put(Part.Type.STARTING_WITH, CriteriaType.STARTS_WITH);
         map.put(Part.Type.GREATER_THAN_EQUAL, CriteriaType.GREATER_THAN_EQUAL);
         map.put(Part.Type.LESS_THAN, CriteriaType.LESS_THAN);
         map.put(Part.Type.LESS_THAN_EQUAL, CriteriaType.LESS_THAN_EQUAL);
         map.put(Part.Type.TRUE, CriteriaType.TRUE);
         map.put(Part.Type.FALSE, CriteriaType.FALSE);
+        map.put(Part.Type.BETWEEN, CriteriaType.BETWEEN);
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
@@ -124,6 +130,7 @@ public enum CriteriaType {
             case NOT_IN:
             case AND:
             case OR:
+            case NOT:
             case IS_EQUAL:
             case BEFORE:
             case AFTER:
@@ -133,6 +140,7 @@ public enum CriteriaType {
             case GREATER_THAN_EQUAL:
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
                 return true;
             default:
                 return false;
@@ -149,6 +157,7 @@ public enum CriteriaType {
         switch (type) {
             case CONTAINING:
             case ENDS_WITH:
+            case STARTS_WITH:
             case IS_NULL:
             case IS_NOT_NULL:
                 return true;

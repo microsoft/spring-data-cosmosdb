@@ -20,6 +20,8 @@ import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationExcept
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
+    @Getter(AccessLevel.PRIVATE)
+    private final DocumentClient documentClient;
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
@@ -58,20 +62,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         this.databaseName = dbName;
         this.documentDbFactory = documentDbFactory;
+        this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
         this.collectionCache = new ArrayList<>();
     }
 
-    public DocumentDbTemplate(DocumentClient client, MappingDocumentDbConverter mappingDocumentDbConverter,
-                              String dbName) {
-        this(new DocumentDbFactory(client), mappingDocumentDbConverter, dbName);
-    }
-
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    }
-
-    private DocumentClient getDocumentClient() {
-        return this.documentDbFactory.getDocumentClient();
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
@@ -379,9 +375,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(domainClass, isCollectionSupportSortByString(getDocCollection(collectionName)));
-        }
+        validateQuery(query, domainClass, collectionName);
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
@@ -389,25 +383,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
     }
 
-    private Predicate<Index> isIndexingSupportSortByString() {
-        return index -> {
-            if (index instanceof RangeIndex) {
-                final RangeIndex rangeIndex = (RangeIndex) index;
-                return rangeIndex.getDataType() == DataType.String && rangeIndex.getPrecision() == -1;
-            }
+    private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
+        if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            return;
+        }
 
-            return false;
-        };
+        final DocumentCollection documentCollection = getDocCollection(collectionName);
+        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
+            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
+        }
+        if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+            query.validateStartsWith(domainClass, QueryValidator.isCollectionSupportStartsWith(documentCollection));
+        }
     }
 
-    private boolean isCollectionSupportSortByString(@NonNull DocumentCollection collection) {
-        final IndexingPolicy policy = collection.getIndexingPolicy();
-        final List<Index> indices = new ArrayList<>();
-
-        policy.getIncludedPaths().forEach(p -> indices.addAll(p.getIndexes()));
-
-        return indices.stream().anyMatch(isIndexingSupportSortByString());
-    }
 
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
                                          @NonNull String collectionName) {
