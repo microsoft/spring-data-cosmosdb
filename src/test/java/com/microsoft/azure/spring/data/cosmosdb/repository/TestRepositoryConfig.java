@@ -5,12 +5,14 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
+import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.util.StringUtils;
 
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
@@ -22,11 +24,13 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.key}")
     private String documentDbKey;
 
-    @Value("${cosmosdb.database}")
+    @Value("${cosmosdb.database:}")
     private String database;
 
     @Override
     public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(documentDbUri, documentDbKey, database).build();
+        final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
+
+        return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).build();
     }
 }
