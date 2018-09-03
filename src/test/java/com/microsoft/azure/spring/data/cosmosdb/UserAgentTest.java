@@ -6,6 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
+import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -29,7 +31,8 @@ public class UserAgentTest {
 
         assertThat(PropertyLoader.getProjectVersion()).isEqualTo(TEST_VERSION);
 
-        final DocumentDbFactory factory = new DocumentDbFactory("https://fakeuri", "fakekey");
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder("https://uri", "key", TestConstants.DB_NAME).build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
         assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
     }
 

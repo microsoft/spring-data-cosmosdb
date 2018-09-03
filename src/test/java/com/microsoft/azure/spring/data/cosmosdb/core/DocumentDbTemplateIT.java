@@ -8,8 +8,10 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
@@ -40,6 +42,7 @@ import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,9 +62,7 @@ public class DocumentDbTemplateIT {
     @Value("${cosmosdb.key}")
     private String documentDbKey;
 
-    private DocumentClient documentClient;
     private DocumentDbTemplate dbTemplate;
-
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
     private ObjectMapper objectMapper;
@@ -74,6 +75,9 @@ public class DocumentDbTemplateIT {
 
     @Before
     public void setup() throws ClassNotFoundException {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+
         mappingContext = new DocumentDbMappingContext();
         objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
@@ -82,10 +86,7 @@ public class DocumentDbTemplateIT {
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-        documentClient = new DocumentClient(documentDbUri, documentDbKey,
-                ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-
-        dbTemplate = new DocumentDbTemplate(documentClient, dbConverter, TestConstants.DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
         collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo, null);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);

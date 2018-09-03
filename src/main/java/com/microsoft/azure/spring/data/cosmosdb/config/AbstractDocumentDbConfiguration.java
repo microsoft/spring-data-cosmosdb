@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +23,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
 
     @Bean
     public DocumentClient documentClient() {
-        final DocumentDBConfig config = getConfig();
-
-        super.telemetryEventTracker = new TelemetryEventTracker(config.isAllowTelemetry());
-        super.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
-
-        return new DocumentClient(config.getUri(), config.getKey(), config.getConnectionPolicy(),
-                config.getConsistencyLevel());
+        return this.documentDbFactory().getDocumentClient();
     }
 
     @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
@@ -39,7 +32,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
 
     @Bean
     public DocumentDbFactory documentDbFactory() {
-        return new DocumentDbFactory(this.documentClient());
+        return new DocumentDbFactory(this.getConfig());
     }
 
     @Bean
