@@ -6,7 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.StudentRepository;
 import org.junit.After;
@@ -17,10 +16,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -138,5 +137,14 @@ public class StudentRepositoryIT {
         reference.sort(Comparator.comparing(Student::getId));
 
         Assert.assertEquals(people, reference);
+    }
+
+    @Test
+    public void testExists() {
+        assertTrue(repository.existsByFirstName(FIRST_NAME_0));
+        assertFalse(repository.existsByFirstName("xxx"));
+
+        assertTrue(repository.existsByLastNameContaining("N"));
+        assertFalse(repository.existsByLastNameContaining("X"));
     }
 }
