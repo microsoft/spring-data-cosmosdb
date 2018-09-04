@@ -395,6 +395,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
     }
 
+    public <T> Boolean exists(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
+        return this.find(query, domainClass, collectionName).size() > 0;
+    }
+
     private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
         if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;

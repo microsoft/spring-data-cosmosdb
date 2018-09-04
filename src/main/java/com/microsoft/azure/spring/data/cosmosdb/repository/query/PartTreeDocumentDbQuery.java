@@ -44,4 +44,9 @@ public class PartTreeDocumentDbQuery extends AbstractDocumentDbQuery {
     protected boolean isDeleteQuery() {
         return tree.isDelete();
     }
+
+    @Override
+    protected boolean isExistsQuery() {
+        return tree.isExistsProjection();
+    }
 }
