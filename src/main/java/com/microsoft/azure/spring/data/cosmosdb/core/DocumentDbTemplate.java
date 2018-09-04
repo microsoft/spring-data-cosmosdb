@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -108,19 +107,32 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return findById(getCollectionName(entityClass), id, entityClass);
     }
 
-    public <T> T findById(String collectionName, Object id, Class<T> entityClass) {
+    private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
+        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
+                = new DocumentDbEntityInformation(domainClass);
+        final String partitionKeyName = information.getPartitionKeyFieldName();
+        final String idName = information.getIdField().getName();
+
+        return partitionKeyName != null && partitionKeyName.equals(idName);
+    }
+
+    public <T> T findById(String collectionName, Object id, Class<T> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.notNull(domainClass, "entityClass should not be null");
         assertValidId(id);
 
         try {
             final RequestOptions options = new RequestOptions();
-            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
-            final Resource resource = getDocumentClient().readDocument(documentLink, options).getResource();
 
-            if (resource instanceof Document) {
-                final Document document = (Document) resource;
-                return mappingDocumentDbConverter.read(entityClass, document);
+            if (isIdFieldAsPartitionKey(domainClass)) {
+                options.setPartitionKey(new PartitionKey(id));
+            }
+
+            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
+            final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
+
+            if (document instanceof Document) {
+                return mappingDocumentDbConverter.read(domainClass, (Document) document);
             } else {
                 return null;
             }

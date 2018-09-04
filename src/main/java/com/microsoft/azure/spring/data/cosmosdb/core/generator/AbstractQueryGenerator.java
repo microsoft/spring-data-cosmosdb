@@ -77,6 +77,7 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", left, type.getSqlKeyword(), right);
     }
 
+    @SuppressWarnings("unchecked")
     private String generateInQuery(Criteria criteria) {
         Assert.isTrue(criteria.getSubjectValues().size() == 1, "Criteria should have only one subject value");
 
