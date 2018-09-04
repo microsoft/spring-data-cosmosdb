@@ -9,6 +9,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
+import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.MemoRepository;
 import org.junit.*;
@@ -219,5 +220,10 @@ public class MemoRepositoryIT {
 
         Assert.assertEquals(memos.size(), reference.size());
         Assert.assertEquals(memos, reference);
+    }
+
+    @Test(expected = IllegalQueryException.class)
+    public void testFindByStartsWithWithException() {
+        final List<Memo> memos = repository.findByMessageStartsWith(testMemo1.getMessage());
     }
 }

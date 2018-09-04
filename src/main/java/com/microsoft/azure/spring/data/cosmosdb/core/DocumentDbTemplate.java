@@ -409,7 +409,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
         }
         if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            query.validateStartsWith(domainClass, QueryValidator.isCollectionSupportStartsWith(documentCollection));
+            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(documentCollection));
         }
     }
 
