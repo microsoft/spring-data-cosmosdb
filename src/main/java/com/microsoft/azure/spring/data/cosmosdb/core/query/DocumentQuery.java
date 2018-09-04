@@ -154,10 +154,9 @@ public class DocumentQuery {
     /**
      * Validate if starts with is valid for cosmosdb.
      *
-     * @param domainClass                    class of domain
      * @param isCollectionSupportStartsWith  indicate if collection support starts with keyword.
      */
-    public void validateStartsWith(@NonNull Class<?> domainClass, boolean isCollectionSupportStartsWith) {
+    public void validateStartsWith(boolean isCollectionSupportStartsWith) {
         if (this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;
         }
