@@ -157,7 +157,7 @@ public class DocumentQuery {
      * @param isCollectionSupportStartsWith  indicate if collection support starts with keyword.
      */
     public void validateStartsWith(boolean isCollectionSupportStartsWith) {
-        if (this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
+        if (!this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;
         }
         if (!isCollectionSupportStartsWith) {
