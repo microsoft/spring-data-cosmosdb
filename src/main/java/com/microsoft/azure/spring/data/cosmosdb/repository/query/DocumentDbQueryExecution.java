@@ -41,6 +41,20 @@ public interface DocumentDbQueryExecution {
         }
     }
 
+    final class ExistsExecution implements DocumentDbQueryExecution {
+
+        private final DocumentDbOperations operations;
+
+        public ExistsExecution(DocumentDbOperations operations) {
+            this.operations = operations;
+        }
+
+        @Override
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
+            return operations.exists(query, type, collection);
+        }
+    }
+
     final class DeleteExecution implements DocumentDbQueryExecution {
 
         private final DocumentDbOperations operations;

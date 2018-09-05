@@ -20,6 +20,8 @@ import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationExcept
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -36,13 +38,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
+    @Getter(AccessLevel.PRIVATE)
+    private final DocumentClient documentClient;
     private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
@@ -58,20 +61,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         this.databaseName = dbName;
         this.documentDbFactory = documentDbFactory;
+        this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
         this.collectionCache = new ArrayList<>();
     }
 
-    public DocumentDbTemplate(DocumentClient client, MappingDocumentDbConverter mappingDocumentDbConverter,
-                              String dbName) {
-        this(new DocumentDbFactory(client), mappingDocumentDbConverter, dbName);
-    }
-
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    }
-
-    private DocumentClient getDocumentClient() {
-        return this.documentDbFactory.getDocumentClient();
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
@@ -112,19 +107,32 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return findById(getCollectionName(entityClass), id, entityClass);
     }
 
-    public <T> T findById(String collectionName, Object id, Class<T> entityClass) {
+    private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
+        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
+                = new DocumentDbEntityInformation(domainClass);
+        final String partitionKeyName = information.getPartitionKeyFieldName();
+        final String idName = information.getIdField().getName();
+
+        return partitionKeyName != null && partitionKeyName.equals(idName);
+    }
+
+    public <T> T findById(String collectionName, Object id, Class<T> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.notNull(domainClass, "entityClass should not be null");
         assertValidId(id);
 
         try {
             final RequestOptions options = new RequestOptions();
-            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
-            final Resource resource = getDocumentClient().readDocument(documentLink, options).getResource();
 
-            if (resource instanceof Document) {
-                final Document document = (Document) resource;
-                return mappingDocumentDbConverter.read(entityClass, document);
+            if (isIdFieldAsPartitionKey(domainClass)) {
+                options.setPartitionKey(new PartitionKey(id));
+            }
+
+            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
+            final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
+
+            if (document instanceof Document) {
+                return mappingDocumentDbConverter.read(domainClass, (Document) document);
             } else {
                 return null;
             }
@@ -387,6 +395,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
     }
 
+    public <T> Boolean exists(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
+        return this.find(query, domainClass, collectionName).size() > 0;
+    }
+
     private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
         if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;
@@ -397,7 +409,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
         }
         if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            query.validateStartsWith(domainClass, QueryValidator.isCollectionSupportStartsWith(documentCollection));
+            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(documentCollection));
         }
     }
 

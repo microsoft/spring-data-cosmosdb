@@ -31,4 +31,8 @@ public interface StudentRepository extends DocumentDbRepository<Student, String>
     List<Student> findByFirstNameNot(String firstName);
 
     List<Student> findByFirstNameContainingAndLastNameNot(String firstName, String lastName);
+
+    Boolean existsByFirstName(String firstName);
+
+    Boolean existsByLastNameContaining(String lastName);
 }
