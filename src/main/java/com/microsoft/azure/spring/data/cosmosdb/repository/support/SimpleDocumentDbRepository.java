@@ -53,11 +53,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         return this.operation.createCollectionIfNotExists(this.information);
     }
 
-    @Override
-    public void deleteCollection() {
-        this.operation.deleteCollection(this.information.getCollectionName());
-    }
-
     /**
      * save entity without partition
      *
