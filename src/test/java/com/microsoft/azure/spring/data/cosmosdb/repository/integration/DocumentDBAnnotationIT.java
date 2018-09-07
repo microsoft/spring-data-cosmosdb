@@ -74,8 +74,8 @@ public class DocumentDBAnnotationIT {
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
         dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
 
-        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo, null);
-        collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo, null);
+        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo);
+        collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo);
 
         dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }
