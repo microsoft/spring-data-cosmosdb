@@ -20,8 +20,7 @@ public interface DocumentDbOperations {
 
     String getCollectionName(Class<?> entityClass);
 
-    DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information,
-                                                   String partitionKeyFieldName);
+    DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information);
 
     <T> List<T> findAll(Class<T> entityClass);
 

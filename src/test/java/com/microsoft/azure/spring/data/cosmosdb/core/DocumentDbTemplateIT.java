@@ -88,7 +88,7 @@ public class DocumentDbTemplateIT {
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
-        collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo, null);
+        collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }
 

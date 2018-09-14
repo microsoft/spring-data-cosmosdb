@@ -290,13 +290,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information,
-                                                          String partitionKeyFieldName) {
+    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
 
         final String collectionName = information.getCollectionName();
+        final String partitionKeyFieldName = information.getPartitionKeyFieldName();
 
         final List<DocumentCollection> collectionList = getDocumentClient()
                 .queryCollections(getDatabaseLink(this.databaseName),
