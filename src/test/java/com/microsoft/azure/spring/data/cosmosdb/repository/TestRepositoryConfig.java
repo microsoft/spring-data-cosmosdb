@@ -18,11 +18,14 @@ import org.springframework.util.StringUtils;
 @PropertySource(value = {"classpath:application.properties"})
 @EnableDocumentDbRepositories
 public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
-    @Value("${cosmosdb.uri}")
+    @Value("${cosmosdb.uri:}")
     private String documentDbUri;
 
-    @Value("${cosmosdb.key}")
+    @Value("${cosmosdb.key:}")
     private String documentDbKey;
+
+    @Value("${cosmosdb.connection-string:}")
+    private String connectionString;
 
     @Value("${cosmosdb.database:}")
     private String database;
@@ -31,6 +34,9 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     public DocumentDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
 
-        return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).build();
+        if (StringUtils.hasText(this.documentDbUri) && StringUtils.hasText(this.documentDbKey)) {
+            return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).build();
+        }
+        return DocumentDBConfig.builder(connectionString, dbName).build();
     }
 }
