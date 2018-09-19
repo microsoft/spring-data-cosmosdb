@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -29,6 +30,21 @@ public class DocumentDbFactoryUnitTest {
         final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
 
         assertThat(factory).isNotNull();
+    }
+
+    @Test
+    public void testConnectWithConnectionString() {
+        final DocumentDBConfig dbConfig =
+                DocumentDBConfig.builder(DOCUMENTDB_FAKE_CONNECTION_STRING, DB_NAME).build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
+
+        assertThat(factory).isNotNull();
+    }
+
+    @Test(expected = DocumentDBAccessException.class)
+    public void testInvalidConnectionString() {
+        final DocumentDBConfig dbConfig =
+                DocumentDBConfig.builder(DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
     }
 
     @Test
