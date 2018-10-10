@@ -34,10 +34,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -575,7 +572,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return new ArrayList<>();
         }
 
-        return Arrays.asList(entityInfo.getPartitionKeyFieldName());
+        return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
     private void assertValidId(Object id) {

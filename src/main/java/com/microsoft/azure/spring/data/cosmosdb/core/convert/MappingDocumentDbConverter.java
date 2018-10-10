@@ -100,8 +100,8 @@ public class MappingDocumentDbConverter
 
         final ConvertingPropertyAccessor accessor = getPropertyAccessor(sourceEntity);
         final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
-
         final Document document;
+
         try {
             document = new Document(objectMapper.writeValueAsString(sourceEntity));
         } catch (JsonProcessingException e) {
