@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import lombok.NonNull;
@@ -28,9 +29,17 @@ public class DocumentDbFactory {
         this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 
+    private String getUserAgent() {
+        if (Constants.IS_TELEMETRY_ALLOWED) {
+            return Constants.USER_AGENT_ID + ";" + MacAddress.getHashMac();
+        } else {
+            return Constants.USER_AGENT_ID;
+        }
+    }
+
     public DocumentClient getDocumentClient() {
         final ConnectionPolicy policy = config.getConnectionPolicy();
-        final String userAgent = String.join(";", Constants.USER_AGENT, policy.getUserAgentSuffix());
+        final String userAgent = String.join(";", getUserAgent(), policy.getUserAgentSuffix());
 
         policy.setUserAgentSuffix(userAgent);
 
@@ -46,7 +55,7 @@ public class DocumentDbFactory {
 
     public AsyncDocumentClient getAsyncDocumentClient() {
         final com.microsoft.azure.cosmosdb.ConnectionPolicy policy = config.getAsyncConnectionPolicy();
-        final String userAgent = String.join(";", Constants.USER_AGENT, policy.getUserAgentSuffix());
+        final String userAgent = String.join(";", getUserAgent(), policy.getUserAgentSuffix());
 
         policy.setUserAgentSuffix(userAgent);
 

@@ -6,7 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.documentdb.IndexingMode;
-import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -26,15 +25,10 @@ public class Constants {
     public static final String DOCUMENTDB_MODULE_PREFIX = "cosmosdb";
     public static final String DOCUMENTDB_MAPPING_CONTEXT_NAME = "documentDbMappingContext";
 
-    private static final String USER_AGENT_ID = "spring-data/" + PropertyLoader.getProjectVersion();
+    public static final String USER_AGENT_ID = "spring-data/" + PropertyLoader.getProjectVersion();
 
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
 
     public static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
-
-    public static final String USER_AGENT = String.join(";",
-            USER_AGENT_ID,
-            IS_TELEMETRY_ALLOWED ? MacAddress.getHashMac() : ""
-    );
 }
 
