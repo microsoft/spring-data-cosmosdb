@@ -26,11 +26,15 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
         ApplicationContextAware {
+
+    private static final String ISO_8601_COMPATIBLE_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:s.SSSXXX";
 
     protected final MappingContext<? extends DocumentDbPersistentEntity<?>,
             DocumentDbPersistentProperty> mappingContext;
@@ -160,6 +164,10 @@ public class MappingDocumentDbConverter
 
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();
+        }  else if (fromPropertyValue instanceof ZonedDateTime) {
+            fromPropertyValue = ((ZonedDateTime) fromPropertyValue).format(DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));
+        }   else if (fromPropertyValue instanceof Enum) {
+            fromPropertyValue = fromPropertyValue.toString();
         }
 
         return fromPropertyValue;
