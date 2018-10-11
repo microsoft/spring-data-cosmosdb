@@ -29,7 +29,6 @@ public class TelemetryEventTracker {
     @Getter(AccessLevel.PRIVATE)
     private final TelemetryClient client;
 
-
     public TelemetryEventTracker(boolean isTelemetryAllowed) {
         this.client = new TelemetryClient();
         this.isTelemetryAllowed = isTelemetryAllowed;

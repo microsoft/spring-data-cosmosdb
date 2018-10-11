@@ -25,6 +25,10 @@ public class DocumentDBConfig {
 
     private ConsistencyLevel consistencyLevel;
 
+    private com.microsoft.azure.cosmosdb.ConnectionPolicy asyncConnectionPolicy;
+
+    private com.microsoft.azure.cosmosdb.ConsistencyLevel asyncConsistencyLevel;
+
     private boolean allowTelemetry;
 
     public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
@@ -33,7 +37,9 @@ public class DocumentDBConfig {
                 .key(key)
                 .database(database)
                 .connectionPolicy(ConnectionPolicy.GetDefault())
-                .consistencyLevel(ConsistencyLevel.Session);
+                .consistencyLevel(ConsistencyLevel.Session)
+                .asyncConnectionPolicy(com.microsoft.azure.cosmosdb.ConnectionPolicy.GetDefault())
+                .asyncConsistencyLevel(com.microsoft.azure.cosmosdb.ConsistencyLevel.Session);
     }
 
     public static DocumentDBConfigBuilder builder(String connectionString, String database) {
