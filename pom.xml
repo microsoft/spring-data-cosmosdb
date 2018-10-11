@@ -57,6 +57,7 @@
         <slf4j.version>1.7.25</slf4j.version>
 
         <azure.documentdb.version>1.16.2</azure.documentdb.version>
+        <azure.cosmosdb.version>2.2.0</azure.cosmosdb.version>
         <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <azure.applicationinsights.version>2.0.1</azure.applicationinsights.version>
@@ -112,6 +113,13 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-documentdb</artifactId>
             <version>${azure.documentdb.version}</version>
+        </dependency>
+
+        <!-- Azure Cosmosdb SQL API Async SDK -->
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-cosmosdb</artifactId>
+            <version>${azure.cosmosdb.version}</version>
         </dependency>
 
         <dependency>
