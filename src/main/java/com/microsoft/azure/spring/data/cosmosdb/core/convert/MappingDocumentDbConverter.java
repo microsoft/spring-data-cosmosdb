@@ -165,7 +165,8 @@ public class MappingDocumentDbConverter
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();
         }  else if (fromPropertyValue instanceof ZonedDateTime) {
-            fromPropertyValue = ((ZonedDateTime) fromPropertyValue).format(DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));
+            fromPropertyValue = ((ZonedDateTime) fromPropertyValue)
+                    .format(DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));
         }   else if (fromPropertyValue instanceof Enum) {
             fromPropertyValue = fromPropertyValue.toString();
         }
