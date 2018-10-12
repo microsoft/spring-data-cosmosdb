@@ -30,6 +30,10 @@ import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocum
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
 
+    private String generateQueryParameter(@NonNull String subject) {
+        return subject.replaceAll("\\.", "_"); // user.name is not valid sql parameter identifier.
+    }
+
     private String generateUnaryQuery(@NonNull Criteria criteria) {
         Assert.isTrue(criteria.getSubjectValues().isEmpty(), "Unary criteria should have no one subject value");
         Assert.isTrue(CriteriaType.isUnary(criteria.getType()), "Criteria type should be unary operation");
@@ -48,13 +52,14 @@ public abstract class AbstractQueryGenerator {
 
         final String subject = criteria.getSubject();
         final Object subjectValue = toDocumentDBValue(criteria.getSubjectValues().get(0));
+        final String parameter = generateQueryParameter(subject);
 
-        parameters.add(Pair.with(subject, subjectValue));
+        parameters.add(Pair.with(parameter, subjectValue));
 
         if (CriteriaType.isFunction(criteria.getType())) {
-            return String.format("%s(r.%s, @%s)", criteria.getType().getSqlKeyword(), subject, subject);
+            return String.format("%s(r.%s, @%s)", criteria.getType().getSqlKeyword(), subject, parameter);
         } else {
-            return String.format("r.%s %s @%s", subject, criteria.getType().getSqlKeyword(), subject);
+            return String.format("r.%s %s @%s", subject, criteria.getType().getSqlKeyword(), parameter);
         }
     }
 
@@ -64,10 +69,14 @@ public abstract class AbstractQueryGenerator {
         final Object value2 = toDocumentDBValue(criteria.getSubjectValues().get(1));
         final String subject1 = "start";
         final String subject2 = "end";
-        parameters.add(Pair.with(subject1, value1));
-        parameters.add(Pair.with(subject2, value2));
+        final String parameter1 = generateQueryParameter(subject1);
+        final String parameter2 = generateQueryParameter(subject2);
+        final String keyword = criteria.getType().getSqlKeyword();
 
-        return String.format("(r.%s %s @%s AND @%s)", subject, criteria.getType().getSqlKeyword(), subject1, subject2);
+        parameters.add(Pair.with(parameter1, value1));
+        parameters.add(Pair.with(parameter2, value2));
+
+        return String.format("(r.%s %s @%s AND @%s)", subject, keyword, parameter1, parameter2);
     }
 
     private String generateClosedQuery(@NonNull String left, @NonNull String right, CriteriaType type) {
