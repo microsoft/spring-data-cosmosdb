@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.microsoft.azure.documentdb.JsonSerializable;
+import com.microsoft.azure.cosmosdb.JsonSerializable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;

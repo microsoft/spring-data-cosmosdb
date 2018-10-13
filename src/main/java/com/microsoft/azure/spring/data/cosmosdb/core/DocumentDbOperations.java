@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.cosmosdb.DocumentCollection;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;

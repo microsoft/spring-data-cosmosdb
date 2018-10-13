@@ -6,7 +6,23 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.microsoft.azure.cosmosdb.Database;
+import com.microsoft.azure.cosmosdb.DocumentCollection;
+import com.microsoft.azure.cosmosdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.PartitionKeyDefinition;
+import com.microsoft.azure.cosmosdb.ResourceResponse;
+import com.microsoft.azure.cosmosdb.SqlParameter;
+import com.microsoft.azure.cosmosdb.SqlParameterCollection;
+import com.microsoft.azure.cosmosdb.SqlQuerySpec;
+import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
+import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.FeedOptions;
+import com.microsoft.azure.documentdb.FeedResponse;
+import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.documentdb.RequestOptions;
+import com.microsoft.azure.documentdb.Resource;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -16,13 +32,12 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,26 +47,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import rx.Observable;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
+
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
     @Getter(AccessLevel.PRIVATE)
     private final DocumentClient documentClient;
-    private final DocumentDbFactory documentDbFactory;
-    private final MappingDocumentDbConverter mappingDocumentDbConverter;
-    private final String databaseName;
 
-    private Database databaseCache;
-    private List<String> collectionCache;
+    private final DocumentDbFactory documentDbFactory;
+
+    private final MappingDocumentDbConverter mappingDocumentDbConverter;
+
+    private final String dbName;
+
+    private final String dbLink;
+
+    private AsyncDocumentClient asyncDocumentClient;
 
     public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
                               MappingDocumentDbConverter mappingDocumentDbConverter,
@@ -59,11 +76,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(documentDbFactory, "DocumentDbFactory must not be null!");
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
 
-        this.databaseName = dbName;
+        this.dbName = dbName;
+        this.dbLink = getDatabaseLink(dbName);
+        this.documentClient = documentDbFactory.getDocumentClient();
         this.documentDbFactory = documentDbFactory;
-        this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
-        this.collectionCache = new ArrayList<>();
+    }
+
+    private AsyncDocumentClient getAsyncDocumentClient() {
+        if (this.asyncDocumentClient == null) {
+            this.asyncDocumentClient = this.documentDbFactory.getAsyncDocumentClient();
+        }
+
+        return this.asyncDocumentClient;
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -81,11 +106,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
 
-        log.debug("execute createDocument in database {} collection {}", this.databaseName, collectionName);
+        log.debug("execute createDocument in database {} collection {}", this.dbName, collectionName);
 
         try {
             final Resource result = getDocumentClient()
-                    .createDocument(getCollectionLink(this.databaseName, collectionName), document,
+                    .createDocument(getCollectionLink(this.dbName, collectionName), document,
                             getRequestOptions(partitionKey, null), false).getResource();
 
             if (result instanceof Document) {
@@ -96,7 +121,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             } else {
                 return null;
             }
-        } catch (DocumentClientException e) {
+        } catch (com.microsoft.azure.documentdb.DocumentClientException e) {
             throw new DocumentDBAccessException("insert exception", e);
         }
     }
@@ -128,7 +153,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 options.setPartitionKey(new PartitionKey(id));
             }
 
-            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
+            final String documentLink = getDocumentLink(this.dbName, collectionName, id);
             final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
 
             if (document instanceof Document) {
@@ -136,7 +161,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             } else {
                 return null;
             }
-        } catch (DocumentClientException e) {
+        } catch (com.microsoft.azure.documentdb.DocumentClientException e) {
             if (e.getStatusCode() == HttpConstants.StatusCodes.NOTFOUND) {
                 return null;
             }
@@ -164,9 +189,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 originalDoc = mappingDocumentDbConverter.writeDoc(object);
             }
 
-            log.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
+            log.debug("execute upsert document in database {} collection {}", this.dbName, collectionName);
 
-            final String collectionLink = getCollectionSelfLink(collectionName);
+            final String collectionLink = toCollectionSelfLink(collectionName);
             final RequestOptions options = getRequestOptions(partitionKey, null);
 
             getDocumentClient().upsertDocument(collectionLink, originalDoc, options, false);
@@ -204,8 +229,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should have text.");
 
         try {
-            getDocumentClient().deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
-            this.collectionCache.remove(collectionName);
+            getDocumentClient().deleteCollection(getCollectionLink(this.dbName, collectionName), null);
         } catch (DocumentClientException ex) {
             throw new DocumentDBAccessException("failed to delete collection: " + collectionName, ex);
         }
@@ -217,110 +241,100 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
     }
 
-    private Database createDatabaseIfNotExists(String dbName) {
-        try {
-            final List<Database> dbList = getDocumentClient()
-                    .queryDatabases(new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
-                            new SqlParameterCollection(new SqlParameter("@id", dbName))), null)
-                    .getQueryIterable().toList();
+    private void createDatabaseIfNotExists() {
+        getAsyncDocumentClient().readDatabase(this.dbLink, null)
+                .doOnNext(r -> log.info("Database [{}] exists already.", this.dbName))
+                .onErrorResumeNext(e -> {
+                    if (e instanceof DocumentClientException) {
+                        if (((DocumentClientException) e).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                            log.info("Creating Database [{}] ...", dbName);
+                            final Database db = new Database();
 
-            if (!dbList.isEmpty()) {
-                return dbList.get(0);
-            } else {
-                // create new database
-                final Database db = new Database();
-                db.setId(dbName);
+                            db.setId(dbName);
 
-                log.debug("execute createDatabase {}", dbName);
+                            return getAsyncDocumentClient().createDatabase(db, null);
+                        }
+                    }
 
-                final Resource resource = getDocumentClient().createDatabase(db, null).getResource();
-
-                if (resource instanceof Database) {
-                    return (Database) resource;
-                } else {
-                    final String errorMessage = MessageFormat.format(
-                            "create database {0} and get unexpected result: {1}", dbName, resource.getSelfLink());
-
-                    log.error(errorMessage);
-                    throw new DatabaseCreationException(errorMessage);
-                }
-            }
-        } catch (DocumentClientException ex) {
-            throw new DocumentDBAccessException("createOrGetDatabase exception", ex);
-        }
+                    return Observable.error(e);
+                })
+                .toCompletable()
+                .await();
     }
 
-    private DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
-                                                @NonNull DocumentDbEntityInformation information) {
-        DocumentCollection collection = new DocumentCollection();
-        final String collectionName = information.getCollectionName();
+    private DocumentCollection createDocumentCollectionInstance(@NonNull DocumentDbEntityInformation information) {
         final IndexingPolicy policy = information.getIndexingPolicy();
-        final Integer timeToLive = information.getTimeToLive();
-        final RequestOptions requestOptions = getRequestOptions(null, information.getRequestUnit());
+        final DocumentCollection collection = new DocumentCollection();
 
-        collection.setId(collectionName);
-        collection.setIndexingPolicy(policy);
-
-        if (information.getIndexingPolicy().getAutomatic()) {
-            collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
+        if (policy.getAutomatic()) {
+            collection.setDefaultTimeToLive(information.getTimeToLive());
         }
 
-        if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
-            final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            final ArrayList<String> paths = new ArrayList<>();
+        collection.setId(information.getCollectionName());
+        collection.setIndexingPolicy(information.getIndexingPolicy());
 
-            paths.add(getPartitionKeyPath(partitionKeyFieldName));
-            partitionKeyDefinition.setPaths(paths);
-            collection.setPartitionKey(partitionKeyDefinition);
+        final String partitionKeyName = information.getPartitionKeyFieldName();
+
+        if (StringUtils.hasText(partitionKeyName)) {
+            final PartitionKeyDefinition definition = new PartitionKeyDefinition();
+
+            definition.setPaths(Collections.singletonList(getPartitionKeyPath(partitionKeyName)));
+            collection.setPartitionKey(definition);
         }
 
-        log.debug("execute createCollection in database {} collection {}", dbName, collectionName);
+        return collection;
+    }
+
+    private Optional<DocumentCollection> getCollection(@NonNull String collectionName) {
+        final String sqlQuery = "SELECT * FROM r WHERE r.id=@id";
+        final SqlParameter sqlParameter = new SqlParameter("@id", collectionName);
+        final SqlParameterCollection sqlParameterCollection = new SqlParameterCollection(sqlParameter);
+        final SqlQuerySpec sqlQuerySpec = new SqlQuerySpec(sqlQuery, sqlParameterCollection);
 
         try {
-            final Resource resource = getDocumentClient()
-                    .createCollection(getDatabaseLink(dbName), collection, requestOptions)
-                    .getResource();
-            if (resource instanceof DocumentCollection) {
-                collection = (DocumentCollection) resource;
-            }
-            return collection;
-        } catch (DocumentClientException e) {
-            throw new DocumentDBAccessException("createCollection exception", e);
+            final DocumentCollection collection = getAsyncDocumentClient().queryCollections(dbLink, sqlQuerySpec, null)
+                    .filter(r -> !r.getResults().isEmpty())
+                    .map(r -> r.getResults().get(0))
+                    .toBlocking()
+                    .single();
+
+            log.info("Database Collection [{}] of Database [{}] exists already.", collectionName, this.dbName);
+
+            return Optional.of(collection);
+        } catch (NoSuchElementException ignore) {
+            return Optional.empty();
         }
     }
 
     @Override
     public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information) {
-        if (this.databaseCache == null) {
-            this.databaseCache = createDatabaseIfNotExists(this.databaseName);
-        }
-
         final String collectionName = information.getCollectionName();
-        final String partitionKeyFieldName = information.getPartitionKeyFieldName();
 
-        final List<DocumentCollection> collectionList = getDocumentClient()
-                .queryCollections(getDatabaseLink(this.databaseName),
-                        new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
-                                new SqlParameterCollection(new SqlParameter("@id", collectionName))), null)
-                .getQueryIterable().toList();
+        createDatabaseIfNotExists();
 
-        if (!collectionList.isEmpty()) {
-            return collectionList.get(0);
-        } else {
-            return createCollection(this.databaseName, partitionKeyFieldName, information);
-        }
+        return getCollection(collectionName).orElseGet(() -> {
+            log.info("Creating Collection [{}] of Database [{}] ...", collectionName, this.dbName);
+            final DocumentCollection collection = createDocumentCollectionInstance(information);
+
+            collection.setId(collectionName);
+
+            return this.getAsyncDocumentClient().createCollection(this.dbLink, collection, null)
+                    .map(ResourceResponse::getResource)
+                    .toBlocking()
+                    .single();
+        });
     }
 
     public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
-        log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
+        log.debug("execute deleteById in database {} collection {}", this.dbName, collectionName);
 
         try {
-            getDocumentClient().deleteDocument(getDocumentLink(this.databaseName, collectionName, id.toString()),
+            getDocumentClient().deleteDocument(getDocumentLink(this.dbName, collectionName, id.toString()),
                     getRequestOptions(partitionKey, null));
-        } catch (DocumentClientException ex) {
+        } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
             throw new DocumentDBAccessException("deleteById exception", ex);
         }
     }
@@ -357,27 +371,27 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
-                                     @NonNull Class<T> domainClass, String collectionName) {
+    private <T> List<T> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
+                                     boolean isCrossPartition, @NonNull Class<T> domainClass, String collectionName) {
         final FeedResponse<Document> feedResponse = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
         final List<Document> result = feedResponse.getQueryIterable().toList();
 
         return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
     }
 
-    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
-                                                String collectionName) {
+    private FeedResponse<Document> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
+                                                boolean isCrossPartition, String collectionName) {
         final FeedOptions feedOptions = new FeedOptions();
-        final String selfLink = getCollectionSelfLink(collectionName);
+        final String selfLink = toCollectionSelfLink(collectionName);
 
         feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
 
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
 
-    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, FeedOptions feedOptions,
-                                                String collectionName) {
-        final String selfLink = getCollectionSelfLink(collectionName);
+    private FeedResponse<Document> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
+                                                FeedOptions feedOptions, String collectionName) {
+        final String selfLink = toCollectionSelfLink(collectionName);
 
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
@@ -389,7 +403,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         validateQuery(query, domainClass, collectionName);
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+        final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
 
         return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
@@ -404,19 +418,21 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return;
         }
 
-        final DocumentCollection documentCollection = getDocCollection(collectionName);
+        final Optional<DocumentCollection> optional = getCollection(collectionName);
+
+        Assert.isTrue(optional.isPresent(), "Collection should be created already.");
+
         if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
+            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(optional.get()));
         }
         if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(documentCollection));
+            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(optional.get()));
         }
     }
 
-
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
                                          @NonNull String collectionName) {
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+        final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
 
@@ -434,7 +450,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
-        } catch (DocumentClientException e) {
+        } catch (com.microsoft.azure.documentdb.DocumentClientException e) {
             throw new DocumentDBAccessException("Failed to delete document: " + document.getSelfLink(), e);
         }
     }
@@ -485,7 +501,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         feedOptions.setPageSize(pageable.getPageSize());
         feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+        final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
 
         final Iterator<Document> it = response.getQueryIterator();
@@ -514,7 +530,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
+        final com.microsoft.azure.documentdb.SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
 
         return getCountValue(querySpec, true, collectionName);
     }
@@ -524,13 +540,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null");
         Assert.hasText(collectionName, "collectionName should not be empty");
 
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
+        final com.microsoft.azure.documentdb.SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
 
         return getCountValue(querySpec, isCrossPartitionQuery, collectionName);
     }
 
-    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
+    private long getCountValue(com.microsoft.azure.documentdb.SqlQuerySpec querySpec, boolean isCrossPartitionQuery,
+                               String collectionName) {
         final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
 
@@ -543,23 +560,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    private DocumentCollection getDocCollection(String collectionName) {
-        final String databaseLink = getDatabaseLink(this.databaseName);
-        final SqlParameterCollection parameters = new SqlParameterCollection(new SqlParameter("@id", collectionName));
-        final SqlQuerySpec querySpec = new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id", parameters);
-        final List<DocumentCollection> collections = getDocumentClient().queryCollections(databaseLink, querySpec, null)
-                .getQueryIterable().toList();
-
-        if (collections.size() != 1) {
-            throw new IllegalCollectionException("expect only one collection: " + collectionName
-                    + " in database: " + this.databaseName + ", but found " + collections.size());
-        }
-
-        return collections.get(0);
-    }
-
-    private String getCollectionSelfLink(@NonNull String collectionName) {
-        return String.format("dbs/%s/colls/%s", this.databaseName, collectionName);
+    private String toCollectionSelfLink(@NonNull String collectionName) {
+        return String.format("dbs/%s/colls/%s", this.dbName, collectionName);
     }
 
     @Override
