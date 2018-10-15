@@ -47,7 +47,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import rx.Observable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -228,11 +227,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void deleteCollection(@NonNull String collectionName) {
         Assert.hasText(collectionName, "collectionName should have text.");
 
-        try {
-            getDocumentClient().deleteCollection(getCollectionLink(this.dbName, collectionName), null);
-        } catch (DocumentClientException ex) {
-            throw new DocumentDBAccessException("failed to delete collection: " + collectionName, ex);
-        }
+        getAsyncDocumentClient().deleteCollection(getCollectionLink(this.dbName, collectionName), null)
+                .onErrorReturn(e -> {
+                    throw new DocumentDBAccessException("failed to delete collection: " + collectionName, e);
+                })
+                .toCompletable()
+                .await();
     }
 
     public String getCollectionName(Class<?> domainClass) {
@@ -248,15 +248,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     if (e instanceof DocumentClientException) {
                         if (((DocumentClientException) e).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
                             log.info("Creating Database [{}] ...", dbName);
-                            final Database db = new Database();
 
+                            final Database db = new Database();
                             db.setId(dbName);
 
                             return getAsyncDocumentClient().createDatabase(db, null);
                         }
                     }
 
-                    return Observable.error(e);
+                    throw new DocumentDBAccessException("createOrGetDatabase exception", e);
                 })
                 .toCompletable()
                 .await();
@@ -318,7 +318,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             collection.setId(collectionName);
 
-            return this.getAsyncDocumentClient().createCollection(this.dbLink, collection, null)
+            return getAsyncDocumentClient().createCollection(this.dbLink, collection, null)
                     .map(ResourceResponse::getResource)
                     .toBlocking()
                     .single();
@@ -340,7 +340,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private String getDatabaseLink(String databaseName) {
-        return "dbs/" + databaseName;
+        return "/dbs/" + databaseName;
     }
 
     private String getCollectionLink(String databaseName, String collectionName) {
