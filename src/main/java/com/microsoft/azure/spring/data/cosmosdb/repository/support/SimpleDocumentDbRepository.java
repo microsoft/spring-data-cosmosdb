@@ -7,7 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 
-import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
@@ -31,14 +30,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
     private final DocumentDbOperations operation;
     private final DocumentDbEntityInformation<T, ID> information;
-    private final DocumentCollection collection;
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
                                       ApplicationContext applicationContext) {
         this.operation = applicationContext.getBean(DocumentDbOperations.class);
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        createCollectionIfNotExists();
     }
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
@@ -46,11 +44,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         this.operation = dbOperations;
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        createCollectionIfNotExists();
     }
 
-    private DocumentCollection createCollectionIfNotExists() {
-        return this.operation.createCollectionIfNotExists(this.information);
+    private void createCollectionIfNotExists() {
+        this.operation.createCollectionIfNotExists(this.information);
     }
 
     /**

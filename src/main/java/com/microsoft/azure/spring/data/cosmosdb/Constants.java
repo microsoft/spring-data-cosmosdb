@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.microsoft.azure.cosmosdb.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
