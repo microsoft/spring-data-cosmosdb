@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
-import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;

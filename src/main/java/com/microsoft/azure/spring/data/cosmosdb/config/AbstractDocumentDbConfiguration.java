@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
@@ -19,16 +20,21 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigurationSupport {
+    @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
+    @Autowired(required = false)
+    private ObjectMapper objectMapper;
+
     public abstract DocumentDBConfig getConfig();
+
+    @Bean
+    public AsyncDocumentClient asyncDocumentClient() {
+        return this.documentDbFactory().getAsyncDocumentClient();
+    }
 
     @Bean
     public DocumentClient documentClient() {
         return this.documentDbFactory().getDocumentClient();
     }
-
-    @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
-    @Autowired(required = false)
-    private ObjectMapper objectMapper;
 
     @Bean
     public DocumentDbFactory documentDbFactory() {

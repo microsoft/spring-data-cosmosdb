@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.cosmosdb.*;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;

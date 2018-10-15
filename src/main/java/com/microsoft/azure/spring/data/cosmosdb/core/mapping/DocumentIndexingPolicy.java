@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.mapping;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.microsoft.azure.cosmosdb.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import org.springframework.data.annotation.Persistent;
 

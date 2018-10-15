@@ -6,10 +6,10 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.microsoft.azure.documentdb.ExcludedPath;
-import com.microsoft.azure.documentdb.IncludedPath;
-import com.microsoft.azure.documentdb.IndexingMode;
-import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.ExcludedPath;
+import com.microsoft.azure.cosmosdb.IncludedPath;
+import com.microsoft.azure.cosmosdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
@@ -24,7 +24,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 
 public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
 

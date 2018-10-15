@@ -33,7 +33,9 @@ public class UserAgentTest {
 
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder("https://uri", "key", TestConstants.DB_NAME).build();
         final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
-        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
-    }
 
+        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
+        assertThat(factory.getAsyncDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
+    }
 }
+

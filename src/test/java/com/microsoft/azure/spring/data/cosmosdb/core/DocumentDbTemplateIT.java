@@ -7,7 +7,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.cosmosdb.DocumentCollection;
+import com.microsoft.azure.cosmosdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
@@ -42,9 +43,7 @@ import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
