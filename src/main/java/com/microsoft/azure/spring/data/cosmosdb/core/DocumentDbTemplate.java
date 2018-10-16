@@ -95,39 +95,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 
-    public <T> T insert(T objectToSave, PartitionKey key) {
-        Assert.notNull(objectToSave, "entityClass should not be null");
-
-        return insert(getCollectionName(objectToSave.getClass()), objectToSave, key);
-    }
-
+    @Override
     public <T> T insert(@NonNull String collectionName, @NonNull T domain, @Nullable PartitionKey key) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domain, "domain should not be null");
 
-        final String collectionLink = getCollectionLink(this.dbName, collectionName);
-        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
-        final com.microsoft.azure.cosmosdb.Document result = getAsyncDocumentClient()
-                .createDocument(collectionLink, document, getRequestOptions(key, null), false)
-                .doOnNext(r -> log.info("Create Document from {}.", collectionLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to insert domain", e);
-                })
-                .filter(r -> r.getResource() != null)
-                .map(ResourceResponse::getResource)
-                .toBlocking()
-                .single();
-
-        @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
-
-        return this.mappingDocumentDbConverter.readAsync(domainClass, result);
+        return insertAsync(collectionName, domain, key).toBlocking().single();
     }
 
     @Override
-    public <T> Observable<T> insertAsync(@NonNull T domain, @Nullable PartitionKey key) {
+    public <T> Observable<T> insertAsync(@NonNull String collectionName, @NonNull T domain,
+                                         @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domain, "domain should not be null");
 
-        final String collectionName = getCollectionName(domain.getClass());
         final String collectionLink = getCollectionLink(this.dbName, collectionName);
         @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
         final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);

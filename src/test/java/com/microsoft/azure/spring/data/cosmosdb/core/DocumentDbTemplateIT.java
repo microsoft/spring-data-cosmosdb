@@ -149,7 +149,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        dbTemplate.insert(TEST_PERSON_1, null);
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
         assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
 
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_0.getId(), null);
@@ -177,7 +177,7 @@ public class DocumentDbTemplateIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
-        dbTemplate.insert(TEST_PERSON_1, null);
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
 
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
@@ -185,7 +185,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testCountByQuery() {
-        dbTemplate.insert(TEST_PERSON_1, null);
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
@@ -197,7 +197,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindAllPageableMultiPages() {
-        dbTemplate.insert(TEST_PERSON_1, null);
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
@@ -212,7 +212,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testPaginationQuery() {
-        dbTemplate.insert(TEST_PERSON_1, null);
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
@@ -227,17 +227,21 @@ public class DocumentDbTemplateIT {
     @Test
     public void testInsertAsync() {
         this.dbTemplate.deleteAll(personInfo.getCollectionName(), Person.class);
-        this.dbTemplate.insertAsync(TEST_PERSON_0, null).subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(TEST_PERSON_1, null).subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
+        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
+        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
     }
 
     @Test
     public void testInsertAsyncException() {
         this.dbTemplate.deleteAll(personInfo.getCollectionName(), Person.class);
-        this.dbTemplate.insertAsync(TEST_PERSON_0, null).subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(TEST_PERSON_0, null).subscribe(
-                p -> assertThat(p).isEqualTo(TEST_PERSON_0),
-                e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
-        );
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .subscribe(
+                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
+                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
+                );
     }
 }

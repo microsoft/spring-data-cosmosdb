@@ -31,8 +31,6 @@ public interface DocumentDbOperations {
 
     <T> T findById(String collectionName, Object id, Class<T> entityClass);
 
-    <T> T insert(T objectToSave, PartitionKey partitionKey);
-
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
     <T> void upsert(T object, com.microsoft.azure.documentdb.PartitionKey partitionKey);
@@ -61,5 +59,5 @@ public interface DocumentDbOperations {
 
     MappingDocumentDbConverter getConverter();
 
-    <T> Observable<T> insertAsync(T domain, PartitionKey key);
+    <T> Observable<T> insertAsync(String collectionName, T domain, PartitionKey key);
 }
