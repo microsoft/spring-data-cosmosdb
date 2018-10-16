@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentEntity;
@@ -24,17 +25,20 @@ import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
 
+import javax.xml.crypto.dsig.SignatureProperties;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import static com.microsoft.azure.spring.data.cosmosdb.core.convert.DateConversionConstants.ISO_8601_COMPATIBLE_DATE_PATTERN;
+
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
         ApplicationContextAware {
 
-    private static final String ISO_8601_COMPATIBLE_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:s.SSSXXX";
+
 
     protected final MappingContext<? extends DocumentDbPersistentEntity<?>,
             DocumentDbPersistentProperty> mappingContext;
@@ -65,6 +69,8 @@ public class MappingDocumentDbConverter
     protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
                                                 final Document sourceDocument) {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(provideAdvancedSerializersModule());
+
         try {
             final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
             final Object idValue = sourceDocument.getId();
@@ -81,6 +87,12 @@ public class MappingDocumentDbConverter
             throw  new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
                     + "  to target type " + type, e);
         }
+    }
+
+    private SimpleModule provideAdvancedSerializersModule() {
+        final SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        return simpleModule;
     }
 
     @Override
