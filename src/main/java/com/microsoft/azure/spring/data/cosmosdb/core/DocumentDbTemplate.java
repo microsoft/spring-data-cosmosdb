@@ -115,7 +115,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .createDocument(collectionLink, document, getRequestOptions(key, null), false)
-                .doOnNext(r -> log.info("Create Document Async from {}.", collectionLink))
+                .doOnNext(r -> log.debug("Create Document Async from {}.", collectionLink))
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to insert domain", e);
                 })
