@@ -7,12 +7,13 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.cosmosdb.DocumentCollection;
-import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import rx.Observable;
 
 import java.util.List;
 
@@ -30,15 +31,13 @@ public interface DocumentDbOperations {
 
     <T> T findById(String collectionName, Object id, Class<T> entityClass);
 
-    <T> T insert(T objectToSave, PartitionKey partitionKey);
-
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
-    <T> void upsert(T object, PartitionKey partitionKey);
+    <T> void upsert(T object, com.microsoft.azure.documentdb.PartitionKey partitionKey);
 
-    <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
+    <T> void upsert(String collectionName, T object, com.microsoft.azure.documentdb.PartitionKey partitionKey);
 
-    <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
+    void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey);
 
     void deleteAll(String collectionName, Class<?> domainClass);
 
@@ -59,4 +58,6 @@ public interface DocumentDbOperations {
     <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
 
     MappingDocumentDbConverter getConverter();
+
+    <T> Observable<T> insertAsync(String collectionName, T domain, PartitionKey key);
 }

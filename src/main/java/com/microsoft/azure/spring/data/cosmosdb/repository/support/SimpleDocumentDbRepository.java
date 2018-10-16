@@ -6,8 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-
-import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
@@ -62,17 +61,17 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public <S extends T> S save(S entity) {
         Assert.notNull(entity, "entity must not be null");
 
+        final String collectionName = information.getCollectionName();
+
         // save entity
         if (information.isNew(entity)) {
-            return operation.insert(information.getCollectionName(),
-                    entity,
-                    createKey(information.getPartitionKeyFieldValue(entity)));
+            return operation.insert(collectionName, entity, createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
             operation.upsert(information.getCollectionName(),
-                    entity, createKey(information.getPartitionKeyFieldValue(entity)));
-        }
+                    entity, createDocumentDbKey(information.getPartitionKeyFieldValue(entity)));
 
-        return entity;
+            return entity;
+        }
     }
 
     private PartitionKey createKey(String partitionKeyValue) {
@@ -81,6 +80,14 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         }
 
         return new PartitionKey(partitionKeyValue);
+    }
+
+    private com.microsoft.azure.documentdb.PartitionKey createDocumentDbKey(String partitionKeyValue) {
+        if (StringUtils.isEmpty(partitionKeyValue)) {
+            return null;
+        }
+
+        return new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue);
     }
 
     /**
@@ -180,7 +187,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
         operation.deleteById(information.getCollectionName(),
                 information.getId(entity),
-                partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue));
+                partitionKeyValue == null ? null : new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue));
     }
 
     /**

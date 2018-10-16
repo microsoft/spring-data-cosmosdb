@@ -7,7 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -17,6 +17,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -47,11 +48,11 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplatePartitionIT {
-    private static final PartitionPerson TEST_PERSON = new PartitionPerson(ID_1, FIRST_NAME, LAST_NAME,
+    private static final PartitionPerson TEST_PERSON_0 = new PartitionPerson(ID_1, FIRST_NAME, LAST_NAME,
             HOBBIES, ADDRESSES);
 
-    private static final PartitionPerson TEST_PERSON_2 = new PartitionPerson(ID_2, NEW_FIRST_NAME,
-            TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
+    private static final PartitionPerson TEST_PERSON_1 = new PartitionPerson(ID_2, NEW_FIRST_NAME,
+            TEST_PERSON_0.getLastName(), HOBBIES, ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -81,8 +82,8 @@ public class DocumentDbTemplatePartitionIT {
         collectionName = personInfo.getCollectionName();
 
         dbTemplate.createCollectionIfNotExists(personInfo);
-        dbTemplate.insert(PartitionPerson.class.getSimpleName(), TEST_PERSON,
-                new PartitionKey(TEST_PERSON.getLastName()));
+        dbTemplate.insert(PartitionPerson.class.getSimpleName(), TEST_PERSON_0,
+                new PartitionKey(TEST_PERSON_0.getLastName()));
     }
 
     @After
@@ -98,14 +99,14 @@ public class DocumentDbTemplatePartitionIT {
                 PartitionPerson.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0), TEST_PERSON);
+        assertEquals(result.get(0), TEST_PERSON_0);
 
         criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
         result = dbTemplate.find(query, PartitionPerson.class, PartitionPerson.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0), TEST_PERSON);
+        assertEquals(result.get(0), TEST_PERSON_0);
     }
 
     @Test
@@ -124,7 +125,8 @@ public class DocumentDbTemplatePartitionIT {
         final PartitionPerson newPerson = new PartitionPerson(null, firstName, NEW_LAST_NAME, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
+        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson,
+                new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
 
@@ -137,13 +139,14 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testUpdatePartition() {
-        final PartitionPerson updated = new PartitionPerson(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
-                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), updated, new PartitionKey(updated.getLastName()));
+        final PartitionPerson updated = new PartitionPerson(TEST_PERSON_0.getPersonId(), UPDATED_FIRST_NAME,
+                TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
+        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), updated,
+                new com.microsoft.azure.documentdb.PartitionKey(updated.getLastName()));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
         final PartitionPerson person = result.stream().filter(
-                p -> TEST_PERSON.getId().equals(p.getId())).findFirst().get();
+                p -> TEST_PERSON_0.getPersonId().equals(p.getPersonId())).findFirst().get();
 
         assertTrue(person.equals(updated));
     }
@@ -151,19 +154,19 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final List<PartitionPerson> inserted = dbTemplate.findAll(PartitionPerson.class);
         assertThat(inserted.size()).isEqualTo(2);
-        assertThat(inserted.get(0).getLastName()).isEqualTo(TEST_PERSON.getLastName());
-        assertThat(inserted.get(1).getLastName()).isEqualTo(TEST_PERSON.getLastName());
+        assertThat(inserted.get(0).getLastName()).isEqualTo(TEST_PERSON_0.getLastName());
+        assertThat(inserted.get(1).getLastName()).isEqualTo(TEST_PERSON_0.getLastName());
 
-        dbTemplate.deleteById(PartitionPerson.class.getSimpleName(),
-                TEST_PERSON.getId(), new PartitionKey(TEST_PERSON.getLastName()));
+        dbTemplate.deleteById(PartitionPerson.class.getSimpleName(), TEST_PERSON_0.getPersonId(),
+                new com.microsoft.azure.documentdb.PartitionKey(TEST_PERSON_0.getLastName()));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(TEST_PERSON_2));
+        assertTrue(result.get(0).equals(TEST_PERSON_1));
     }
 
     @Test
@@ -171,7 +174,7 @@ public class DocumentDbTemplatePartitionIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
-        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
@@ -179,10 +182,10 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testCountForPartitionedCollectionByQuery() {
-        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON_2.getFirstName()));
+                Arrays.asList(TEST_PERSON_1.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, PartitionPerson.class, collectionName);
@@ -201,7 +204,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testPartitionedFindAllPageableMultiPages() {
-        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<PartitionPerson> page1 = dbTemplate.findAll(pageRequest, PartitionPerson.class, collectionName);
@@ -217,7 +220,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testPartitionedPaginationQuery() {
-        dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(FIRST_NAME));
@@ -227,5 +230,29 @@ public class DocumentDbTemplatePartitionIT {
         final Page<PartitionPerson> page = dbTemplate.paginationQuery(query, PartitionPerson.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
+    }
+
+    @Test
+    public void testInsertAsync() {
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_1, null)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
+    }
+
+    @Test
+    public void testInsertAsyncException() {
+        final PartitionKey key0 = new PartitionKey(TEST_PERSON_0.getLastName());
+        final PartitionKey key1 = new PartitionKey(TEST_PERSON_1.getLastName());
+
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key0)
+                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key1)
+                .subscribe(
+                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
+                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
+                );
     }
 }

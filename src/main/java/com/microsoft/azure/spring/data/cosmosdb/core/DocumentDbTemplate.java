@@ -7,9 +7,12 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.cosmosdb.Database;
+import com.microsoft.azure.cosmosdb.DocumentClientException;
 import com.microsoft.azure.cosmosdb.DocumentCollection;
 import com.microsoft.azure.cosmosdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.cosmosdb.PartitionKeyDefinition;
+import com.microsoft.azure.cosmosdb.RequestOptions;
 import com.microsoft.azure.cosmosdb.ResourceResponse;
 import com.microsoft.azure.cosmosdb.SqlParameter;
 import com.microsoft.azure.cosmosdb.SqlParameterCollection;
@@ -17,11 +20,8 @@ import com.microsoft.azure.cosmosdb.SqlQuerySpec;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.*;
-import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.FeedOptions;
 import com.microsoft.azure.documentdb.FeedResponse;
-import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.documentdb.Resource;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
@@ -45,8 +45,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import rx.Observable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,36 +95,32 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 
-    public <T> T insert(T objectToSave, PartitionKey partitionKey) {
-        Assert.notNull(objectToSave, "entityClass should not be null");
+    @Override
+    public <T> T insert(@NonNull String collectionName, @NonNull T domain, @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(domain, "domain should not be null");
 
-        return insert(getCollectionName(objectToSave.getClass()), objectToSave, partitionKey);
+        return insertAsync(collectionName, domain, key).toBlocking().single();
     }
 
-    public <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey) {
+    @Override
+    public <T> Observable<T> insertAsync(@NonNull String collectionName, @NonNull T domain,
+                                         @Nullable PartitionKey key) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(objectToSave, "objectToSave should not be null");
+        Assert.notNull(domain, "domain should not be null");
 
-        final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
+        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+        @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
+        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
 
-        log.debug("execute createDocument in database {} collection {}", this.dbName, collectionName);
-
-        try {
-            final Resource result = getDocumentClient()
-                    .createDocument(getCollectionLink(this.dbName, collectionName), document,
-                            getRequestOptions(partitionKey, null), false).getResource();
-
-            if (result instanceof Document) {
-                final Document documentInserted = (Document) result;
-                @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) objectToSave.getClass();
-
-                return mappingDocumentDbConverter.read(domainClass, documentInserted);
-            } else {
-                return null;
-            }
-        } catch (com.microsoft.azure.documentdb.DocumentClientException e) {
-            throw new DocumentDBAccessException("insert exception", e);
-        }
+        return getAsyncDocumentClient()
+                .createDocument(collectionLink, document, getRequestOptions(key, null), false)
+                .doOnNext(r -> log.debug("Create Document Async from {}.", collectionLink))
+                .onErrorReturn(e -> {
+                    throw new DocumentDBAccessException("failed to insert domain", e);
+                })
+                .map(ResourceResponse::getResource)
+                .map(d -> this.mappingDocumentDbConverter.readAsync(domainClass, d));
     }
 
     public <T> T findById(Object id, Class<T> entityClass) {
@@ -146,10 +144,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         assertValidId(id);
 
         try {
-            final RequestOptions options = new RequestOptions();
+            final com.microsoft.azure.documentdb.RequestOptions options =
+                    new com.microsoft.azure.documentdb.RequestOptions();
 
             if (isIdFieldAsPartitionKey(domainClass)) {
-                options.setPartitionKey(new PartitionKey(id));
+                options.setPartitionKey(new com.microsoft.azure.documentdb.PartitionKey(id));
             }
 
             final String documentLink = getDocumentLink(this.dbName, collectionName, id);
@@ -169,13 +168,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void upsert(T object, PartitionKey partitionKey) {
+    public <T> void upsert(T object, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
         Assert.notNull(object, "Upsert object should not be null");
 
         upsert(getCollectionName(object.getClass()), object, partitionKey);
     }
 
-    public <T> void upsert(String collectionName, T object, PartitionKey partitionKey) {
+    public <T> void upsert(String collectionName, T object, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(object, "Upsert object should not be null");
 
@@ -191,10 +190,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             log.debug("execute upsert document in database {} collection {}", this.dbName, collectionName);
 
             final String collectionLink = toCollectionSelfLink(collectionName);
-            final RequestOptions options = getRequestOptions(partitionKey, null);
+            final com.microsoft.azure.documentdb.RequestOptions options =
+                    getDocumentDbRequestOptions(partitionKey, null);
 
             getDocumentClient().upsertDocument(collectionLink, originalDoc, options, false);
-        } catch (DocumentClientException ex) {
+        } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
             throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
         }
     }
@@ -325,7 +325,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         });
     }
 
-    public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
+    public void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
@@ -333,7 +333,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         try {
             getDocumentClient().deleteDocument(getDocumentLink(this.dbName, collectionName, id.toString()),
-                    getRequestOptions(partitionKey, null));
+                    getDocumentDbRequestOptions(partitionKey, null));
         } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
             throw new DocumentDBAccessException("deleteById exception", ex);
         }
@@ -361,6 +361,24 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final RequestOptions requestOptions = new RequestOptions();
+        if (key != null) {
+            requestOptions.setPartitionKey(key);
+        }
+        if (requestUnit != null) {
+            requestOptions.setOfferThroughput(requestUnit);
+        }
+
+        return requestOptions;
+    }
+
+    private com.microsoft.azure.documentdb.RequestOptions getDocumentDbRequestOptions(
+            com.microsoft.azure.documentdb.PartitionKey key, Integer requestUnit) {
+        if (key == null && requestUnit == null) {
+            return null;
+        }
+
+        final com.microsoft.azure.documentdb.RequestOptions requestOptions =
+                new com.microsoft.azure.documentdb.RequestOptions();
         if (key != null) {
             requestOptions.setPartitionKey(key);
         }
@@ -441,12 +459,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
         try {
-            final RequestOptions options = new RequestOptions();
+            final com.microsoft.azure.documentdb.RequestOptions options =
+                    new com.microsoft.azure.documentdb.RequestOptions();
 
             Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
             if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
-                options.setPartitionKey(new PartitionKey(document.get(partitionKeyNames.get(0))));
+                options.setPartitionKey(
+                        new com.microsoft.azure.documentdb.PartitionKey(document.get(partitionKeyNames.get(0))));
             }
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
