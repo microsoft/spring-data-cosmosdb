@@ -73,8 +73,16 @@ public class MappingDocumentDbConverter
                                           @NonNull com.microsoft.azure.cosmosdb.Document document) {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+        final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainClass);
+        Assert.notNull(mappingContext.getPersistentEntity(domainClass), "entity not be null");
+
+        final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
+        Assert.notNull(idProperty, "idProperty should not be null");
+
+        final JSONObject json = new JSONObject(document.toJson()).put(idProperty.getName(), document.getId());
+
         try {
-            return objectMapper.readValue(new JSONObject(document.toJson()).toString(), domainClass);
+            return objectMapper.readValue(json.toString(), domainClass);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read the source document " + document.toJson()
                     + "  to target type " + domainClass, e);
