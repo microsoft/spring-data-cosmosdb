@@ -125,8 +125,7 @@ public class DocumentDbTemplatePartitionIT {
         final PartitionPerson newPerson = new PartitionPerson(null, firstName, NEW_LAST_NAME, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson,
-                new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue));
+        dbTemplate.upsert(personInfo.getCollectionName(), newPerson, new PartitionKey(partitionKeyValue));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
 
@@ -141,8 +140,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testUpdatePartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON_0.getPersonId(), UPDATED_FIRST_NAME,
                 TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), updated,
-                new com.microsoft.azure.documentdb.PartitionKey(updated.getLastName()));
+        dbTemplate.upsert(personInfo.getCollectionName(), updated, new PartitionKey(updated.getLastName()));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
         final PartitionPerson person = result.stream().filter(

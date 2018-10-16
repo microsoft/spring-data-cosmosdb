@@ -8,10 +8,13 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import rx.Observable;
 
 import java.io.Serializable;
 
 @NoRepositoryBean
 public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
+
+    <S extends T> Observable<S> saveAsync(S domain);
 }
 

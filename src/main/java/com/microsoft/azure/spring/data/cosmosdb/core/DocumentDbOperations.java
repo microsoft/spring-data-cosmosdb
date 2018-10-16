@@ -33,9 +33,7 @@ public interface DocumentDbOperations {
 
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
-    <T> void upsert(T object, com.microsoft.azure.documentdb.PartitionKey partitionKey);
-
-    <T> void upsert(String collectionName, T object, com.microsoft.azure.documentdb.PartitionKey partitionKey);
+    <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
     void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey);
 
@@ -60,4 +58,6 @@ public interface DocumentDbOperations {
     MappingDocumentDbConverter getConverter();
 
     <T> Observable<T> insertAsync(String collectionName, T domain, PartitionKey key);
+
+    <T> Observable<T> upsertAsync(String collectionName, T domain, PartitionKey key);
 }
