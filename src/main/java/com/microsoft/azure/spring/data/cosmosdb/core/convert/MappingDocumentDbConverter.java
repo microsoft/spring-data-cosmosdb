@@ -20,10 +20,11 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.MappingException;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -45,6 +46,39 @@ public class MappingDocumentDbConverter
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() : objectMapper;
+    }
+
+    /**
+     * Convert a property value to the value stored in CosmosDB
+     *
+     * @param fromPropertyValue
+     * @return
+     */
+    public static Object toDocumentDBValue(Object fromPropertyValue) {
+        if (fromPropertyValue == null) {
+            return null;
+        }
+
+        // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
+        if (fromPropertyValue instanceof Date) {
+            fromPropertyValue = ((Date) fromPropertyValue).getTime();
+        } else if (fromPropertyValue instanceof Enum) {
+            fromPropertyValue = fromPropertyValue.toString();
+        }
+
+        return fromPropertyValue;
+    }
+
+    public <T extends Object> T readAsync(Class<T> domainClass,
+                                          @NonNull com.microsoft.azure.cosmosdb.Document document) {
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        try {
+            return objectMapper.readValue(new JSONObject(document.toJson()).toString(), domainClass);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read the source document " + document.toJson()
+                    + "  to target type " + domainClass, e);
+        }
     }
 
     @Override
@@ -75,7 +109,7 @@ public class MappingDocumentDbConverter
 
             return objectMapper.readValue(jsonObject.toString(), type);
         } catch (IOException e) {
-            throw  new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
+            throw new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
                     + "  to target type " + type, e);
         }
     }
@@ -117,6 +151,32 @@ public class MappingDocumentDbConverter
         return document;
     }
 
+    public com.microsoft.azure.cosmosdb.Document toCosmosdbDocument(@NonNull Object domain) {
+        final DocumentDbPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(domain.getClass());
+        final ConvertingPropertyAccessor accessor = getPropertyAccessor(domain);
+
+        Assert.notNull(persistentEntity, "no mapping metadata for domain: " + domain.getClass().getName());
+
+        final com.microsoft.azure.cosmosdb.Document document;
+        final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
+
+        try {
+            document = new com.microsoft.azure.cosmosdb.Document(objectMapper.writeValueAsString(domain));
+        } catch (JsonProcessingException e) {
+            throw new DocumentDBAccessException("Failed to map document value.", e);
+        }
+
+        Assert.notNull(document, "Document should not be null");
+
+        final Object value = accessor.getProperty(idProperty);
+
+        if (value != null) {
+            document.setId(value.toString());
+        }
+
+        return document;
+    }
+
     public ApplicationContext getApplicationContext() {
         return this.applicationContext;
     }
@@ -135,32 +195,11 @@ public class MappingDocumentDbConverter
         return mappingContext;
     }
 
-
     private ConvertingPropertyAccessor getPropertyAccessor(Object entity) {
         final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
 
         Assert.notNull(entityInformation, "EntityInformation should not be null.");
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);
         return new ConvertingPropertyAccessor(accessor, conversionService);
-    }
-
-    /**
-     * Convert a property value to the value stored in CosmosDB
-     * @param fromPropertyValue
-     * @return
-     */
-    public static Object toDocumentDBValue(Object fromPropertyValue) {
-        if (fromPropertyValue == null) {
-            return null;
-        }
-
-        // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
-        if (fromPropertyValue instanceof Date) {
-            fromPropertyValue = ((Date) fromPropertyValue).getTime();
-        } else if (fromPropertyValue instanceof Enum) {
-            fromPropertyValue = fromPropertyValue.toString();
-        }
-
-        return fromPropertyValue;
     }
 }

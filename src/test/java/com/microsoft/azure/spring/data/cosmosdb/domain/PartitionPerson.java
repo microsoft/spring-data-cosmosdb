@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.domain;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 
 import java.util.List;
 
@@ -16,7 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 public class PartitionPerson {
 
-    private String id;
+    @Id
+    private String personId;
 
     private String firstName;
 
