@@ -54,7 +54,7 @@ public class SquareRepositoryIT {
         final Optional<Square> result = repository.findById(square1.getId());
 
         assertThat(result.get()).isNotNull();
-        assertThat(result.get().getId().equals(square1.getId()));
+        assertThat(result.get().getId()).isEqualTo(square1.getId());
         assertThat(result.get().getLength()).isEqualTo(square1.getLength());
         assertThat(result.get().getArea()).isEqualTo(square1.getArea());
     }

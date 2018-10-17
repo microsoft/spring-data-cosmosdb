@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.StudentRepository;
@@ -16,30 +17,33 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class StudentRepositoryIT {
-    public static final String ID_0 = "id-0";
-    public static final String ID_1 = "id-1";
-    public static final String ID_2 = "id-2";
-    public static final String ID_3 = "id-3";
+    private static final String ID_0 = "id-0";
+    private static final String ID_1 = "id-1";
+    private static final String ID_2 = "id-2";
+    private static final String ID_3 = "id-3";
 
-    public static final String FIRST_NAME_0 = "Mary";
-    public static final String FIRST_NAME_1 = "Cheng";
-    public static final String FIRST_NAME_2 = "Zheng";
-    public static final String FIRST_NAME_3 = "Zhen";
+    private static final String FIRST_NAME_0 = "Mary";
+    private static final String FIRST_NAME_1 = "Cheng";
+    private static final String FIRST_NAME_2 = "Zheng";
+    private static final String FIRST_NAME_3 = "Zhen";
 
-    public static final String LAST_NAME_0 = "Chen";
-    public static final String LAST_NAME_1 = "Ch";
-    public static final String LAST_NAME_2 = "N";
-    public static final String LAST_NAME_3 = "H";
+    private static final String LAST_NAME_0 = "Chen";
+    private static final String LAST_NAME_1 = "Ch";
+    private static final String LAST_NAME_2 = "N";
+    private static final String LAST_NAME_3 = "H";
 
-    public static final String SUB_FIRST_NAME = "eng";
+    private static final String SUB_FIRST_NAME = "eng";
 
     private static final Student STUDENT_0 = new Student(ID_0, FIRST_NAME_0, LAST_NAME_0);
     private static final Student STUDENT_1 = new Student(ID_1, FIRST_NAME_1, LAST_NAME_1);

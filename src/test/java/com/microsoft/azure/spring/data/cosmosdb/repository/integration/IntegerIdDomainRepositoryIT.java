@@ -6,8 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
-import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 @RunWith(SpringJUnit4ClassRunner.class)

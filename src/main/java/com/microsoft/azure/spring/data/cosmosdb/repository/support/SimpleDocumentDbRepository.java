@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import rx.Observable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,41 +54,44 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     /**
      * save entity without partition
      *
-     * @param entity to be saved
+     * @param domain to be saved
      * @param <S>
      * @return entity
      */
     @Override
-    public <S extends T> S save(S entity) {
-        Assert.notNull(entity, "entity must not be null");
+    public <S extends T> S save(S domain) {
+        Assert.notNull(domain, "domain must not be null");
 
         final String collectionName = information.getCollectionName();
+        final PartitionKey partitionKey = createPartitionKey(information.getPartitionKeyFieldValue(domain));
 
-        // save entity
-        if (information.isNew(entity)) {
-            return operation.insert(collectionName, entity, createKey(information.getPartitionKeyFieldValue(entity)));
+        if (information.isNew(domain)) {
+            return operation.insert(collectionName, domain, partitionKey);
         } else {
-            operation.upsert(information.getCollectionName(),
-                    entity, createDocumentDbKey(information.getPartitionKeyFieldValue(entity)));
+            operation.upsert(collectionName, domain, partitionKey);
 
-            return entity;
+            return domain;
         }
     }
 
-    private PartitionKey createKey(String partitionKeyValue) {
+    @Override
+    public <S extends T> Observable<S> saveAsync(@NonNull S domain) {
+        final String collectionName = information.getCollectionName();
+        final PartitionKey partitionKey = createPartitionKey(information.getPartitionKeyFieldValue(domain));
+
+        if (information.isNew(domain)) {
+            return operation.insertAsync(collectionName, domain, partitionKey);
+        } else {
+            return operation.upsertAsync(collectionName, domain, partitionKey);
+        }
+    }
+
+    private PartitionKey createPartitionKey(String partitionKeyValue) {
         if (StringUtils.isEmpty(partitionKeyValue)) {
             return null;
         }
 
         return new PartitionKey(partitionKeyValue);
-    }
-
-    private com.microsoft.azure.documentdb.PartitionKey createDocumentDbKey(String partitionKeyValue) {
-        if (StringUtils.isEmpty(partitionKeyValue)) {
-            return null;
-        }
-
-        return new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue);
     }
 
     /**

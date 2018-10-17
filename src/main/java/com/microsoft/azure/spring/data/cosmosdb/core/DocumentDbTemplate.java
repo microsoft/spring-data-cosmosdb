@@ -109,8 +109,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domain, "domain should not be null");
 
-        final String collectionLink = getCollectionLink(this.dbName, collectionName);
         @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
+        final String collectionLink = getCollectionLink(this.dbName, collectionName);
         final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
 
         return getAsyncDocumentClient()
@@ -121,6 +121,32 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 })
                 .map(ResourceResponse::getResource)
                 .map(d -> this.mappingDocumentDbConverter.readAsync(domainClass, d));
+    }
+
+    @Override
+    public <T> void upsert(@NonNull String collectionName, @NonNull T domain, @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(domain, "domain should not be null");
+
+        upsertAsync(collectionName, domain, key).toBlocking().single();
+    }
+
+    @Override
+    public <T> Observable<T> upsertAsync(@NonNull String collectionName, @NonNull T domain,
+                                         @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        Assert.notNull(domain, "domain should not be null");
+
+        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
+
+        return getAsyncDocumentClient()
+                .upsertDocument(collectionLink, document, getRequestOptions(key, null), false)
+                .doOnNext(r -> log.debug("Upsert Document Async from {}.", collectionLink))
+                .onErrorReturn(e -> {
+                    throw new DocumentDBAccessException("failed to upsert domain", e);
+                })
+                .map(d -> domain);
     }
 
     public <T> T findById(Object id, Class<T> entityClass) {
@@ -165,37 +191,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             throw new DocumentDBAccessException("findById exception", e);
-        }
-    }
-
-    public <T> void upsert(T object, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
-        Assert.notNull(object, "Upsert object should not be null");
-
-        upsert(getCollectionName(object.getClass()), object, partitionKey);
-    }
-
-    public <T> void upsert(String collectionName, T object, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(object, "Upsert object should not be null");
-
-        try {
-            Document originalDoc;
-
-            if (object instanceof Document) {
-                originalDoc = (Document) object;
-            } else {
-                originalDoc = mappingDocumentDbConverter.writeDoc(object);
-            }
-
-            log.debug("execute upsert document in database {} collection {}", this.dbName, collectionName);
-
-            final String collectionLink = toCollectionSelfLink(collectionName);
-            final com.microsoft.azure.documentdb.RequestOptions options =
-                    getDocumentDbRequestOptions(partitionKey, null);
-
-            getDocumentClient().upsertDocument(collectionLink, originalDoc, options, false);
-        } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
-            throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
         }
     }
 
