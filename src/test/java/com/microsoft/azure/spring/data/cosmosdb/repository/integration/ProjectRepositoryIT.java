@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
@@ -87,6 +88,26 @@ public class ProjectRepositoryIT {
         reference.sort(Comparator.comparing(Project::getId));
 
         Assert.assertEquals(projects, reference);
+    }
+
+    @Test
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Project project = new Project("id", "name", "creator", true, 1L, 1L);
+
+        this.repository.saveAsync(project).subscribe(a -> {
+            Assert.assertEquals(a, project);
+            Assert.assertTrue(this.repository.findById(project.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(project.getId()).get(), project);
+        });
+
+        project.setCreator("new-creator");
+
+        this.repository.saveAsync(project).subscribe(a -> {
+            Assert.assertEquals(a, project);
+            Assert.assertTrue(this.repository.findById(project.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(project.getId()).get(), project);
+        });
     }
 
     @Test

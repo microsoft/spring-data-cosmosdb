@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
@@ -65,6 +66,26 @@ public class MemoRepositoryIT {
     @After
     public void cleanup() {
         repository.deleteAll();
+    }
+
+    @Test
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Memo memo = new Memo("id", "message", memoDate, Importance.LOW);
+
+        this.repository.saveAsync(memo).subscribe(a -> {
+            assertThat(a).isEqualTo(memo);
+            assertThat(this.repository.findById(memo.getId()).isPresent()).isTrue();
+            assertThat(this.repository.findById(memo.getId()).get()).isEqualTo(memo);
+        });
+
+        memo.setMessage("new-message");
+
+        this.repository.saveAsync(memo).subscribe(a -> {
+            assertThat(a).isEqualTo(memo);
+            assertThat(this.repository.findById(memo.getId()).isPresent()).isTrue();
+            assertThat(this.repository.findById(memo.getId()).get()).isEqualTo(memo);
+        });
     }
 
     @Test

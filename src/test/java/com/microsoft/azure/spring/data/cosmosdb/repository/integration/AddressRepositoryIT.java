@@ -58,6 +58,26 @@ public class AddressRepositoryIT {
     }
 
     @Test
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Address address = new Address("postal-code", "street", "city");
+
+        this.repository.saveAsync(address).subscribe(a -> {
+            assertThat(a).isEqualTo(address);
+            assertThat(this.repository.findById(address.getPostalCode()).isPresent()).isTrue();
+            assertThat(this.repository.findById(address.getPostalCode()).get()).isEqualTo(address);
+        });
+
+        address.setCity("new-city");
+
+        this.repository.saveAsync(address).subscribe(a -> {
+            assertThat(a).isEqualTo(address);
+            assertThat(this.repository.findById(address.getPostalCode()).isPresent()).isTrue();
+            assertThat(this.repository.findById(address.getPostalCode()).get()).isEqualTo(address);
+        });
+    }
+
+    @Test
     public void testFindAll() {
         // findAll cross partition
         final List<Address> result = TestUtils.toList(repository.findAll());
@@ -70,8 +90,8 @@ public class AddressRepositoryIT {
         final List<Address> addresses = repository.findByPostalCode(TestConstants.POSTAL_CODE);
 
         assertThat(addresses.size()).isEqualTo(2);
-        assertThat(addresses.get(0).getPostalCode().equals(TestConstants.POSTAL_CODE));
-        assertThat(addresses.get(1).getPostalCode().equals(TestConstants.POSTAL_CODE));
+        assertThat(addresses.get(0).getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
+        assertThat(addresses.get(1).getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
     }
 
     @Test

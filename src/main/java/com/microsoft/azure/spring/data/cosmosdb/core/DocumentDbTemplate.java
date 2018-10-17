@@ -137,7 +137,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domain, "domain should not be null");
 
-        @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
         final String collectionLink = getCollectionLink(this.dbName, collectionName);
         final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
 

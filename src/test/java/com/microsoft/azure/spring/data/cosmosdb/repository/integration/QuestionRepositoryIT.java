@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
@@ -48,6 +49,26 @@ public class QuestionRepositoryIT {
     @After
     public void cleanup() {
         this.repository.deleteAll();
+    }
+
+    @Test
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Question question = new Question("id", "link");
+
+        this.repository.saveAsync(question).subscribe(a -> {
+            Assert.assertEquals(a, question);
+            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+        });
+
+        question.setUrl("new-link");
+
+        this.repository.saveAsync(question).subscribe(a -> {
+            Assert.assertEquals(a, question);
+            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+        });
     }
 
     @Test

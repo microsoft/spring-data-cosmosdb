@@ -50,11 +50,31 @@ public class SquareRepositoryIT {
     }
 
     @Test
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Square square = new Square("id", 10, 12);
+
+        this.repository.saveAsync(square).subscribe(a -> {
+            assertThat(a).isEqualTo(square);
+            assertThat(this.repository.findById(square.getId()).isPresent()).isTrue();
+            assertThat(this.repository.findById(square.getId()).get()).isEqualTo(square);
+        });
+
+        square.setLength(203);
+
+        this.repository.saveAsync(square).subscribe(a -> {
+            assertThat(a).isEqualTo(square);
+            assertThat(this.repository.findById(square.getId()).isPresent()).isTrue();
+            assertThat(this.repository.findById(square.getId()).get()).isEqualTo(square);
+        });
+    }
+
+    @Test
     public void testFindIncludeInheritedFields() {
         final Optional<Square> result = repository.findById(square1.getId());
 
         assertThat(result.get()).isNotNull();
-        assertThat(result.get().getId().equals(square1.getId()));
+        assertThat(result.get().getId()).isEqualTo(square1.getId());
         assertThat(result.get().getLength()).isEqualTo(square1.getLength());
         assertThat(result.get().getArea()).isEqualTo(square1.getArea());
     }
