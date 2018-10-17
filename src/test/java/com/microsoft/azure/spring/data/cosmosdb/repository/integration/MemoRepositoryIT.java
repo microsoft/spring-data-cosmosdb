@@ -69,26 +69,6 @@ public class MemoRepositoryIT {
     }
 
     @Test
-    public void testSaveAsync() {
-        this.repository.deleteAll();
-        final Memo memo = new Memo("id", "message", memoDate, Importance.LOW);
-
-        this.repository.saveAsync(memo).subscribe(a -> {
-            assertThat(a).isEqualTo(memo);
-            assertThat(this.repository.findById(memo.getId()).isPresent()).isTrue();
-            assertThat(this.repository.findById(memo.getId()).get()).isEqualTo(memo);
-        });
-
-        memo.setMessage("new-message");
-
-        this.repository.saveAsync(memo).subscribe(a -> {
-            assertThat(a).isEqualTo(memo);
-            assertThat(this.repository.findById(memo.getId()).isPresent()).isTrue();
-            assertThat(this.repository.findById(memo.getId()).get()).isEqualTo(memo);
-        });
-    }
-
-    @Test
     public void testFindAll() {
         final List<Memo> result = TestUtils.toList(repository.findAll());
 

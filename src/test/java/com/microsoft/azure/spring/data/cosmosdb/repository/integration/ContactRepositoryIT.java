@@ -45,26 +45,6 @@ public class ContactRepositoryIT {
     }
 
     @Test
-    public void testSaveAsync() {
-        this.repository.deleteAll();
-        final Contact contact = new Contact("logic-id", "title");
-
-        this.repository.saveAsync(contact).subscribe(a -> {
-            assertThat(a).isEqualTo(contact);
-            assertThat(this.repository.findById(contact.getLogicId()).isPresent()).isTrue();
-            assertThat(this.repository.findById(contact.getLogicId()).get()).isEqualTo(contact);
-        });
-
-        contact.setTitle("new-title");
-
-        this.repository.saveAsync(contact).subscribe(a -> {
-            assertThat(a).isEqualTo(contact);
-            assertThat(this.repository.findById(contact.getLogicId()).isPresent()).isTrue();
-            assertThat(this.repository.findById(contact.getLogicId()).get()).isEqualTo(contact);
-        });
-    }
-
-    @Test
     public void testFindAll() {
         final List<Contact> result = TestUtils.toList(repository.findAll());
 

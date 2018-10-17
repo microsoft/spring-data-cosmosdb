@@ -58,26 +58,6 @@ public class AddressRepositoryIT {
     }
 
     @Test
-    public void testSaveAsync() {
-        this.repository.deleteAll();
-        final Address address = new Address("postal-code", "street", "city");
-
-        this.repository.saveAsync(address).subscribe(a -> {
-            assertThat(a).isEqualTo(address);
-            assertThat(this.repository.findById(address.getPostalCode()).isPresent()).isTrue();
-            assertThat(this.repository.findById(address.getPostalCode()).get()).isEqualTo(address);
-        });
-
-        address.setCity("new-city");
-
-        this.repository.saveAsync(address).subscribe(a -> {
-            assertThat(a).isEqualTo(address);
-            assertThat(this.repository.findById(address.getPostalCode()).isPresent()).isTrue();
-            assertThat(this.repository.findById(address.getPostalCode()).get()).isEqualTo(address);
-        });
-    }
-
-    @Test
     public void testFindAll() {
         // findAll cross partition
         final List<Address> result = TestUtils.toList(repository.findAll());

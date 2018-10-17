@@ -5,9 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
@@ -20,13 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
-public class QuestionRepositoryIT {
+public class QuestionRepositoryAsyncIT {
 
     private static final String QUESTION_ID = "question-id";
 
@@ -36,6 +30,9 @@ public class QuestionRepositoryIT {
 
     @Autowired
     private QuestionRepository repository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Before
     public void setup() {
@@ -48,36 +45,24 @@ public class QuestionRepositoryIT {
     }
 
     @Test
-    public void testFindById() {
-        final Optional<Question> optional = this.repository.findById(QUESTION_ID);
+    public void testSaveAsync() {
+        this.repository.deleteAll();
+        final Question question = new Question("id", "link");
 
-        Assert.assertTrue(optional.isPresent());
-        Assert.assertEquals(optional.get(), QUESTION);
-    }
+        this.repository.saveAsync(question).subscribe(a -> {
+            Assert.assertEquals(a, question);
+            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+        });
 
-    @Test(expected = DocumentDBAccessException.class)
-    public void testFindByIdException() {
-        this.repository.findById(QUESTION_URL);
-    }
+        question.setUrl("new-link");
 
-    @Test
-    public void testFindAll() {
-        final List<Question> questions = Lists.newArrayList(this.repository.findAll());
+        this.repository.saveAsync(question).subscribe(a -> {
+            Assert.assertEquals(a, question);
+            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+        });
 
-        Assert.assertEquals(questions, Collections.singletonList(QUESTION));
-    }
-
-    @Test
-    public void testDelete() {
-        Optional<Question> optional = this.repository.findById(QUESTION_ID);
-
-        Assert.assertTrue(optional.isPresent());
-        Assert.assertEquals(optional.get(), QUESTION);
-
-        this.repository.delete(QUESTION);
-        optional = this.repository.findById(QUESTION_ID);
-
-        Assert.assertFalse(optional.isPresent());
+        this.repository.deleteAll();
     }
 }
-

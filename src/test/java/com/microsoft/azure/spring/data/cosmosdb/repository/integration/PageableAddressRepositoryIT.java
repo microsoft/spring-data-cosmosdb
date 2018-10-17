@@ -88,7 +88,7 @@ public class PageableAddressRepositoryIT {
     }
 
     @Test
-    public void testFindWithParitionKeyMultiPages() {
+    public void testFindWithPartitionKeyMultiPages() {
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 

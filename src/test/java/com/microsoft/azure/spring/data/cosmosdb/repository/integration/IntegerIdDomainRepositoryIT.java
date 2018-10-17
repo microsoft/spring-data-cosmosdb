@@ -44,26 +44,6 @@ public class IntegerIdDomainRepositoryIT {
     }
 
     @Test
-    public void testSaveAsync() {
-        this.repository.deleteAll();
-        final IntegerIdDomain domain = new IntegerIdDomain(1, "name");
-
-        this.repository.saveAsync(domain).subscribe(a -> {
-            Assert.assertEquals(a, domain);
-            Assert.assertTrue(this.repository.findById(domain.getNumber()).isPresent());
-            Assert.assertEquals(this.repository.findById(domain.getNumber()).get(), domain);
-        });
-
-        domain.setNumber(1234);
-
-        this.repository.saveAsync(domain).subscribe(a -> {
-            Assert.assertEquals(a, domain);
-            Assert.assertTrue(this.repository.findById(domain.getNumber()).isPresent());
-            Assert.assertEquals(this.repository.findById(domain.getNumber()).get(), domain);
-        });
-    }
-
-    @Test
     public void testIntegerIdDomain() {
         this.repository.deleteAll();
         Assert.assertFalse(this.repository.findById(ID).isPresent());

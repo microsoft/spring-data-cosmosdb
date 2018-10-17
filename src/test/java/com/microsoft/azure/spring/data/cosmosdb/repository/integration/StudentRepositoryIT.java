@@ -65,26 +65,6 @@ public class StudentRepositoryIT {
     }
 
     @Test
-    public void testSaveAsync() {
-        this.repository.deleteAll();
-        final Student student = new Student("id", "first-name", "last-name");
-
-        this.repository.saveAsync(student).subscribe(a -> {
-            Assert.assertEquals(a, student);
-            Assert.assertTrue(this.repository.findById(student.getId()).isPresent());
-            Assert.assertEquals(this.repository.findById(student.getId()).get(), student);
-        });
-
-        student.setFirstName("new-first-name");
-
-        this.repository.saveAsync(student).subscribe(a -> {
-            Assert.assertEquals(a, student);
-            Assert.assertTrue(this.repository.findById(student.getId()).isPresent());
-            Assert.assertEquals(this.repository.findById(student.getId()).get(), student);
-        });
-    }
-
-    @Test
     public void testFindByContaining() {
         final List<Student> people = repository.findByFirstNameContaining(SUB_FIRST_NAME);
         final List<Student> reference = Arrays.asList(STUDENT_1, STUDENT_2);
