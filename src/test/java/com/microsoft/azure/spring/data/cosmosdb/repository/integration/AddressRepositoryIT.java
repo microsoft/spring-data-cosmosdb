@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
@@ -112,8 +113,8 @@ public class AddressRepositoryIT {
 
     @Test
     public void deleteWithoutPartitionedColumnShouldFail() {
-        expectedException.expect(UnsupportedOperationException.class);
-        expectedException.expectMessage("PartitionKey value must be supplied for this operation.");
+        expectedException.expect(DocumentDBAccessException.class);
+        expectedException.expectMessage("Failed to delete Document");
 
         repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode());
     }

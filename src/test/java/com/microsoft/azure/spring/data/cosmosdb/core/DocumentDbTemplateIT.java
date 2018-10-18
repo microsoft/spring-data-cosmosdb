@@ -45,6 +45,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.vali
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -156,7 +157,7 @@ public class DocumentDbTemplateIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(TEST_PERSON_1));
+        assertEquals(result.get(0), TEST_PERSON_1);
     }
 
     @Test

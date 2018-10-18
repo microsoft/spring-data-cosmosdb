@@ -16,5 +16,7 @@ import java.io.Serializable;
 public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
 
     <S extends T> Observable<S> saveAsync(S domain);
+
+    Observable<Object> deleteByIdAsync(ID id);
 }
 

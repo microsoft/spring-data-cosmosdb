@@ -58,16 +58,6 @@ public class RoleRepositoryCollectionIT {
         this.repository.count();
     }
 
-    @Test(expected = DocumentDBAccessException.class)
-    public void testDeleteById() {
-        this.repository.deleteById(DOMAIN.getNumber());
-    }
-
-    @Test(expected = DocumentDBAccessException.class)
-    public void testDelete() {
-        this.repository.delete(DOMAIN);
-    }
-
     @Test
     public void testDeleteAll() {
         this.repository.deleteAll(Collections.singleton(DOMAIN));

@@ -160,7 +160,7 @@ public class DocumentDbTemplatePartitionIT {
         assertThat(inserted.get(1).getLastName()).isEqualTo(TEST_PERSON_0.getLastName());
 
         dbTemplate.deleteById(PartitionPerson.class.getSimpleName(), TEST_PERSON_0.getPersonId(),
-                new com.microsoft.azure.documentdb.PartitionKey(TEST_PERSON_0.getLastName()));
+                new PartitionKey(TEST_PERSON_0.getLastName()));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
         assertThat(result.size()).isEqualTo(1);
