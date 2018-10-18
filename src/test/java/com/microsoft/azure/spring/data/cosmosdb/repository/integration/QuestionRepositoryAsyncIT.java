@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 import com.microsoft.azure.cosmosdb.DocumentClientException;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
-import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -26,15 +25,14 @@ public class QuestionRepositoryAsyncIT {
 
     private static final String QUESTION_ID = "question-id";
 
+    private static final String NOT_EXIST_ID = "no-exist-id";
+
     private static final String QUESTION_URL = "http://xxx.html";
 
     private static final Question QUESTION = new Question(QUESTION_ID, QUESTION_URL);
 
     @Autowired
     private QuestionRepository repository;
-
-    @Autowired
-    private ProjectRepository projectRepository;
 
     @Before
     public void setup() {
@@ -69,6 +67,19 @@ public class QuestionRepositoryAsyncIT {
     }
 
     @Test
+    public void testFindByIdAsync() {
+        this.repository.findByIdAsync(QUESTION.getId()).subscribe(a -> Assert.assertEquals(a, QUESTION));
+        this.repository.findByIdAsync(NOT_EXIST_ID).subscribe(
+                a -> {
+                    Assert.assertTrue(false); // should not reach here.
+                },
+                e -> {
+                    Assert.assertEquals(e.getClass(), DocumentClientException.class);
+                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+                }
+        );
+    }
+
     public void testDeleteById() {
         this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(a -> {
             Assert.assertTrue(a instanceof String);

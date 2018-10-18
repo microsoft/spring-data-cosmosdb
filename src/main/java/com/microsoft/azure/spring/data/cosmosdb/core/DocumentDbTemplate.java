@@ -12,7 +12,6 @@ import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.FeedOptions;
 import com.microsoft.azure.documentdb.FeedResponse;
-import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -138,12 +137,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(d -> domain);
     }
 
-    public <T> T findById(Object id, Class<T> entityClass) {
-        Assert.notNull(entityClass, "entityClass should not be null");
-
-        return findById(getCollectionName(entityClass), id, entityClass);
-    }
-
     private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
         @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
                 = new DocumentDbEntityInformation(domainClass);
@@ -153,35 +146,43 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return partitionKeyName != null && partitionKeyName.equals(idName);
     }
 
-    public <T> T findById(String collectionName, Object id, Class<T> domainClass) {
+    @Override
+    public <T> Optional<T> findById(@NonNull String collectionName, @NonNull Object id, @NonNull Class<T> entityClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(domainClass, "entityClass should not be null");
         assertValidId(id);
 
         try {
-            final com.microsoft.azure.documentdb.RequestOptions options =
-                    new com.microsoft.azure.documentdb.RequestOptions();
+            return Optional.of(findByIdAsync(collectionName, id, entityClass).toBlocking().single());
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
 
-            if (isIdFieldAsPartitionKey(domainClass)) {
-                options.setPartitionKey(new com.microsoft.azure.documentdb.PartitionKey(id));
+            if (cause instanceof DocumentClientException
+                    && ((DocumentClientException) cause).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return Optional.empty();
             }
 
-            final String documentLink = getDocumentLink(this.dbName, collectionName, id);
-            final com.microsoft.azure.documentdb.Resource document =
-                    getDocumentClient().readDocument(documentLink, options).getResource();
-
-            if (document instanceof Document) {
-                return mappingDocumentDbConverter.read(domainClass, (Document) document);
-            } else {
-                return null;
-            }
-        } catch (com.microsoft.azure.documentdb.DocumentClientException e) {
-            if (e.getStatusCode() == HttpConstants.StatusCodes.NOTFOUND) {
-                return null;
-            }
-
-            throw new DocumentDBAccessException("findById exception", e);
+            throw new DocumentDBAccessException("Failed to read Document", e);
         }
+    }
+
+    @Override
+    public <T> Observable<T> findByIdAsync(@NonNull String collectionName, @NonNull Object id, Class<T> entityClass) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        assertValidId(id);
+
+        final RequestOptions options = new RequestOptions();
+
+        if (isIdFieldAsPartitionKey(entityClass)) {
+            options.setPartitionKey(new PartitionKey(id));
+        }
+
+        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+
+        return getAsyncDocumentClient()
+                .readDocument(getDocumentLink(this.dbName, collectionName, id), options)
+                .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
+                .map(ResourceResponse::getResource)
+                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
     public <T> List<T> findAll(Class<T> entityClass) {
@@ -345,7 +346,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private String getDatabaseLink(String databaseName) {
-        return "/dbs/" + databaseName;
+        return "dbs/" + databaseName;
     }
 
     private String getCollectionLink(String databaseName, String collectionName) {

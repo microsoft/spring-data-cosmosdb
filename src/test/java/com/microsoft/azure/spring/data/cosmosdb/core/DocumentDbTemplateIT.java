@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
@@ -89,7 +90,7 @@ public class DocumentDbTemplateIT {
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
         collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
-        dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_0, null);
+        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_0, null);
     }
 
     @After
@@ -111,13 +112,14 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindById() {
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_PERSON_0.getId(), Person.class);
-        assertTrue(result.equals(TEST_PERSON_0));
+        Optional<Person> optional = dbTemplate.findById(personInfo.getCollectionName(), TEST_PERSON_0.getId(),
+                Person.class);
+        assertTrue(optional.isPresent());
+        assertThat(optional.get()).isEqualTo(TEST_PERSON_0);
 
-        final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TestConstants.NOT_EXIST_ID, Person.class);
-        assertThat(nullResult).isNull();
+        optional = dbTemplate.findById(personInfo.getCollectionName(), TestConstants.NOT_EXIST_ID, Person.class);
+
+        assertThat(optional.isPresent()).isFalse();
     }
 
     @Test
@@ -142,10 +144,11 @@ public class DocumentDbTemplateIT {
                 TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class);
+        final Optional<Person> optional =
+                dbTemplate.findById(personInfo.getCollectionName(), updated.getId(), Person.class);
 
-        assertTrue(result.equals(updated));
+        assertTrue(optional.isPresent());
+        assertThat(optional.get()).isEqualTo(updated);
     }
 
     @Test

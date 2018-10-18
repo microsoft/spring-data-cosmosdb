@@ -87,15 +87,6 @@ public class DocumentDbTemplateIllegalTest {
     }
 
     @Test
-    public void findByIdIllegalArgsShouldFail() throws NoSuchMethodException {
-        final Method method = dbTemplateClass.getDeclaredMethod("findById", Object.class, Class.class);
-
-        checkIllegalArgument(method, null, Person.class);
-        checkIllegalArgument(method, EMPTY_STR, Person.class);
-        checkIllegalArgument(method, WHITESPACES_STR, Person.class);
-    }
-
-    @Test
     public void findByCollIdIllegalArgsShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getDeclaredMethod("findById", String.class,
                 Object.class, Class.class);
