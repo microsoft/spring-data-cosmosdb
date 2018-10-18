@@ -151,9 +151,17 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
             return Optional.empty();
         }
 
-        final T result = operation.findById(information.getCollectionName(), id, information.getJavaType());
+        return this.operation.findById(information.getCollectionName(), id, information.getJavaType());
+    }
 
-        return result == null ? Optional.empty() : Optional.of(result);
+    @Override
+    public Observable<T> findByIdAsync(@NonNull ID id) {
+
+        if (id instanceof String && !StringUtils.hasText((String) id)) {
+            return Observable.just(null);
+        }
+
+        return this.operation.findByIdAsync(information.getCollectionName(), id, information.getJavaType());
     }
 
     /**

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import rx.Observable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentDbOperations {
 
@@ -27,9 +28,7 @@ public interface DocumentDbOperations {
 
     <T> List<T> findAll(String collectionName, Class<T> entityClass);
 
-    <T> T findById(Object id, Class<T> entityClass);
-
-    <T> T findById(String collectionName, Object id, Class<T> entityClass);
+    <T> Optional<T> findById(String collectionName, Object id, Class<T> entityClass);
 
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
@@ -60,4 +59,6 @@ public interface DocumentDbOperations {
     <T> Observable<T> insertAsync(String collectionName, T domain, PartitionKey key);
 
     <T> Observable<T> upsertAsync(String collectionName, T domain, PartitionKey key);
+
+    <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> domainClass);
 }

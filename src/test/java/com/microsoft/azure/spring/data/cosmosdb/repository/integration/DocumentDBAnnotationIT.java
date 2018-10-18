@@ -30,8 +30,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.Assert;
+import org.junit.Assert;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -92,10 +93,8 @@ public class DocumentDBAnnotationIT {
     public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
-        Assert.isTrue(policy.getAutomatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
-                "unmatched collection policy automatic of class Role");
-        Assert.isTrue(policy.getIndexingMode() == TestConstants.INDEXINGPOLICY_MODE,
-                "unmatched collection policy indexing mode of class Role");
+        Assert.assertEquals(policy.getAutomatic(), TestConstants.INDEXINGPOLICY_AUTOMATIC);
+        Assert.assertEquals(policy.getIndexingMode(), TestConstants.INDEXINGPOLICY_MODE);
 
         TestUtils.testIndexingPolicyPathsEquals(policy.getIncludedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.getExcludedPaths(), TestConstants.EXCLUDEDPATHS);
@@ -107,20 +106,21 @@ public class DocumentDBAnnotationIT {
         final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
         final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
 
-        Assert.notNull(timeToLive, "timeToLive should not be null");
-        Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");
+        Assert.assertNotNull(timeToLive);
+        Assert.assertEquals(timeToLive, Integer.valueOf(TestConstants.TIME_TO_LIVE));
 
         dbTemplate.insert(sampleInfo.getCollectionName(), sample, null);
 
         // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
-        TimeToLiveSample found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
-        Assert.notNull(found, "Address should not be null");
+        Optional<TimeToLiveSample> optional = dbTemplate.findById(sampleInfo.getCollectionName(), sample.getId(),
+                TimeToLiveSample.class);
+        Assert.assertTrue(optional.isPresent());
 
         TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
         TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
 
-        found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
-        Assert.isNull(found, "Timeout Address should be null");
+        optional = dbTemplate.findById(sampleInfo.getCollectionName(), sample.getId(), TimeToLiveSample.class);
+        Assert.assertFalse(optional.isPresent());
     }
 }
 

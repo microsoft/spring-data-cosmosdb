@@ -23,8 +23,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -67,12 +69,13 @@ public class SimpleDocumentDbRepositoryUnitTest {
 
     @Test
     public void testFindOne() {
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(TEST_PERSON);
+        when(dbOperations.findById(anyString(), any(), any())).thenReturn(Optional.of(TEST_PERSON));
 
         repository.save(TEST_PERSON);
 
-        final Person result = repository.findById(TEST_PERSON.getId()).get();
-        assertEquals(TEST_PERSON, result);
+        final Optional<Person> optional = repository.findById(TEST_PERSON.getId());
+        assertTrue(optional.isPresent());
+        assertEquals(TEST_PERSON, optional.get());
     }
 
     @Test
@@ -98,9 +101,11 @@ public class SimpleDocumentDbRepositoryUnitTest {
                         TestConstants.UPDATED_HOBBIES, updatedAddress);
         repository.save(updatedPerson);
 
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(updatedPerson);
+        when(dbOperations.findById(anyString(), any(), any())).thenReturn(Optional.of(updatedPerson));
 
-        final Person result = repository.findById(TEST_PERSON.getId()).get();
-        assertEquals(updatedPerson, result);
+        final Optional<Person> optional = repository.findById(TEST_PERSON.getId());
+
+        assertTrue(optional.isPresent());
+        assertEquals(updatedPerson, optional.get());
     }
 }
