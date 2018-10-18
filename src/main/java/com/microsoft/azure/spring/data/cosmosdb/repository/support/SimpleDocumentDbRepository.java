@@ -175,14 +175,18 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        operation.deleteById(information.getCollectionName(), id, null);
+        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+
+        operation.deleteById(information.getCollectionName(), id, partitionKey);
     }
 
     @Override
     public Observable<Object> deleteByIdAsync(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        return operation.deleteByIdAsync(information.getCollectionName(), id, null);
+        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+
+        return operation.deleteByIdAsync(information.getCollectionName(), id, partitionKey);
     }
 
     /**

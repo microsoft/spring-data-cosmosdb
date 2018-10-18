@@ -8,8 +8,8 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.cosmosdb.ExcludedPath;
 import com.microsoft.azure.cosmosdb.IncludedPath;
-import com.microsoft.azure.cosmosdb.IndexingPolicy;
 import com.microsoft.azure.cosmosdb.IndexingMode;
+import com.microsoft.azure.cosmosdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
@@ -18,6 +18,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -88,6 +89,15 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
     public String getPartitionKeyFieldValue(T entity) {
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
+    }
+
+    public boolean isIdFieldAsPartitonKey() {
+        final String keyName = getPartitionKeyFieldName();
+        final String idName = getIdField().getName();
+
+        Assert.notNull(idName, "Entity should contain one id field.");
+
+        return idName.equals(keyName);
     }
 
     private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {

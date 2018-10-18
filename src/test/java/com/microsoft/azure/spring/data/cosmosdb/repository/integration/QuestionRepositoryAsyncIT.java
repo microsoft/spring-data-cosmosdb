@@ -5,10 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.cosmosdb.DocumentClientException;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,5 +66,21 @@ public class QuestionRepositoryAsyncIT {
         });
 
         this.repository.deleteAll();
+    }
+
+    @Test
+    public void testDeleteById() {
+        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(a -> {
+            Assert.assertTrue(a instanceof String);
+            Assert.assertEquals(a.toString(), QUESTION.getId());
+        });
+
+        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
+                a -> {
+                },
+                e -> {
+                    Assert.assertTrue(e instanceof DocumentClientException);
+                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+                });
     }
 }
