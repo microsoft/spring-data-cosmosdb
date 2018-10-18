@@ -6,23 +6,12 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.cosmosdb.Database;
-import com.microsoft.azure.cosmosdb.DocumentClientException;
-import com.microsoft.azure.cosmosdb.DocumentCollection;
-import com.microsoft.azure.cosmosdb.IndexingPolicy;
-import com.microsoft.azure.cosmosdb.PartitionKey;
-import com.microsoft.azure.cosmosdb.PartitionKeyDefinition;
-import com.microsoft.azure.cosmosdb.RequestOptions;
-import com.microsoft.azure.cosmosdb.ResourceResponse;
-import com.microsoft.azure.cosmosdb.SqlParameter;
-import com.microsoft.azure.cosmosdb.SqlParameterCollection;
-import com.microsoft.azure.cosmosdb.SqlQuerySpec;
+import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.FeedOptions;
 import com.microsoft.azure.documentdb.FeedResponse;
-import com.microsoft.azure.documentdb.Resource;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -178,7 +167,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             final String documentLink = getDocumentLink(this.dbName, collectionName, id);
-            final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
+            final com.microsoft.azure.documentdb.Resource document =
+                    getDocumentClient().readDocument(documentLink, options).getResource();
 
             if (document instanceof Document) {
                 return mappingDocumentDbConverter.read(domainClass, (Document) document);
@@ -320,18 +310,36 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         });
     }
 
-    public void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
+    @Override
+    public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
-        log.debug("execute deleteById in database {} collection {}", this.dbName, collectionName);
-
         try {
-            getDocumentClient().deleteDocument(getDocumentLink(this.dbName, collectionName, id.toString()),
-                    getDocumentDbRequestOptions(partitionKey, null));
-        } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
-            throw new DocumentDBAccessException("deleteById exception", ex);
+            deleteByIdAsync(collectionName, id, partitionKey).toBlocking().single();
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+
+            if (!(cause instanceof DocumentClientException)
+                    || ((DocumentClientException) cause).getStatusCode() != HttpStatus.SC_NOT_FOUND) {
+                throw new DocumentDBAccessException("Failed to delete Document", e);
+            }
         }
+    }
+
+    @Override
+    public Observable<Object> deleteByIdAsync(@NonNull String collectionName, @NonNull Object id,
+                                              @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        assertValidId(id);
+
+        final String documentLink = getDocumentLink(this.dbName, collectionName, id.toString());
+        final RequestOptions options = getRequestOptions(key, null);
+
+        return getAsyncDocumentClient()
+                .deleteDocument(documentLink, options)
+                .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
+                .map(r -> id);
     }
 
     private String getDatabaseLink(String databaseName) {
@@ -356,24 +364,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final RequestOptions requestOptions = new RequestOptions();
-        if (key != null) {
-            requestOptions.setPartitionKey(key);
-        }
-        if (requestUnit != null) {
-            requestOptions.setOfferThroughput(requestUnit);
-        }
-
-        return requestOptions;
-    }
-
-    private com.microsoft.azure.documentdb.RequestOptions getDocumentDbRequestOptions(
-            com.microsoft.azure.documentdb.PartitionKey key, Integer requestUnit) {
-        if (key == null && requestUnit == null) {
-            return null;
-        }
-
-        final com.microsoft.azure.documentdb.RequestOptions requestOptions =
-                new com.microsoft.azure.documentdb.RequestOptions();
         if (key != null) {
             requestOptions.setPartitionKey(key);
         }

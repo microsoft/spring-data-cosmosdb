@@ -178,6 +178,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         operation.deleteById(information.getCollectionName(), id, null);
     }
 
+    @Override
+    public Observable<Object> deleteByIdAsync(ID id) {
+        Assert.notNull(id, "id to be deleted should not be null");
+
+        return operation.deleteByIdAsync(information.getCollectionName(), id, null);
+    }
+
     /**
      * delete one document per entity
      *
@@ -187,11 +194,10 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void delete(T entity) {
         Assert.notNull(entity, "entity to be deleted should not be null");
 
-        final String partitionKeyValue = information.getPartitionKeyFieldValue(entity);
+        final String keyValue = information.getPartitionKeyFieldValue(entity);
+        final PartitionKey partitionKey = keyValue == null ? null : new PartitionKey(keyValue);
 
-        operation.deleteById(information.getCollectionName(),
-                information.getId(entity),
-                partitionKeyValue == null ? null : new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue));
+        operation.deleteById(information.getCollectionName(), information.getId(entity), partitionKey);
     }
 
     /**
