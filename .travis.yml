@@ -11,6 +11,8 @@ script:
   - mvn clean package
   - set -o pipefail
   - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then mvn -P performance-test clean verify; fi
+
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
