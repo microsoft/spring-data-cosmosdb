@@ -320,10 +320,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         } catch (RuntimeException e) {
             final Throwable cause = e.getCause();
 
-            if (!(cause instanceof DocumentClientException)
-                    || ((DocumentClientException) cause).getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-                throw new DocumentDBAccessException("Failed to delete Document", e);
+            if (cause instanceof DocumentClientException
+                    && ((DocumentClientException) cause).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return;
             }
+
+            throw new DocumentDBAccessException("Failed to delete Document", e);
         }
     }
 

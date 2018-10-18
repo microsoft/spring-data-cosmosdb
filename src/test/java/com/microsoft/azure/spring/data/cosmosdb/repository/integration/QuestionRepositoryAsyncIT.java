@@ -77,6 +77,7 @@ public class QuestionRepositoryAsyncIT {
 
         this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
                 a -> {
+                    Assert.assertTrue(false); // should not reach here.
                 },
                 e -> {
                     Assert.assertTrue(e instanceof DocumentClientException);
