@@ -34,7 +34,7 @@ public interface DocumentDbOperations {
 
     <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
-    void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey);
+    void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String collectionName, Class<?> domainClass);
 
@@ -61,4 +61,6 @@ public interface DocumentDbOperations {
     <T> Observable<T> upsertAsync(String collectionName, T domain, PartitionKey key);
 
     <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> domainClass);
+
+    Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key);
 }

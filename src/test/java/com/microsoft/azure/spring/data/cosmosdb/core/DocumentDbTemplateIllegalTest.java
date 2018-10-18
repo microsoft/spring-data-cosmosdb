@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;

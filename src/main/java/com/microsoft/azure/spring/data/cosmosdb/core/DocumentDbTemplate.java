@@ -311,18 +311,38 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         });
     }
 
-    public void deleteById(String collectionName, Object id, com.microsoft.azure.documentdb.PartitionKey partitionKey) {
+    @Override
+    public void deleteById(@NonNull String collectionName, @NonNull Object id, @Nullable PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
-        log.debug("execute deleteById in database {} collection {}", this.dbName, collectionName);
-
         try {
-            getDocumentClient().deleteDocument(getDocumentLink(this.dbName, collectionName, id.toString()),
-                    getDocumentDbRequestOptions(partitionKey, null));
-        } catch (com.microsoft.azure.documentdb.DocumentClientException ex) {
-            throw new DocumentDBAccessException("deleteById exception", ex);
+            deleteByIdAsync(collectionName, id, partitionKey).toBlocking().single();
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+
+            if (cause instanceof DocumentClientException
+                    && ((DocumentClientException) cause).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return;
+            }
+
+            throw new DocumentDBAccessException("Failed to delete Document", e);
         }
+    }
+
+    @Override
+    public Observable<Object> deleteByIdAsync(@NonNull String collectionName, @NonNull Object id,
+                                              @Nullable PartitionKey key) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+        assertValidId(id);
+
+        final String documentLink = getDocumentLink(this.dbName, collectionName, id.toString());
+        final RequestOptions options = getRequestOptions(key, null);
+
+        return getAsyncDocumentClient()
+                .deleteDocument(documentLink, options)
+                .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
+                .map(r -> id);
     }
 
     private String getDatabaseLink(String databaseName) {
@@ -347,24 +367,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final RequestOptions requestOptions = new RequestOptions();
-        if (key != null) {
-            requestOptions.setPartitionKey(key);
-        }
-        if (requestUnit != null) {
-            requestOptions.setOfferThroughput(requestUnit);
-        }
-
-        return requestOptions;
-    }
-
-    private com.microsoft.azure.documentdb.RequestOptions getDocumentDbRequestOptions(
-            com.microsoft.azure.documentdb.PartitionKey key, Integer requestUnit) {
-        if (key == null && requestUnit == null) {
-            return null;
-        }
-
-        final com.microsoft.azure.documentdb.RequestOptions requestOptions =
-                new com.microsoft.azure.documentdb.RequestOptions();
         if (key != null) {
             requestOptions.setPartitionKey(key);
         }

@@ -183,7 +183,18 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        operation.deleteById(information.getCollectionName(), id, null);
+        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+
+        operation.deleteById(information.getCollectionName(), id, partitionKey);
+    }
+
+    @Override
+    public Observable<Object> deleteByIdAsync(ID id) {
+        Assert.notNull(id, "id to be deleted should not be null");
+
+        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+
+        return operation.deleteByIdAsync(information.getCollectionName(), id, partitionKey);
     }
 
     /**
@@ -195,11 +206,10 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void delete(T entity) {
         Assert.notNull(entity, "entity to be deleted should not be null");
 
-        final String partitionKeyValue = information.getPartitionKeyFieldValue(entity);
+        final String keyValue = information.getPartitionKeyFieldValue(entity);
+        final PartitionKey partitionKey = keyValue == null ? null : new PartitionKey(keyValue);
 
-        operation.deleteById(information.getCollectionName(),
-                information.getId(entity),
-                partitionKeyValue == null ? null : new com.microsoft.azure.documentdb.PartitionKey(partitionKeyValue));
+        operation.deleteById(information.getCollectionName(), information.getId(entity), partitionKey);
     }
 
     /**
