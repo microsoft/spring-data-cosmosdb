@@ -12,7 +12,8 @@ import java.util.List;
 
 public class PerformanceReport {
     private static final String NEW_LINE = System.lineSeparator();
-    private List<PerfItem> perfItems = Lists.newArrayList();
+
+    private final List<PerfItem> perfItems = Lists.newArrayList();
 
     public void addItem(PerfItem item) {
         perfItems.add(item);
@@ -24,7 +25,7 @@ public class PerformanceReport {
 
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        perfItems.stream().forEach(item -> sb.append(item.toString()).append(NEW_LINE));
+        perfItems.forEach(item -> sb.append(item.toString()).append(NEW_LINE));
 
         return sb.toString();
     }
@@ -55,8 +56,8 @@ class PerfItem {
 
 enum OperationType {
     SAVE_ONE("save one"), SAVE_ALL("save all"), DELETE_ONE("delete one"), DELETE_ALL("delete all"),
-    FIND_BY_ID("find by id"), FIND_BY_IDS("find by ids"), FIND_ALL("find all"), DELTE_ALL("delete all"),
-    FIND_BY_SORT("find by sort"), FIND_BY_PAGING("find by paging"), FIND_BY_FIELD("find by field"), COUNT("count");
+    FIND_BY_ID("find by id"), FIND_BY_IDS("find by ids"), FIND_ALL("find all"), FIND_BY_SORT("find by sort"),
+    FIND_BY_PAGING("find by paging"), FIND_BY_FIELD("find by field"), COUNT("count");
 
     private String type;
 

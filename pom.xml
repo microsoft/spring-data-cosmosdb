@@ -317,9 +317,6 @@
                 <configuration>
                     <systemPropertiesFile>src/test/resources/application.properties</systemPropertiesFile>
                     <skipITs>${skip.integration.tests}</skipITs>
-                    <excludes>
-                        <exclude>**/performance/**.java</exclude>
-                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -403,7 +400,7 @@
             <id>performance-test</id>
             <properties>
                 <build.profile.id>performance-test</build.profile.id>
-                <skip.integration.tests>true</skip.integration.tests>
+                <skip.integration.tests>false</skip.integration.tests>
                 <test.on.azure>false</test.on.azure>
                 <test.on.emulator>false</test.on.emulator>
             </properties>
@@ -414,7 +411,7 @@
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <includes>
-                                <include>**/performance/**.java</include>
+                                <include>**/PerformanceCompare.java</include>
                             </includes>
                         </configuration>
                     </plugin>

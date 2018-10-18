@@ -29,13 +29,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = PerfConfiguration.class)
-public class PerformanceCompareIT {
+public class PerformanceCompare {
     @Autowired
     private DocumentClient documentClient;
 
@@ -80,8 +81,7 @@ public class PerformanceCompareIT {
         final long springCost = applyInputListFunc(personList, repository::save);
         final long sdkCost = applyInputListFunc(personList, sdkService::save);
 
-        report.addItem(new PerfItem(OperationType.SAVE_ONE, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.SAVE_ONE, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -91,8 +91,7 @@ public class PerformanceCompareIT {
         final long springCost = acceptInputListFunc(personList, repository::saveAll);
         final long sdkCost = acceptInputListFunc(personList, sdkService::saveAll);
 
-        report.addItem(new PerfItem(OperationType.SAVE_ALL, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.SAVE_ALL, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -102,8 +101,7 @@ public class PerformanceCompareIT {
         final long springCost = acceptInputListFunc(personList, repository::delete);
         final long sdkCost = acceptInputListFunc(personList, sdkService::delete);
 
-        report.addItem(new PerfItem(OperationType.DELETE_ONE, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.DELETE_ONE, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -113,8 +111,7 @@ public class PerformanceCompareIT {
         final long springCost = acceptInputListFunc(personList, repository::deleteAll);
         final long sdkCost = acceptInputListFunc(personList, sdkService::deleteAll);
 
-        report.addItem(new PerfItem(OperationType.DELETE_ALL, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.DELETE_ALL, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -124,8 +121,7 @@ public class PerformanceCompareIT {
         final long springCost = applyInputListFunc(idList, repository::findById);
         final long sdkCost = applyInputListFunc(idList, sdkService::findById);
 
-        report.addItem(new PerfItem(OperationType.FIND_BY_ID, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_BY_ID, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -135,8 +131,7 @@ public class PerformanceCompareIT {
         final long springCost = acceptInputListFunc(idList, repository::findAllById);
         final long sdkCost = acceptInputListFunc(idList, sdkService::findAllById);
 
-        report.addItem(new PerfItem(OperationType.FIND_BY_IDS, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_BY_IDS, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -146,8 +141,7 @@ public class PerformanceCompareIT {
         final long springCost = getSupplier(TIMES, repository::findAll);
         final long sdkCost = getSupplier(TIMES, sdkService::findAll);
 
-        report.addItem(new PerfItem(OperationType.FIND_ALL, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_ALL, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -155,8 +149,7 @@ public class PerformanceCompareIT {
         final long springCost = getSupplier(TIMES, this::springDeleteAll);
         final long sdkCost = getSupplier(TIMES, sdkService::deleteAll);
 
-        report.addItem(new PerfItem(OperationType.DELTE_ALL, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.DELETE_ALL, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -167,8 +160,7 @@ public class PerformanceCompareIT {
         final long springCost = applyInputListFunc(sortList, repository::findAll);
         final long sdkCost = applyInputListFunc(sortList, sdkService::searchDocuments);
 
-        report.addItem(new PerfItem(OperationType.FIND_BY_SORT, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_BY_SORT, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -180,8 +172,7 @@ public class PerformanceCompareIT {
         final long springCost = runConsumerForTimes(TIMES, pageSize, this::queryTwoPages);
         final long sdkCost = runConsumerForTimes(TIMES, pageSize, sdkService::queryTwoPages);
 
-        report.addItem(new PerfItem(OperationType.FIND_BY_PAGING, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_BY_PAGING, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -193,8 +184,7 @@ public class PerformanceCompareIT {
         final long springCost = runFunctionForTimes(TIMES, name, repository::findByName);
         final long sdkCost = runConsumerForTimes(TIMES, name, sdkService::findByName);
 
-        report.addItem(new PerfItem(OperationType.FIND_BY_FIELD, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.FIND_BY_FIELD, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     @Test
@@ -205,7 +195,6 @@ public class PerformanceCompareIT {
         report.addItem(new PerfItem(OperationType.COUNT, springCost, sdkCost, TIMES));
         assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
     }
-
 
     /**
      * Check whether two time cost fall into the acceptable range.
@@ -218,6 +207,11 @@ public class PerformanceCompareIT {
         final float actualDiff = (float) diff / timeCostSdk;
 
         assertThat(actualDiff).isLessThan(acceptanceDiff);
+    }
+
+    private void verifyResult(OperationType type, long timeCostSpring, long timeCostSdk, float acceptanceDiff) {
+        report.addItem(new PerfItem(type, timeCostSpring, timeCostSdk, TIMES));
+        assertPerf(timeCostSpring, timeCostSdk, acceptanceDiff);
     }
 
     private boolean springDeleteAll() {
