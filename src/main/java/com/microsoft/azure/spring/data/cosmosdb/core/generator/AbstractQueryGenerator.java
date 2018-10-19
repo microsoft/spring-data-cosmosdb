@@ -5,9 +5,9 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.documentdb.SqlParameter;
-import com.microsoft.azure.documentdb.SqlParameterCollection;
-import com.microsoft.azure.documentdb.SqlQuerySpec;
+import com.microsoft.azure.cosmosdb.SqlParameter;
+import com.microsoft.azure.cosmosdb.SqlParameterCollection;
+import com.microsoft.azure.cosmosdb.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -200,7 +200,27 @@ public abstract class AbstractQueryGenerator {
      * @param queryHead
      * @return The SqlQuerySpec for DocumentClient.
      */
-    protected SqlQuerySpec generateQuery(@NonNull DocumentQuery query, @NonNull String queryHead) {
+    protected com.microsoft.azure.documentdb.SqlQuerySpec generateQuery(@NonNull DocumentQuery query,
+                                                                        @NonNull String queryHead) {
+        Assert.hasText(queryHead, "query head should have text.");
+
+        final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
+        final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
+        final List<Pair<String, Object>> parameters = queryBody.getValue1();
+        final com.microsoft.azure.documentdb.SqlParameterCollection sqlParameters =
+                new com.microsoft.azure.documentdb.SqlParameterCollection();
+
+        sqlParameters.addAll(
+                parameters.stream()
+                        .map(p -> new com.microsoft.azure.documentdb.SqlParameter("@" + p.getValue0(),
+                                toDocumentDBValue(p.getValue1()))).collect(Collectors.toList())
+        );
+
+        return new com.microsoft.azure.documentdb.SqlQuerySpec(queryString, sqlParameters);
+    }
+
+    protected com.microsoft.azure.cosmosdb.SqlQuerySpec generateAsyncQuery(@NonNull DocumentQuery query,
+                                                                           @NonNull String queryHead) {
         Assert.hasText(queryHead, "query head should have text.");
 
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);

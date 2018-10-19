@@ -50,6 +50,8 @@ public interface DocumentDbOperations {
 
     <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName);
 
+    <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
+
     long count(String collectionName);
 
     <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
@@ -63,4 +65,6 @@ public interface DocumentDbOperations {
     <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key);
 
     Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key);
+
+    <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName);
 }
