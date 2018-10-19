@@ -113,11 +113,11 @@ public class DocumentDbTemplateIT {
     @Test
     public void testFindById() {
         Optional<Person> optional = dbTemplate.findById(personInfo.getCollectionName(), TEST_PERSON_0.getId(),
-                Person.class);
+                Person.class, null);
         assertTrue(optional.isPresent());
         assertThat(optional.get()).isEqualTo(TEST_PERSON_0);
 
-        optional = dbTemplate.findById(personInfo.getCollectionName(), TestConstants.NOT_EXIST_ID, Person.class);
+        optional = dbTemplate.findById(personInfo.getCollectionName(), TestConstants.NOT_EXIST_ID, Person.class, null);
 
         assertThat(optional.isPresent()).isFalse();
     }
@@ -145,7 +145,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
         final Optional<Person> optional =
-                dbTemplate.findById(personInfo.getCollectionName(), updated.getId(), Person.class);
+                dbTemplate.findById(personInfo.getCollectionName(), updated.getId(), Person.class, null);
 
         assertTrue(optional.isPresent());
         assertThat(optional.get()).isEqualTo(updated);

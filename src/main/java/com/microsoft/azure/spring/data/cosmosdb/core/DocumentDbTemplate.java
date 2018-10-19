@@ -10,8 +10,6 @@ import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.FeedOptions;
-import com.microsoft.azure.documentdb.FeedResponse;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -37,6 +35,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,7 +97,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domain, "domain should not be null");
 
         @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) domain.getClass();
-        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+        final String collectionLink = getCollectionLink(collectionName);
         final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
 
         return getAsyncDocumentClient()
@@ -125,7 +124,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domain, "domain should not be null");
 
-        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+        final String collectionLink = getCollectionLink(collectionName);
         final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(domain);
 
         return getAsyncDocumentClient()
@@ -137,22 +136,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(d -> domain);
     }
 
-    private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
-        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
-                = new DocumentDbEntityInformation(domainClass);
-        final String partitionKeyName = information.getPartitionKeyFieldName();
-        final String idName = information.getIdField().getName();
-
-        return partitionKeyName != null && partitionKeyName.equals(idName);
-    }
-
     @Override
-    public <T> Optional<T> findById(@NonNull String collectionName, @NonNull Object id, @NonNull Class<T> entityClass) {
+    public <T> Optional<T> findById(@NonNull String collectionName, @NonNull Object id, @NonNull Class<T> entityClass,
+                                    @Nullable PartitionKey key) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
         try {
-            return Optional.of(findByIdAsync(collectionName, id, entityClass).toBlocking().single());
+            return Optional.of(findByIdAsync(collectionName, id, entityClass, key).toBlocking().single());
         } catch (RuntimeException e) {
             final Throwable cause = e.getCause();
 
@@ -166,20 +157,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> Observable<T> findByIdAsync(@NonNull String collectionName, @NonNull Object id, Class<T> entityClass) {
+    public <T> Observable<T> findByIdAsync(@NonNull String collectionName, @NonNull Object id,
+                                           @NonNull Class<T> entityClass, @Nullable PartitionKey key) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
         final RequestOptions options = new RequestOptions();
+        final String collectionLink = getCollectionLink(collectionName);
 
-        if (isIdFieldAsPartitionKey(entityClass)) {
-            options.setPartitionKey(new PartitionKey(id));
-        }
-
-        final String collectionLink = getCollectionLink(this.dbName, collectionName);
+        options.setPartitionKey(key);
 
         return getAsyncDocumentClient()
-                .readDocument(getDocumentLink(this.dbName, collectionName, id), options)
+                .readDocument(getDocumentLink(collectionName, id), options)
                 .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
                 .map(ResourceResponse::getResource)
                 .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
@@ -213,7 +202,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void deleteCollection(@NonNull String collectionName) {
         Assert.hasText(collectionName, "collectionName should have text.");
 
-        getAsyncDocumentClient().deleteCollection(getCollectionLink(this.dbName, collectionName), null)
+        getAsyncDocumentClient().deleteCollection(getCollectionLink(collectionName), null)
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to delete collection: " + collectionName, e);
                 })
@@ -336,7 +325,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
-        final String documentLink = getDocumentLink(this.dbName, collectionName, id.toString());
+        final String documentLink = getDocumentLink(collectionName, id.toString());
         final RequestOptions options = getRequestOptions(key, null);
 
         return getAsyncDocumentClient()
@@ -349,12 +338,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return "dbs/" + databaseName;
     }
 
-    private String getCollectionLink(String databaseName, String collectionName) {
-        return getDatabaseLink(databaseName) + "/colls/" + collectionName;
+    private String getCollectionLink(String collectionName) {
+        return this.dbLink + "/colls/" + collectionName;
     }
 
-    private String getDocumentLink(String databaseName, String collectionName, Object documentId) {
-        return getCollectionLink(databaseName, collectionName) + "/docs/" + documentId;
+    private String getDocumentLink(String collectionName, Object documentId) {
+        return getCollectionLink(collectionName) + "/docs/" + documentId;
     }
 
     private String getPartitionKeyPath(String partitionKey) {
@@ -379,27 +368,51 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private <T> List<T> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
                                      boolean isCrossPartition, @NonNull Class<T> domainClass, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
+        final com.microsoft.azure.documentdb.FeedResponse<Document> feedResponse =
+                executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
         final List<Document> result = feedResponse.getQueryIterable().toList();
 
         return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
     }
 
-    private FeedResponse<Document> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
-                                                boolean isCrossPartition, String collectionName) {
-        final FeedOptions feedOptions = new FeedOptions();
-        final String selfLink = toCollectionSelfLink(collectionName);
+    private com.microsoft.azure.documentdb.FeedResponse<Document> executeQuery(
+            @NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
+            boolean isCrossPartition, String collectionName) {
+        final com.microsoft.azure.documentdb.FeedOptions feedOptions = new com.microsoft.azure.documentdb.FeedOptions();
+        final String selfLink = getCollectionLink(collectionName);
 
         feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
 
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
 
-    private FeedResponse<Document> executeQuery(@NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
-                                                FeedOptions feedOptions, String collectionName) {
-        final String selfLink = toCollectionSelfLink(collectionName);
+    private com.microsoft.azure.documentdb.FeedResponse<Document> executeQuery(
+            @NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
+            com.microsoft.azure.documentdb.FeedOptions feedOptions,
+            String collectionName) {
+        final String selfLink = getCollectionLink(collectionName);
 
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
+    }
+
+    // Use public for now, will change to private after referenced
+    public Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
+            @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
+        return executeQueryAsync(sqlQuerySpec, collectionName, options)
+                .subscribeOn(Schedulers.io())
+                .map(FeedResponse::getResults)
+                .subscribeOn(Schedulers.io())
+                .flatMap(Observable::from);
+    }
+
+    // Use public for now, will change to private after referenced
+    public Observable<FeedResponse<com.microsoft.azure.cosmosdb.Document>> executeQueryAsync(
+            @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
+        final String selfLink = getCollectionLink(collectionName);
+
+        return getAsyncDocumentClient()
+                .queryDocuments(selfLink, sqlQuerySpec, options)
+                .doOnNext(r -> log.debug("Query Document Async from {}", selfLink));
     }
 
     public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
@@ -440,7 +453,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                                          @NonNull String collectionName) {
         final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
+        final com.microsoft.azure.documentdb.FeedResponse<Document> response =
+                executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
 
         return response.getQueryIterable().toList();
     }
@@ -501,7 +515,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final Pageable pageable = query.getPageable();
-        final FeedOptions feedOptions = new FeedOptions();
+        final com.microsoft.azure.documentdb.FeedOptions feedOptions = new com.microsoft.azure.documentdb.FeedOptions();
         if (pageable instanceof DocumentDbPageRequest) {
             feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
         }
@@ -510,7 +524,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
         final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
+        final com.microsoft.azure.documentdb.FeedResponse<Document> response =
+                executeQuery(sqlQuerySpec, feedOptions, collectionName);
 
         final Iterator<Document> it = response.getQueryIterator();
 
@@ -556,7 +571,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private long getCountValue(com.microsoft.azure.documentdb.SqlQuerySpec querySpec, boolean isCrossPartitionQuery,
                                String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
+        final com.microsoft.azure.documentdb.FeedResponse<Document> feedResponse =
+                executeQuery(querySpec, isCrossPartitionQuery, collectionName);
         final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
 
         if (value instanceof Integer) {
@@ -566,10 +582,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         } else {
             throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
         }
-    }
-
-    private String toCollectionSelfLink(@NonNull String collectionName) {
-        return String.format("dbs/%s/colls/%s", this.dbName, collectionName);
     }
 
     @Override

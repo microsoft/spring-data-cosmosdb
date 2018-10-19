@@ -151,7 +151,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
             return Optional.empty();
         }
 
-        return this.operation.findById(information.getCollectionName(), id, information.getJavaType());
+        final PartitionKey key = information.isIdFieldAsPartitionKey() ? new PartitionKey(id) : null;
+
+        return this.operation.findById(information.getCollectionName(), id, information.getJavaType(), key);
     }
 
     @Override
@@ -161,7 +163,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
             return Observable.just(null);
         }
 
-        return this.operation.findByIdAsync(information.getCollectionName(), id, information.getJavaType());
+        final PartitionKey key = information.isIdFieldAsPartitionKey() ? new PartitionKey(id) : null;
+
+        return this.operation.findByIdAsync(information.getCollectionName(), id, information.getJavaType(), key);
     }
 
     /**
@@ -183,7 +187,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+        final PartitionKey partitionKey = information.isIdFieldAsPartitionKey() ? new PartitionKey(id) : null;
 
         operation.deleteById(information.getCollectionName(), id, partitionKey);
     }
@@ -192,7 +196,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public Observable<Object> deleteByIdAsync(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        final PartitionKey partitionKey = information.isIdFieldAsPartitonKey() ? new PartitionKey(id) : null;
+        final PartitionKey partitionKey = information.isIdFieldAsPartitionKey() ? new PartitionKey(id) : null;
 
         return operation.deleteByIdAsync(information.getCollectionName(), id, partitionKey);
     }
