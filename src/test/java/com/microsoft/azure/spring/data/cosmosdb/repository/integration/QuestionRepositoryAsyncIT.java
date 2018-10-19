@@ -19,11 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class QuestionRepositoryAsyncIT {
@@ -67,8 +62,6 @@ public class QuestionRepositoryAsyncIT {
             Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
             Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
         });
-
-        this.repository.deleteAll();
     }
 
     @Test
