@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.Document;
@@ -421,15 +420,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
 
-    private com.microsoft.azure.documentdb.FeedResponse<Document> executeQuery(
-            @NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
-            com.microsoft.azure.documentdb.FeedOptions feedOptions,
-            String collectionName) {
-        final String selfLink = getCollectionLink(collectionName);
-
-        return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
-    }
-
     private Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
             @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
         return executeQueryAsync(sqlQuerySpec, collectionName, options)
@@ -498,9 +488,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         options.setEnableCrossPartitionQuery(isCrossPartitionQuery);
 
-        final List<com.microsoft.azure.cosmosdb.Document> tmp = Lists.newArrayList(
-                executeQueryAsyncDocument(sqlQuerySpec, collectionName, options).toBlocking().toIterable());
-
         return executeQueryAsyncDocument(sqlQuerySpec, collectionName, options);
     }
 
@@ -555,42 +542,45 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
+    public <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName) {
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
+        return paginationQueryAsync(query, domainClass, collectionName);
+    }
+
+    @Override
     public <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        return paginationQueryAsync(query, domainClass, collectionName).toBlocking().single();
+    }
+
+    @Override
+    public <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, Class<T> domainClass,
+                                                        String collectionName) {
         Assert.isTrue(query.getPageable().getPageSize() > 0, "pageable should have page size larger than 0");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final Pageable pageable = query.getPageable();
-        final com.microsoft.azure.documentdb.FeedOptions feedOptions = new com.microsoft.azure.documentdb.FeedOptions();
+        final FeedOptions feedOptions = new FeedOptions();
         if (pageable instanceof DocumentDbPageRequest) {
             feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
         }
 
-        feedOptions.setPageSize(pageable.getPageSize());
+        feedOptions.setMaxItemCount(pageable.getPageSize());
         feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
-        final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final com.microsoft.azure.documentdb.FeedResponse<Document> response =
-                executeQuery(sqlQuerySpec, feedOptions, collectionName);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
 
-        final Iterator<Document> it = response.getQueryIterator();
+        return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first()
+                .map(r -> {
+                    log.debug(r.getResults().size() + " documents returned.");
+                    final List<T> result = r.getResults().stream().filter(d -> d != null)
+                            .map(d -> mappingDocumentDbConverter.readAsync(domainClass, d))
+                            .collect(Collectors.toList());
 
-        final List<T> result = new ArrayList<>();
-        for (int index = 0; it.hasNext() && index < pageable.getPageSize(); index++) {
-            // Limit iterator as inner iterator will automatically fetch the next page
-            final Document doc = it.next();
-            if (doc == null) {
-                continue;
-            }
+                    final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
+                            pageable.getPageSize(), r.getResponseContinuation());
 
-            final T entity = mappingDocumentDbConverter.read(domainClass, doc);
-            result.add(entity);
-        }
-
-        final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
-                pageable.getPageSize(),
-                response.getResponseContinuation());
-
-        return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+                    return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+                });
     }
 
     @Override

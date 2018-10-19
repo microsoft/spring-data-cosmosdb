@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import rx.Observable;
@@ -22,5 +24,7 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends Paging
     Observable<Object> deleteByIdAsync(ID id);
 
     Observable<T> deleteAllAsync();
+
+    Observable<Page<T>> findAllAsync(Pageable pageable);
 }
 

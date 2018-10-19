@@ -37,10 +37,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
@@ -215,6 +212,24 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
+    public void testFindAllAsyncPageableMultiPages() {
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+
+        dbTemplate.findAllAsync(pageRequest, Person.class, collectionName).subscribe(page1 -> {
+                    assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
+                    validateNonLastPage(page1, PAGE_SIZE_1);
+
+                    dbTemplate.findAllAsync(page1.getPageable(), Person.class, collectionName)
+                            .subscribe(page2 -> {
+                                assertThat(page2.getContent().size()).isEqualTo(1);
+                                validateLastPage(page2, PAGE_SIZE_1);
+                            });
+                });
+    }
+
+    @Test
     public void testPaginationQuery() {
         dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
 
@@ -226,6 +241,22 @@ public class DocumentDbTemplateIT {
         final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
+    }
+
+    @Test
+    public void testPaginationAsync() {
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TestConstants.FIRST_NAME));
+        final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
+        final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
+
+        dbTemplate.paginationQueryAsync(query, Person.class, collectionName)
+                .subscribe(page -> {
+                    assertThat(page.getContent().size()).isEqualTo(1);
+                    validateLastPage(page, PAGE_SIZE_2);
+                });
     }
 
     @Test

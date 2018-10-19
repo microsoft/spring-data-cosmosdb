@@ -18,6 +18,7 @@ public class FindQuerySpecGenerator extends AbstractQueryGenerator implements Qu
         return super.generateQuery(query, "SELECT * FROM ROOT r");
     }
 
+    @Override
     public SqlQuerySpec generateAsync(@NonNull DocumentQuery query) {
         return super.generateQueryAsync(query, "SELECT * FROM ROOT r");
     }

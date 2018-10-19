@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.documentdb.SqlQuerySpec;
+import com.microsoft.azure.cosmosdb.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 
 public interface QuerySpecGenerator {
@@ -16,5 +16,7 @@ public interface QuerySpecGenerator {
      * @param query tree structured query condition.
      * @return SqlQuerySpec executed by documentDb client.
      */
-    SqlQuerySpec generate(DocumentQuery query);
+    com.microsoft.azure.documentdb.SqlQuerySpec generate(DocumentQuery query);
+
+    SqlQuerySpec generateAsync(DocumentQuery query);
 }
