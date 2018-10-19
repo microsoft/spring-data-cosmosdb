@@ -528,9 +528,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
 
-        return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions)
-                .doOnNext(r -> log.debug(r.getResults().size() + " documents returned."))
+        return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first()
                 .map(r -> {
+                    log.debug(r.getResults().size() + " documents returned.");
                     final List<T> result = r.getResults().stream().filter(d -> d != null)
                             .map(d -> mappingDocumentDbConverter.readAsync(domainClass, d))
                             .collect(Collectors.toList());
