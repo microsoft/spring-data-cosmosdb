@@ -78,6 +78,20 @@ public class PageableAddressRepositoryIT {
     }
 
     @Test
+    public void testFindAllAsyncByPage() {
+        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        repository.findAllAsync(pageRequest).subscribe(page -> {
+            assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
+            validateNonLastPage(page, PAGE_SIZE_3);
+
+            repository.findAllAsync(page.getPageable()).subscribe(nextPage -> {
+                assertThat(nextPage.getContent().size()).isEqualTo(1);
+                validateLastPage(nextPage, PAGE_SIZE_3);
+            });
+        });
+    }
+
+    @Test
     public void testFindWithParitionKeySinglePage() {
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);

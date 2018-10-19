@@ -276,4 +276,17 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
         return operation.findAll(pageable, information.getJavaType(), information.getCollectionName());
     }
+
+    /**
+     * Returns an Observable of Page of entities meeting the paging restriction provided in the Pageable object.
+     *
+     * @param pageable
+     * @return an Observable that emits searched page
+     */
+    @Override
+    public Observable<Page<T>> findAllAsync(Pageable pageable) {
+        Assert.notNull(pageable, "pageable should not be null");
+
+        return operation.findAllAsync(pageable, information.getJavaType(), information.getCollectionName());
+    }
 }
