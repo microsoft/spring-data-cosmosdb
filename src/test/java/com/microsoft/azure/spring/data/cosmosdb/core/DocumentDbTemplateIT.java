@@ -230,7 +230,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testInsertAsync() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), Person.class);
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
         this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
         this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
@@ -239,7 +239,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testInsertAsyncException() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), Person.class);
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)

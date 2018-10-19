@@ -221,7 +221,16 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void deleteAll() {
-        operation.deleteAll(information.getCollectionName(), information.getJavaType());
+        final List<String> partitionKeyNames = information.getPartitionKeyNames();
+
+        this.operation.deleteAll(information.getCollectionName(), partitionKeyNames);
+    }
+
+    @Override
+    public Observable<T> deleteAllAsync() {
+        final List<String> partitionKeyNames = information.getPartitionKeyNames();
+
+        return operation.deleteAllAsync(information.getCollectionName(), partitionKeyNames);
     }
 
     /**

@@ -88,7 +88,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        dbTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
     }
 
     @Test
@@ -232,7 +232,8 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testInsertAsync() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_1, null)
@@ -244,7 +245,8 @@ public class DocumentDbTemplatePartitionIT {
         final PartitionKey key0 = new PartitionKey(TEST_PERSON_0.getLastName());
         final PartitionKey key1 = new PartitionKey(TEST_PERSON_1.getLastName());
 
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key0)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key1)

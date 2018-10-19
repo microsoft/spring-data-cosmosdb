@@ -36,7 +36,7 @@ public interface DocumentDbOperations {
 
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName, Class<?> domainClass);
+    void deleteAll(String collectionName, List<String> partitionKeyNames);
 
     void deleteCollection(String collectionName);
 
@@ -63,4 +63,6 @@ public interface DocumentDbOperations {
     <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key);
 
     Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key);
+
+    <T> Observable<T> deleteAllAsync(String collectionName, List<String> partitionKeyNames);
 }

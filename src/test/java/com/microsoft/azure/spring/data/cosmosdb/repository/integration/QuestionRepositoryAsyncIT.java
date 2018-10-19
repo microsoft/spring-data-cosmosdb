@@ -19,6 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class QuestionRepositoryAsyncIT {
@@ -80,6 +85,7 @@ public class QuestionRepositoryAsyncIT {
         );
     }
 
+    @Test
     public void testDeleteById() {
         this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(a -> {
             Assert.assertTrue(a instanceof String);
@@ -94,5 +100,18 @@ public class QuestionRepositoryAsyncIT {
                     Assert.assertTrue(e instanceof DocumentClientException);
                     Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
                 });
+    }
+
+    @Test
+    public void testDeleteAll() {
+        final Question question = new Question("new-id", "new-url");
+
+        this.repository.save(question);
+        this.repository.findByIdAsync(question.getId()).subscribe(q -> Assert.assertEquals(question, q));
+
+        this.repository.deleteAllAsync().toCompletable().await();
+
+        Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
+        Assert.assertFalse(this.repository.findById(question.getId()).isPresent());
     }
 }
