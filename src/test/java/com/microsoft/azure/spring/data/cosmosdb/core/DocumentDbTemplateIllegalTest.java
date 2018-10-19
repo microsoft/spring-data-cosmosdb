@@ -89,11 +89,11 @@ public class DocumentDbTemplateIllegalTest {
     @Test
     public void findByCollIdIllegalArgsShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getDeclaredMethod("findById", String.class,
-                Object.class, Class.class);
+                Object.class, Class.class, PartitionKey.class);
 
-        checkIllegalArgument(method, DUMMY_COLL, null, Person.class);
-        checkIllegalArgument(method, DUMMY_COLL, EMPTY_STR, Person.class);
-        checkIllegalArgument(method, DUMMY_COLL, WHITESPACES_STR, Person.class);
+        checkIllegalArgument(method, DUMMY_COLL, null, Person.class, null);
+        checkIllegalArgument(method, DUMMY_COLL, EMPTY_STR, Person.class, null);
+        checkIllegalArgument(method, DUMMY_COLL, WHITESPACES_STR, Person.class, null);
     }
 
     /**

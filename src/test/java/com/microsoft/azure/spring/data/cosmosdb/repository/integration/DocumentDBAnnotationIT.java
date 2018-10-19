@@ -113,13 +113,13 @@ public class DocumentDBAnnotationIT {
 
         // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
         Optional<TimeToLiveSample> optional = dbTemplate.findById(sampleInfo.getCollectionName(), sample.getId(),
-                TimeToLiveSample.class);
+                TimeToLiveSample.class, null);
         Assert.assertTrue(optional.isPresent());
 
         TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
         TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
 
-        optional = dbTemplate.findById(sampleInfo.getCollectionName(), sample.getId(), TimeToLiveSample.class);
+        optional = dbTemplate.findById(sampleInfo.getCollectionName(), sample.getId(), TimeToLiveSample.class, null);
         Assert.assertFalse(optional.isPresent());
     }
 }

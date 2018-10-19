@@ -28,7 +28,7 @@ public interface DocumentDbOperations {
 
     <T> List<T> findAll(String collectionName, Class<T> entityClass);
 
-    <T> Optional<T> findById(String collectionName, Object id, Class<T> entityClass);
+    <T> Optional<T> findById(String collectionName, Object id, Class<T> entityClass, PartitionKey key);
 
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
@@ -60,7 +60,7 @@ public interface DocumentDbOperations {
 
     <T> Observable<T> upsertAsync(String collectionName, T domain, PartitionKey key);
 
-    <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> domainClass);
+    <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key);
 
     Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key);
 }

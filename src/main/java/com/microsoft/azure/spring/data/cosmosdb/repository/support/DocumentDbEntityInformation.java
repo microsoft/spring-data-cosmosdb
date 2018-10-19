@@ -18,6 +18,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -39,14 +40,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         super(domainClass);
 
         this.id = getIdField(domainClass);
-        ReflectionUtils.makeAccessible(this.id);
-
         this.collectionName = getCollectionName(domainClass);
         this.partitionKeyField = getPartitionKeyField(domainClass);
-        if (this.partitionKeyField != null) {
-            ReflectionUtils.makeAccessible(this.partitionKeyField);
-        }
-
         this.requestUnit = getRequestUnit(domainClass);
         this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
@@ -91,13 +86,22 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
     }
 
-    public boolean isIdFieldAsPartitonKey() {
+    public boolean isIdFieldAsPartitionKey() {
         final String keyName = getPartitionKeyFieldName();
         final String idName = getIdField().getName();
 
         Assert.notNull(idName, "Entity should contain one id field.");
 
         return idName.equals(keyName);
+    }
+
+    @Nullable
+    public com.microsoft.azure.cosmosdb.PartitionKey getPartitionKey(@NonNull T entity) {
+        if (this.partitionKeyField == null) {
+            return null;
+        } else {
+            return new com.microsoft.azure.cosmosdb.PartitionKey(getPartitionKeyFieldValue(entity));
+        }
     }
 
     private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {
@@ -130,6 +134,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
             throw new IllegalArgumentException("type of id field must be String or Integer");
         }
 
+        ReflectionUtils.makeAccessible(idField);
+
         return idField;
     }
 
@@ -146,21 +152,26 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     private Field getPartitionKeyField(Class<?> domainClass) {
-        Field partitionKey = null;
+        Field keyField = null;
 
         final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, PartitionKey.class);
 
         if (fields.size() == 1) {
-            partitionKey = fields.get(0);
+            keyField = fields.get(0);
         } else if (fields.size() > 1) {
             throw new IllegalArgumentException("Azure Cosmos DB supports only one partition key, " +
                     "only one field with @PartitionKey annotation!");
         }
 
-        if (partitionKey != null && partitionKey.getType() != String.class) {
+        if (keyField != null && keyField.getType() != String.class) {
             throw new IllegalArgumentException("type of PartitionKey field must be String");
         }
-        return partitionKey;
+
+        if (keyField != null) {
+            ReflectionUtils.makeAccessible(keyField);
+        }
+
+        return keyField;
     }
 
     private Integer getRequestUnit(Class<?> domainClass) {
