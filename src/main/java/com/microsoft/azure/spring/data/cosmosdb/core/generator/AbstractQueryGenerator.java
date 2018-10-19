@@ -219,7 +219,7 @@ public abstract class AbstractQueryGenerator {
         return new com.microsoft.azure.documentdb.SqlQuerySpec(queryString, sqlParameters);
     }
 
-    protected com.microsoft.azure.cosmosdb.SqlQuerySpec generateAsyncQuery(@NonNull DocumentQuery query,
+    protected SqlQuerySpec generateAsyncQuery(@NonNull DocumentQuery query,
                                                                            @NonNull String queryHead) {
         Assert.hasText(queryHead, "query head should have text.");
 
