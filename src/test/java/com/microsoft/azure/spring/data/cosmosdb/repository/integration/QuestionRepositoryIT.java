@@ -55,7 +55,7 @@ public class QuestionRepositoryIT {
         final Optional<Question> optional = this.repository.findById(QUESTION_ID);
 
         Assert.assertTrue(optional.isPresent());
-        Assert.assertEquals(optional.get(), QUESTION);
+        Assert.assertEquals(QUESTION, optional.get());
     }
 
     @Test(expected = DocumentDBAccessException.class)
@@ -67,7 +67,7 @@ public class QuestionRepositoryIT {
     public void testFindAll() {
         final List<Question> questions = Lists.newArrayList(this.repository.findAll());
 
-        Assert.assertEquals(questions, Collections.singletonList(QUESTION));
+        Assert.assertEquals(Collections.singletonList(QUESTION), questions);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class QuestionRepositoryIT {
         Optional<Question> optional = this.repository.findById(QUESTION_ID);
 
         Assert.assertTrue(optional.isPresent());
-        Assert.assertEquals(optional.get(), QUESTION);
+        Assert.assertEquals(QUESTION, optional.get());
 
         this.repository.delete(QUESTION);
         optional = this.repository.findById(QUESTION_ID);

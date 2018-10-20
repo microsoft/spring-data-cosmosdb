@@ -62,12 +62,12 @@ public class CustomerRepositoryIT {
     }
 
     private void assertCustomerListEquals(@NonNull List<Customer> customers, @NonNull List<Customer> reference) {
-        Assert.assertEquals(customers.size(), reference.size());
+        Assert.assertEquals(reference.size(), customers.size());
 
         customers.sort(Comparator.comparing(Customer::getId));
         reference.sort(Comparator.comparing(Customer::getId));
 
-        Assert.assertEquals(customers, reference);
+        Assert.assertEquals(reference, customers);
     }
 
     @Test

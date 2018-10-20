@@ -97,7 +97,7 @@ public class AddressRepositoryIT {
         reference.sort(Comparator.comparing(Address::getPostalCode));
 
         Assert.assertEquals(result.size(), reference.size());
-        Assert.assertEquals(result, reference);
+        Assert.assertEquals(reference, result);
     }
 
     @Test

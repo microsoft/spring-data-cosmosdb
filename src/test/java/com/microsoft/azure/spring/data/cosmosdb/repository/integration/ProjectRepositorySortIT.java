@@ -86,8 +86,8 @@ public class ProjectRepositorySortIT {
 
         PROJECTS.sort(Comparator.comparing(Project::getStarCount));
 
-        Assert.assertEquals(projects.size(), PROJECTS.size());
-        Assert.assertEquals(projects, PROJECTS);
+        Assert.assertEquals(PROJECTS.size(), projects.size());
+        Assert.assertEquals(PROJECTS, projects);
     }
 
     @Test
@@ -97,8 +97,8 @@ public class ProjectRepositorySortIT {
 
         PROJECTS.sort(Comparator.comparing(Project::getCreator).reversed());
 
-        Assert.assertEquals(projects.size(), PROJECTS.size());
-        Assert.assertEquals(projects, PROJECTS);
+        Assert.assertEquals(PROJECTS.size(), projects.size());
+        Assert.assertEquals(PROJECTS, projects);
     }
 
     @Test
@@ -109,8 +109,8 @@ public class ProjectRepositorySortIT {
         PROJECTS.sort(Comparator.comparing(Project::getId));
         projects.sort(Comparator.comparing(Project::getId));
 
-        Assert.assertEquals(projects.size(), PROJECTS.size());
-        Assert.assertEquals(projects, PROJECTS);
+        Assert.assertEquals(PROJECTS.size(), projects.size());
+        Assert.assertEquals(PROJECTS, projects);
     }
 
     @Test(expected = IllegalQueryException.class)
@@ -150,8 +150,8 @@ public class ProjectRepositorySortIT {
 
         references.sort(Comparator.comparing(Project::getStarCount));
 
-        Assert.assertEquals(projects.size(), references.size());
-        Assert.assertEquals(projects, references);
+        Assert.assertEquals(references.size(), projects.size());
+        Assert.assertEquals(references, projects);
     }
 
     @Test
@@ -162,8 +162,8 @@ public class ProjectRepositorySortIT {
 
         references.sort(Comparator.comparing(Project::getStarCount));
 
-        Assert.assertEquals(projects.size(), references.size());
-        Assert.assertEquals(projects, references);
+        Assert.assertEquals(references.size(), projects.size());
+        Assert.assertEquals(references, projects);
     }
 
     @Test
@@ -174,8 +174,8 @@ public class ProjectRepositorySortIT {
 
         references.sort(Comparator.comparing(Project::getName).reversed());
 
-        Assert.assertEquals(projects.size(), references.size());
-        Assert.assertEquals(projects, references);
+        Assert.assertEquals(references.size(), projects.size());
+        Assert.assertEquals(references, projects);
     }
 }
 
