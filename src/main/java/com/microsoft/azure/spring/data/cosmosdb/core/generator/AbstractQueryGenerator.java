@@ -213,14 +213,14 @@ public abstract class AbstractQueryGenerator {
         sqlParameters.addAll(
                 parameters.stream()
                         .map(p -> new com.microsoft.azure.documentdb.SqlParameter("@" + p.getValue0(),
-                                toDocumentDBValue(p.getValue1()))).collect(Collectors.toList())
+                                toDocumentDBValue(p.getValue1())))
+                        .collect(Collectors.toList())
         );
 
         return new com.microsoft.azure.documentdb.SqlQuerySpec(queryString, sqlParameters);
     }
 
-    protected SqlQuerySpec generateAsyncQuery(@NonNull DocumentQuery query,
-                                                                           @NonNull String queryHead) {
+    protected SqlQuerySpec generateQueryAsync(@NonNull DocumentQuery query, @NonNull String queryHead) {
         Assert.hasText(queryHead, "query head should have text.");
 
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);

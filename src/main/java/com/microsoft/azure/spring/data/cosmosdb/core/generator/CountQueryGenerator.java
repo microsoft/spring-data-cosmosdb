@@ -18,6 +18,6 @@ public class CountQueryGenerator extends AbstractQueryGenerator implements Query
 
     @Override
     public SqlQuerySpec generateAsync(@NonNull DocumentQuery query) {
-        return super.generateAsyncQuery(query, "SELECT VALUE COUNT(1) FROM r");
+        return super.generateQueryAsync(query, "SELECT VALUE COUNT(1) FROM r");
     }
 }

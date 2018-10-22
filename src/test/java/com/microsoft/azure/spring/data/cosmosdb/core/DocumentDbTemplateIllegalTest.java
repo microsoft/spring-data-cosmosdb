@@ -23,7 +23,9 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 
@@ -63,11 +65,11 @@ public class DocumentDbTemplateIllegalTest {
 
     @Test
     public void deleteIllegalCollectionShouldFail() throws NoSuchMethodException {
-        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, Class.class);
+        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, List.class);
 
-        checkIllegalArgument(method, NULL_STR, Person.class);
-        checkIllegalArgument(method, EMPTY_STR, Person.class);
-        checkIllegalArgument(method, WHITESPACES_STR, Person.class);
+        checkIllegalArgument(method, NULL_STR, new ArrayList<>());
+        checkIllegalArgument(method, EMPTY_STR, new ArrayList<>());
+        checkIllegalArgument(method, WHITESPACES_STR, new ArrayList<>());
     }
 
     @Test

@@ -62,8 +62,6 @@ public class QuestionRepositoryAsyncIT {
             Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
             Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
         });
-
-        this.repository.deleteAll();
     }
 
     @Test
@@ -80,6 +78,7 @@ public class QuestionRepositoryAsyncIT {
         );
     }
 
+    @Test
     public void testDeleteById() {
         this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(a -> {
             Assert.assertTrue(a instanceof String);
@@ -94,5 +93,18 @@ public class QuestionRepositoryAsyncIT {
                     Assert.assertTrue(e instanceof DocumentClientException);
                     Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
                 });
+    }
+
+    @Test
+    public void testDeleteAll() {
+        final Question question = new Question("new-id", "new-url");
+
+        this.repository.save(question);
+        this.repository.findByIdAsync(question.getId()).subscribe(q -> Assert.assertEquals(question, q));
+
+        this.repository.deleteAllAsync().toCompletable().await();
+
+        Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
+        Assert.assertFalse(this.repository.findById(question.getId()).isPresent());
     }
 }

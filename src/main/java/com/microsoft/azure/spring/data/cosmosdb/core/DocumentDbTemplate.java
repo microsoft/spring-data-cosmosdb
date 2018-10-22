@@ -35,7 +35,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -174,6 +173,49 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
+    private Observable<com.microsoft.azure.cosmosdb.Document> deleteDocumentsAsync(
+            @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+
+        Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
+
+        return findDocumentsAsync(query, collectionName, partitionKeyNames)
+                .doOnSubscribe(() -> log.debug("Delete Document Async."))
+                .onErrorResumeNext(e -> {
+                    throw new DocumentDBAccessException("Failed to delete Document", e);
+                })
+                .flatMap(d -> {
+                    final RequestOptions options = new RequestOptions();
+
+                    if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
+                        final String keyName = partitionKeyNames.get(0);
+                        options.setPartitionKey(new PartitionKey(d.get(keyName)));
+                    }
+
+                    return getAsyncDocumentClient()
+                            .deleteDocument(d.getSelfLink(), options)
+                            .map(r -> d);
+                })
+                .flatMap(d -> Observable.empty());
+    }
+
+    @Override
+    public <T> Observable<T> deleteAllAsync(@NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
+
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
+
+        return deleteDocumentsAsync(query, collectionName, partitionKeyNames)
+                .onErrorResumeNext(e -> {
+                    throw new DocumentDBAccessException("Failed to retrieve Document", e);
+                })
+                .flatMap(d -> Observable.empty());
+    }
+
+    @Override
+    public void deleteAll(@NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+        deleteAllAsync(collectionName, partitionKeyNames).toCompletable().await();
+    }
+
     public <T> List<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "entityClass should not be null");
 
@@ -188,14 +230,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final List<Document> results = findDocuments(query, domainClass, collectionName);
 
         return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
-    }
-
-    public void deleteAll(@NonNull String collectionName, @NonNull Class<?> domainClass) {
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-
-        this.delete(query, domainClass, collectionName);
     }
 
     @Override
@@ -386,18 +420,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
 
-    // Use public for now, will change to private after referenced
-    public Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
+    private Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
             @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
         return executeQueryAsync(sqlQuerySpec, collectionName, options)
-                .subscribeOn(Schedulers.io())
                 .map(FeedResponse::getResults)
-                .subscribeOn(Schedulers.io())
                 .flatMap(Observable::from);
     }
 
-    // Use public for now, will change to private after referenced
-    public Observable<FeedResponse<com.microsoft.azure.cosmosdb.Document>> executeQueryAsync(
+    private Observable<FeedResponse<com.microsoft.azure.cosmosdb.Document>> executeQueryAsync(
             @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
         final String selfLink = getCollectionLink(collectionName);
 
@@ -448,6 +478,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
 
         return response.getQueryIterable().toList();
+    }
+
+    private Observable<com.microsoft.azure.cosmosdb.Document> findDocumentsAsync(
+            @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final FeedOptions options = new FeedOptions();
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyNames);
+
+        options.setEnableCrossPartitionQuery(isCrossPartitionQuery);
+
+        return executeQueryAsyncDocument(sqlQuerySpec, collectionName, options);
     }
 
     private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
