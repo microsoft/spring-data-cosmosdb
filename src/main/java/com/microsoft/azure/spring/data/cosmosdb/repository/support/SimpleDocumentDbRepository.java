@@ -63,7 +63,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(domain, "domain must not be null");
 
         final String collectionName = information.getCollectionName();
-        final PartitionKey partitionKey = createPartitionKey(information.getPartitionKeyFieldValue(domain));
+        final PartitionKey partitionKey = information.getPartitionKey(domain);
 
         if (information.isNew(domain)) {
             return operation.insert(collectionName, domain, partitionKey);
@@ -77,21 +77,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public <S extends T> Observable<S> saveAsync(@NonNull S domain) {
         final String collectionName = information.getCollectionName();
-        final PartitionKey partitionKey = createPartitionKey(information.getPartitionKeyFieldValue(domain));
+        final PartitionKey partitionKey = information.getPartitionKey(domain);
 
         if (information.isNew(domain)) {
             return operation.insertAsync(collectionName, domain, partitionKey);
         } else {
             return operation.upsertAsync(collectionName, domain, partitionKey);
         }
-    }
-
-    private PartitionKey createPartitionKey(String partitionKeyValue) {
-        if (StringUtils.isEmpty(partitionKeyValue)) {
-            return null;
-        }
-
-        return new PartitionKey(partitionKeyValue);
     }
 
     /**
@@ -216,6 +208,17 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         operation.deleteById(information.getCollectionName(), information.getId(entity), partitionKey);
     }
 
+    @Override
+    public Observable<T> deleteAsync(T entity) {
+        Assert.notNull(entity, "entity to be deleted should not be null");
+
+        final String keyValue = information.getPartitionKeyFieldValue(entity);
+        final PartitionKey partitionKey = keyValue == null ? null : new PartitionKey(keyValue);
+
+        return operation.deleteByIdAsync(information.getCollectionName(), information.getId(entity), partitionKey)
+                .map(id -> entity);
+    }
+
     /**
      * delete all the domains of a collection
      */
@@ -268,8 +271,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public Iterable<T> findAll(@NonNull Sort sort) {
         Assert.notNull(sort, "sort of findAll should not be null");
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
+        final List<String> partitionKeyNames = this.information.getPartitionKeyNames();
 
-        return operation.find(query, information.getJavaType(), information.getCollectionName());
+        return operation.find(query, information.getCollectionName(), information.getJavaType(), partitionKeyNames);
     }
 
     /**

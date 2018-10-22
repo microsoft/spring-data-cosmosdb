@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.springframework.data.domain.Pageable;
 
 public interface DocumentDbQueryExecution {
@@ -36,8 +37,11 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.find(query, type, collection);
+            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
+
+            return operations.find(query, collection, type, information.getPartitionKeyNames());
         }
     }
 
@@ -50,8 +54,11 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.exists(query, type, collection);
+            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
+
+            return operations.exists(query, collection, type, information.getPartitionKeyNames());
         }
     }
 
@@ -64,8 +71,11 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.delete(query, type, collection);
+            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
+
+            return operations.delete(query, collection, type, information.getPartitionKeyNames());
         }
     }
 

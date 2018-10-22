@@ -40,11 +40,14 @@ public interface DocumentDbOperations {
 
     void deleteCollection(String collectionName);
 
-    <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> List<T> delete(DocumentQuery query, String collectionName, Class<T> entityClass,
+                       List<String> partitionKeyNames);
 
-    <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass,
+                     List<String> partitionKeyNames);
 
-    <T> Boolean exists(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> Boolean exists(DocumentQuery query, String collectionName, Class<T> entityClass,
+                       List<String> partitionKeyNames);
 
     <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
 
@@ -69,4 +72,15 @@ public interface DocumentDbOperations {
     <T> Observable<T> deleteAllAsync(String collectionName, List<String> partitionKeyNames);
 
     <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName);
+
+    Observable<String> deleteCollectionAsync(String collectionName);
+
+    <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                  List<String> partitionKeyNames);
+
+    <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                List<String> partitionKeyNames);
+
+    <T> Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                        List<String> partitionKeyNames);
 }
