@@ -107,4 +107,33 @@ public class QuestionRepositoryAsyncIT {
         Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
         Assert.assertFalse(this.repository.findById(question.getId()).isPresent());
     }
+
+    @Test
+    public void testDelete() {
+        this.repository.findByIdAsync(QUESTION.getId()).subscribe(q -> Assert.assertEquals(QUESTION, q));
+        this.repository.deleteAsync(QUESTION).subscribe(q -> Assert.assertEquals(QUESTION, q));
+
+        this.repository.findByIdAsync(QUESTION.getId()).subscribe(
+                a -> {
+                    Assert.assertTrue(false); // should not reach here.
+                },
+                e -> {
+                    Assert.assertTrue(e instanceof DocumentClientException);
+                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+                }
+        );
+
+        final Question question = new Question("new-id", "new-url");
+        this.repository.save(question);
+
+        this.repository.deleteAsync(QUESTION).subscribe(
+                a -> {
+                    Assert.assertTrue(false); // should not reach here.
+                },
+                e -> {
+                    Assert.assertTrue(e instanceof DocumentClientException);
+                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+                }
+        );
+    }
 }
