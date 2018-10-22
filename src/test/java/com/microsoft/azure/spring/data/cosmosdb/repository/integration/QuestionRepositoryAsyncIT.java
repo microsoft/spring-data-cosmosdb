@@ -49,19 +49,23 @@ public class QuestionRepositoryAsyncIT {
         this.repository.deleteAll();
         final Question question = new Question("id", "link");
 
-        this.repository.saveAsync(question).subscribe(a -> {
-            Assert.assertEquals(a, question);
-            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
-            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
-        });
+        this.repository.saveAsync(question).subscribe(
+                a -> {
+                    Assert.assertEquals(a, question);
+                    Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+                    Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+                }
+        );
 
         question.setUrl("new-link");
 
-        this.repository.saveAsync(question).subscribe(a -> {
-            Assert.assertEquals(a, question);
-            Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
-            Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
-        });
+        this.repository.saveAsync(question).subscribe(
+                a -> {
+                    Assert.assertEquals(a, question);
+                    Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
+                    Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
+                }
+        );
     }
 
     @Test
@@ -80,10 +84,12 @@ public class QuestionRepositoryAsyncIT {
 
     @Test
     public void testDeleteById() {
-        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(a -> {
-            Assert.assertTrue(a instanceof String);
-            Assert.assertEquals(a.toString(), QUESTION.getId());
-        });
+        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
+                a -> {
+                    Assert.assertTrue(a instanceof String);
+                    Assert.assertEquals(a.toString(), QUESTION.getId());
+                }
+        );
 
         this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
                 a -> {
@@ -92,7 +98,8 @@ public class QuestionRepositoryAsyncIT {
                 e -> {
                     Assert.assertTrue(e instanceof DocumentClientException);
                     Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
-                });
+                }
+        );
     }
 
     @Test
@@ -136,4 +143,5 @@ public class QuestionRepositoryAsyncIT {
                 }
         );
     }
+
 }
