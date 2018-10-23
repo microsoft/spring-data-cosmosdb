@@ -20,6 +20,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import rx.Observable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,8 +54,9 @@ public class SimpleDocumentDbRepositoryUnitTest {
     public void setUp() {
         when(entityInformation.getJavaType()).thenReturn(Person.class);
         when(entityInformation.getCollectionName()).thenReturn(Person.class.getSimpleName());
-        when(dbOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
-
+        when(dbOperations.findAll(anyString(), any(), any())).thenReturn(Arrays.asList(TEST_PERSON));
+        when(dbOperations.findAllAsync(anyString(), any(), any()))
+                .thenReturn(Observable.from(Arrays.asList(TEST_PERSON)));
         repository = new SimpleDocumentDbRepository<>(entityInformation, dbOperations);
     }
 
@@ -107,5 +109,14 @@ public class SimpleDocumentDbRepositoryUnitTest {
 
         assertTrue(optional.isPresent());
         assertEquals(updatedPerson, optional.get());
+    }
+
+    @Test
+    public void findAllAsync() {
+        final Observable<Person> personObservable = repository.findAllAsync();
+
+        personObservable.subscribe(person -> {
+            assertEquals(TEST_PERSON, person);
+        });
     }
 }

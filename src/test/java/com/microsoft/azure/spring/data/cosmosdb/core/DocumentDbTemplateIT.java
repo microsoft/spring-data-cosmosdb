@@ -36,8 +36,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+import rx.Observable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
@@ -102,9 +106,20 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindAll() {
-        final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class, null);
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON_0);
+    }
+
+    @Test
+    public void findAllAsync() {
+        final String collectionName = Person.class.getSimpleName();
+        final Observable<Person> result = dbTemplate.findAllAsync(collectionName, Person.class, null);
+
+        result.toList().subscribe(list -> {
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0)).isEqualTo(TEST_PERSON_0);
+        });
     }
 
     @Test
@@ -129,7 +144,7 @@ public class DocumentDbTemplateIT {
 
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null);
 
-        final List<Person> result = dbTemplate.findAll(Person.class);
+        final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
 
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).getFirstName().equals(firstName));
@@ -151,11 +166,11 @@ public class DocumentDbTemplateIT {
     @Test
     public void testDeleteById() {
         dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
-        assertThat(dbTemplate.findAll(Person.class).size()).isEqualTo(2);
+        assertThat(dbTemplate.findAll(collectionName, Person.class, null).size()).isEqualTo(2);
 
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_0.getId(), null);
 
-        final List<Person> result = dbTemplate.findAll(Person.class);
+        final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_1);
     }

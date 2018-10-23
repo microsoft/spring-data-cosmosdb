@@ -216,20 +216,28 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         deleteAllAsync(collectionName, partitionKeyNames).toCompletable().await();
     }
 
-    public <T> List<T> findAll(Class<T> entityClass) {
-        Assert.notNull(entityClass, "entityClass should not be null");
+    @Override
+    public <T> List<T> findAll(String collectionName, final Class<T> domainClass, String partitionKeyName) {
+        final List<T> result = new ArrayList<>();
+        findAllAsync(collectionName, domainClass, partitionKeyName).toList().subscribe(result::addAll);
 
-        return findAll(getCollectionName(entityClass), entityClass);
+        return result;
     }
 
-    public <T> List<T> findAll(String collectionName, final Class<T> domainClass) {
+    @Override
+    public <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(domainClass, "entityClass should not be null");
+        Assert.notNull(entityClass, "entityClass should not be null");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final List<Document> results = findDocuments(query, domainClass, collectionName);
+        final List<String> keyNames = StringUtils.hasText(partitionKeyName) ? Arrays.asList(partitionKeyName) :
+                new ArrayList<>();
 
-        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
+        return findDocumentsAsync(query, collectionName, keyNames)
+                .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass))
+                .onErrorResumeNext(e -> {
+                    throw new DocumentDBAccessException("Failed to find all documents.", e);
+                }).map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
     @Override
