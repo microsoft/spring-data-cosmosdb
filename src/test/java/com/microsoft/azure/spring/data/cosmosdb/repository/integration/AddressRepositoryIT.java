@@ -112,6 +112,14 @@ public class AddressRepositoryIT {
     }
 
     @Test
+    public void testCountAllAsync() {
+        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(4));
+
+        repository.deleteByCity(TestConstants.CITY);
+        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(2));
+    }
+
+    @Test
     public void deleteWithoutPartitionedColumnShouldFail() {
         expectedException.expect(DocumentDBAccessException.class);
         expectedException.expectMessage("Failed to delete Document");

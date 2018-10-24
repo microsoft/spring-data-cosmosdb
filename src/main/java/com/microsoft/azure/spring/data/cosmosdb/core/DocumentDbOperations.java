@@ -69,4 +69,8 @@ public interface DocumentDbOperations {
     <T> Observable<T> deleteAllAsync(String collectionName, List<String> partitionKeyNames);
 
     <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName);
+
+    Observable<Long> countAsync(String collectionName);
+
+    <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
 }
