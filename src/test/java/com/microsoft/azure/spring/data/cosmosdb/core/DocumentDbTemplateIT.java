@@ -289,22 +289,22 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testInsertAsync() {
-        this.dbTemplate.deleteAll(collectionName, personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        Person inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .toBlocking().single();
+
+        assertThat(inserted).isEqualTo(TEST_PERSON_0);
+
+        inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
+                .toBlocking().single();
+
+        assertThat(inserted).isEqualTo(TEST_PERSON_1);
     }
 
-    @Test
+    @Test(expected = DocumentDBAccessException.class)
     public void testInsertAsyncException() {
-        this.dbTemplate.deleteAll(collectionName, personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
-                .subscribe(
-                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
-                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
-                );
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
     }
 }
