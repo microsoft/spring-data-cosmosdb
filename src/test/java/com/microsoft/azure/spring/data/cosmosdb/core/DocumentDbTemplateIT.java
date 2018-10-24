@@ -213,6 +213,15 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
+    public void testCountAsyncByCollection() {
+        dbTemplate.countAsync(collectionName).subscribe(prevCount -> assertThat(prevCount).isEqualTo(1));
+
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+
+        dbTemplate.countAsync(collectionName).subscribe(newCount -> assertThat(newCount).isEqualTo(2));
+    }
+
+    @Test
     public void testCountByQuery() {
         dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
@@ -222,6 +231,17 @@ public class DocumentDbTemplateIT {
 
         final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void testCountAsyncByQuery() {
+        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON_1.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        dbTemplate.countAsync(query, Person.class, collectionName).subscribe(count -> assertThat(count).isEqualTo(1));
     }
 
     @Test

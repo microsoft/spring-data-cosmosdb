@@ -179,6 +179,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         return operation.count(information.getCollectionName());
     }
 
+    @Override
+    public Observable<Long> countAllAsync() {
+        return operation.countAsync(information.getCollectionName());
+    }
+
     /**
      * delete one document per id without configuring partition key value
      *

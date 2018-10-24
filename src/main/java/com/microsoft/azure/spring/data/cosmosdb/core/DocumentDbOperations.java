@@ -69,4 +69,8 @@ public interface DocumentDbOperations {
     <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName);
 
     <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName);
+
+    Observable<Long> countAsync(String collectionName);
+
+    <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
 }
