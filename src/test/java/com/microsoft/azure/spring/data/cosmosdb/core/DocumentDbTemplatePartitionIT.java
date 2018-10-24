@@ -62,6 +62,7 @@ public class DocumentDbTemplatePartitionIT {
     private DocumentDbTemplate dbTemplate;
     private String collectionName;
     private DocumentDbEntityInformation<PartitionPerson, String> personInfo;
+    private String partitionKeyName;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -74,6 +75,7 @@ public class DocumentDbTemplatePartitionIT {
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
 
         personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
+        partitionKeyName = personInfo.getPartitionKeyFieldName();
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
@@ -127,7 +129,8 @@ public class DocumentDbTemplatePartitionIT {
         final String partitionKeyValue = newPerson.getLastName();
         dbTemplate.upsert(personInfo.getCollectionName(), newPerson, new PartitionKey(partitionKeyValue));
 
-        final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
+        final List<PartitionPerson> result = dbTemplate.findAll(collectionName, PartitionPerson.class,
+                partitionKeyName);
 
         assertThat(result.size()).isEqualTo(2);
 
@@ -142,7 +145,8 @@ public class DocumentDbTemplatePartitionIT {
                 TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
         dbTemplate.upsert(personInfo.getCollectionName(), updated, new PartitionKey(updated.getLastName()));
 
-        final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
+        final List<PartitionPerson> result = dbTemplate.findAll(collectionName, PartitionPerson.class,
+                partitionKeyName);
         final PartitionPerson person = result.stream().filter(
                 p -> TEST_PERSON_0.getPersonId().equals(p.getPersonId())).findFirst().get();
 
@@ -154,7 +158,8 @@ public class DocumentDbTemplatePartitionIT {
         // insert new document with same partition key
         dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
-        final List<PartitionPerson> inserted = dbTemplate.findAll(PartitionPerson.class);
+        final List<PartitionPerson> inserted = dbTemplate.findAll(collectionName, PartitionPerson.class,
+                partitionKeyName);
         assertThat(inserted.size()).isEqualTo(2);
         assertThat(inserted.get(0).getLastName()).isEqualTo(TEST_PERSON_0.getLastName());
         assertThat(inserted.get(1).getLastName()).isEqualTo(TEST_PERSON_0.getLastName());
@@ -162,7 +167,8 @@ public class DocumentDbTemplatePartitionIT {
         dbTemplate.deleteById(PartitionPerson.class.getSimpleName(), TEST_PERSON_0.getPersonId(),
                 new PartitionKey(TEST_PERSON_0.getLastName()));
 
-        final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
+        final List<PartitionPerson> result = dbTemplate.findAll(collectionName, PartitionPerson.class,
+                partitionKeyName);
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).equals(TEST_PERSON_1));
     }
