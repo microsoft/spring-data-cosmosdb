@@ -22,6 +22,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
-import rx.Observable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -91,45 +91,58 @@ public class DocumentDbTemplateIT {
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
         collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_0, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_0, null);
     }
 
     @After
     public void cleanup() {
-        dbTemplate.deleteCollection(Person.class.getSimpleName());
+        dbTemplate.deleteCollection(collectionName);
     }
 
     @Test(expected = DocumentDBAccessException.class)
     public void testInsertDuplicateId() {
-        dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_0, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_0, null);
     }
 
     @Test
     public void testFindAll() {
-        final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class, null);
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0)).isEqualTo(TEST_PERSON_0);
+        dbTemplate.deleteAll(collectionName, Lists.newArrayList());
+        final List<Person> insertedList = insertMultiPerson(5);
+        final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
+        assertThat(result.size()).isEqualTo(insertedList.size());
+        assertThat(result).containsAll(insertedList);
     }
 
     @Test
     public void findAllAsync() {
-        final String collectionName = Person.class.getSimpleName();
-        final Observable<Person> result = dbTemplate.findAllAsync(collectionName, Person.class, null);
+        dbTemplate.deleteAll(collectionName, Lists.newArrayList());
+        final List<Person> insertedList = insertMultiPerson(5);
+        dbTemplate.findAllAsync(collectionName, Person.class, null).toList()
+                .subscribe(result -> {
+                    assertThat(result.size()).isEqualTo(insertedList.size());
+                    assertThat(result).containsAll(insertedList);
+                });
+    }
 
-        result.toList().subscribe(list -> {
-            assertThat(list.size()).isEqualTo(1);
-            assertThat(list.get(0)).isEqualTo(TEST_PERSON_0);
-        });
+    private List<Person> insertMultiPerson(int count) {
+        final List<Person> personList = Lists.newArrayList();
+        for (int i = 0; i < count; i++) {
+            final Person person = new Person(UUID.randomUUID().toString(), FIRST_NAME, LAST_NAME, HOBBIES, ADDRESSES);
+            dbTemplate.insert(collectionName, person, null);
+            personList.add(person);
+        }
+
+        return personList;
     }
 
     @Test
     public void testFindById() {
-        Optional<Person> optional = dbTemplate.findById(personInfo.getCollectionName(), TEST_PERSON_0.getId(),
+        Optional<Person> optional = dbTemplate.findById(collectionName, TEST_PERSON_0.getId(),
                 Person.class, null);
         assertTrue(optional.isPresent());
         assertThat(optional.get()).isEqualTo(TEST_PERSON_0);
 
-        optional = dbTemplate.findById(personInfo.getCollectionName(), TestConstants.NOT_EXIST_ID, Person.class, null);
+        optional = dbTemplate.findById(collectionName, TestConstants.NOT_EXIST_ID, Person.class, null);
 
         assertThat(optional.isPresent()).isFalse();
     }
@@ -137,12 +150,12 @@ public class DocumentDbTemplateIT {
     @Test
     public void testUpsertNewDocument() {
         // Delete first as was inserted in setup
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_0.getId(), null);
+        dbTemplate.deleteById(collectionName, TEST_PERSON_0.getId(), null);
 
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
         final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
 
-        dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null);
+        dbTemplate.upsert(collectionName, newPerson, null);
 
         final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
 
@@ -154,10 +167,10 @@ public class DocumentDbTemplateIT {
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON_0.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
-        dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
+        dbTemplate.upsert(collectionName, updated, null);
 
         final Optional<Person> optional =
-                dbTemplate.findById(personInfo.getCollectionName(), updated.getId(), Person.class, null);
+                dbTemplate.findById(collectionName, updated.getId(), Person.class, null);
 
         assertTrue(optional.isPresent());
         assertThat(optional.get()).isEqualTo(updated);
@@ -165,10 +178,10 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testDeleteById() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
         assertThat(dbTemplate.findAll(collectionName, Person.class, null).size()).isEqualTo(2);
 
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_0.getId(), null);
+        dbTemplate.deleteById(collectionName, TEST_PERSON_0.getId(), null);
 
         final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
         assertThat(result.size()).isEqualTo(1);
@@ -193,7 +206,7 @@ public class DocumentDbTemplateIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
@@ -201,7 +214,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testCountByQuery() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
@@ -213,7 +226,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindAllPageableMultiPages() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
@@ -228,7 +241,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindAllAsyncPageableMultiPages() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
 
@@ -246,7 +259,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testPaginationQuery() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
@@ -260,7 +273,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testPaginationAsync() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
+        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TestConstants.FIRST_NAME));
@@ -276,19 +289,19 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testInsertAsync() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
+        this.dbTemplate.deleteAll(collectionName, personInfo.getPartitionKeyNames());
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
     }
 
     @Test
     public void testInsertAsyncException() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+        this.dbTemplate.deleteAll(collectionName, personInfo.getPartitionKeyNames());
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
                 .subscribe(
                         p -> assertThat(p).isEqualTo(TEST_PERSON_0),
                         e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)

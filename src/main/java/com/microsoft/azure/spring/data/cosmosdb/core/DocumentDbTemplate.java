@@ -218,10 +218,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     @Override
     public <T> List<T> findAll(String collectionName, final Class<T> domainClass, String partitionKeyName) {
-        final List<T> result = new ArrayList<>();
-        findAllAsync(collectionName, domainClass, partitionKeyName).toList().subscribe(result::addAll);
-
-        return result;
+        return findAllAsync(collectionName, domainClass, partitionKeyName).toList().toBlocking().single();
     }
 
     @Override
