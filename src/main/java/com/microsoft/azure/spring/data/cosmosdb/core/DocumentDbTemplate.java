@@ -9,7 +9,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -21,7 +20,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +45,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
-    @Getter(AccessLevel.PRIVATE)
     private final DocumentClient documentClient;
 
     private final DocumentDbFactory documentDbFactory;
@@ -440,17 +437,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return requestOptions;
     }
 
-    private com.microsoft.azure.documentdb.FeedResponse<Document> executeQuery(
-            @NonNull com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec,
-            boolean isCrossPartition, String collectionName) {
-        final com.microsoft.azure.documentdb.FeedOptions feedOptions = new com.microsoft.azure.documentdb.FeedOptions();
-        final String selfLink = getCollectionLink(collectionName);
-
-        feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
-
-        return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
-    }
-
     private Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
             @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
         return executeQueryAsync(sqlQuerySpec, collectionName, options)
@@ -529,16 +515,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(optional.get()));
         }
-    }
-
-    private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
-                                         @NonNull String collectionName) {
-        final com.microsoft.azure.documentdb.SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        final com.microsoft.azure.documentdb.FeedResponse<Document> response =
-                executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
-
-        return response.getQueryIterable().toList();
     }
 
     private Observable<com.microsoft.azure.cosmosdb.Document> findDocumentsAsync(
