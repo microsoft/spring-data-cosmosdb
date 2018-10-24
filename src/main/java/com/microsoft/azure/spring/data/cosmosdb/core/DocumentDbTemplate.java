@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.documentdb.Document;
@@ -40,7 +39,6 @@ import org.springframework.util.StringUtils;
 import rx.Observable;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -610,34 +608,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        return toCountValue(getCountValue(query, true, collectionName));
+        return getCountValue(query, true, collectionName).toBlocking().single();
     }
 
     @Override
     public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        return toCountValue(getCountValue(query, isCrossPartitionQuery, collectionName));
-    }
-
-    private Long toCountValue(Observable<Long> observable) {
-        final List<Long> result = Lists.newArrayList();
-        final CountDownLatch latch = new CountDownLatch(1);
-        observable.subscribe(count -> {
-                    result.add(count);
-                    log.debug("count " + count + " added to list.");
-                    latch.countDown();
-                }, onError -> {
-                    throw new DocumentDBAccessException("Failed to convert count value.", onError);
-                }, () -> { latch.countDown(); });
-
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new DocumentDBAccessException("Failed to convert count value.", e);
-        }
-
-        return result.size() > 0 ? result.get(0) : 0L;
+        return getCountValue(query, isCrossPartitionQuery, collectionName).toBlocking().single();
     }
 
     @Override
