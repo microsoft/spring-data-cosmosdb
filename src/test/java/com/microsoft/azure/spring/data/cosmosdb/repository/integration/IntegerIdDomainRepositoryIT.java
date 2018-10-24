@@ -54,8 +54,8 @@ public class IntegerIdDomainRepositoryIT {
         final Optional<IntegerIdDomain> foundOptional = this.repository.findById(ID);
 
         Assert.assertTrue(foundOptional.isPresent());
-        Assert.assertEquals(foundOptional.get().getNumber(), DOMAIN.getNumber());
-        Assert.assertEquals(foundOptional.get().getName(), DOMAIN.getName());
+        Assert.assertEquals(DOMAIN.getNumber(), foundOptional.get().getNumber());
+        Assert.assertEquals(DOMAIN.getName(), foundOptional.get().getName());
 
         this.repository.delete(DOMAIN);
 

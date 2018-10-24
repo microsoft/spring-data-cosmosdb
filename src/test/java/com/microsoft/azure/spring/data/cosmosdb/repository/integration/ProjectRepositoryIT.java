@@ -81,12 +81,12 @@ public class ProjectRepositoryIT {
     }
 
     private void assertProjectListEquals(@NonNull List<Project> projects, @NonNull List<Project> reference) {
-        Assert.assertEquals(projects.size(), reference.size());
+        Assert.assertEquals(reference.size(), projects.size());
 
         projects.sort(Comparator.comparing(Project::getId));
         reference.sort(Comparator.comparing(Project::getId));
 
-        Assert.assertEquals(projects, reference);
+        Assert.assertEquals(reference, projects);
     }
 
     @Test

@@ -136,7 +136,7 @@ public class StudentRepositoryIT {
         people.sort(Comparator.comparing(Student::getId));
         reference.sort(Comparator.comparing(Student::getId));
 
-        Assert.assertEquals(people, reference);
+        Assert.assertEquals(reference, people);
     }
 
     @Test

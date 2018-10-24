@@ -114,8 +114,8 @@ public class MemoRepositoryIT {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
-        Assert.assertEquals(memos.size(), reference.size());
-        Assert.assertEquals(memos, reference);
+        Assert.assertEquals(reference.size(), memos.size());
+        Assert.assertEquals(reference, memos);
     }
 
     @Test
@@ -126,8 +126,8 @@ public class MemoRepositoryIT {
 
         memos = this.repository.findByDateBeforeAndMessage(memoDate, TestConstants.MESSAGE);
 
-        Assert.assertEquals(memos.size(), 1);
-        Assert.assertEquals(memos.get(0), testMemo1);
+        Assert.assertEquals(1, memos.size());
+        Assert.assertEquals(testMemo1, memos.get(0));
 
         memos = this.repository.findByDateBeforeOrMessage(memoDateAfter, TestConstants.MESSAGE);
         final List<Memo> reference = Arrays.asList(testMemo1, testMemo2);
@@ -135,8 +135,8 @@ public class MemoRepositoryIT {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
-        Assert.assertEquals(memos.size(), reference.size());
-        Assert.assertEquals(memos, reference);
+        Assert.assertEquals(reference.size(), memos.size());
+        Assert.assertEquals(reference, memos);
     }
 
     @Test
@@ -147,8 +147,8 @@ public class MemoRepositoryIT {
 
         memos = this.repository.findByDateAfter(memoDate);
 
-        Assert.assertEquals(memos.size(), 1);
-        Assert.assertEquals(memos.get(0), testMemo3);
+        Assert.assertEquals(1, memos.size());
+        Assert.assertEquals(testMemo3, memos.get(0));
 
         memos = this.repository.findByDateAfter(memoDateBefore);
         final List<Memo> reference = Arrays.asList(testMemo2, testMemo3);
@@ -156,8 +156,8 @@ public class MemoRepositoryIT {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
-        Assert.assertEquals(memos.size(), reference.size());
-        Assert.assertEquals(memos, reference);
+        Assert.assertEquals(reference.size(), memos.size());
+        Assert.assertEquals(reference, memos);
     }
 
     @Test
@@ -168,8 +168,8 @@ public class MemoRepositoryIT {
 
         memos = this.repository.findByDateAfterAndMessage(memoDate, TestConstants.NEW_MESSAGE);
 
-        Assert.assertEquals(memos.size(), 1);
-        Assert.assertEquals(memos.get(0), testMemo3);
+        Assert.assertEquals(1, memos.size());
+        Assert.assertEquals(testMemo3, memos.get(0));
 
         memos = this.repository.findByDateAfterOrMessage(memoDateBefore, TestConstants.MESSAGE);
         final List<Memo> reference = Arrays.asList(testMemo1, testMemo2, testMemo3);
@@ -177,8 +177,8 @@ public class MemoRepositoryIT {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
-        Assert.assertEquals(memos.size(), reference.size());
-        Assert.assertEquals(memos, reference);
+        Assert.assertEquals(reference.size(), memos.size());
+        Assert.assertEquals(reference, memos);
     }
 
     @Test
@@ -218,8 +218,8 @@ public class MemoRepositoryIT {
         memos.sort(Comparator.comparing(Memo::getId));
         reference.sort(Comparator.comparing(Memo::getId));
 
-        Assert.assertEquals(memos.size(), reference.size());
-        Assert.assertEquals(memos, reference);
+        Assert.assertEquals(reference.size(), memos.size());
+        Assert.assertEquals(reference, memos);
     }
 
     @Test(expected = IllegalQueryException.class)
