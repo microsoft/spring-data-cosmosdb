@@ -49,65 +49,52 @@ public class QuestionRepositoryAsyncIT {
         this.repository.deleteAll();
         final Question question = new Question("id", "link");
 
-        this.repository.saveAsync(question).subscribe(
-                a -> {
-                    Assert.assertEquals(a, question);
-                    Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
-                    Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
-                }
-        );
+        Question found = this.repository.saveAsync(question).toBlocking().single();
+        Assert.assertEquals(found, question);
 
         question.setUrl("new-link");
-
-        this.repository.saveAsync(question).subscribe(
-                a -> {
-                    Assert.assertEquals(a, question);
-                    Assert.assertTrue(this.repository.findById(question.getId()).isPresent());
-                    Assert.assertEquals(this.repository.findById(question.getId()).get(), question);
-                }
-        );
+        found = this.repository.saveAsync(question).toBlocking().single();
+        Assert.assertEquals(found, question);
     }
 
     @Test
     public void testFindByIdAsync() {
-        this.repository.findByIdAsync(QUESTION.getId()).subscribe(a -> Assert.assertEquals(a, QUESTION));
-        this.repository.findByIdAsync(NOT_EXIST_ID).subscribe(
-                a -> {
-                    Assert.assertTrue(false); // should not reach here.
-                },
-                e -> {
-                    Assert.assertEquals(e.getClass(), DocumentClientException.class);
-                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
-                }
-        );
+        final Question question = this.repository.findByIdAsync(QUESTION.getId()).toBlocking().single();
+        Assert.assertEquals(question, QUESTION);
+
+        try {
+            this.repository.findByIdAsync(NOT_EXIST_ID).toCompletable().await();
+            Assert.fail("Should trigger RuntimeException.");
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause instanceof DocumentClientException);
+            Assert.assertEquals(((DocumentClientException) cause).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+        }
     }
 
     @Test
     public void testDeleteById() {
-        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
-                a -> {
-                    Assert.assertTrue(a instanceof String);
-                    Assert.assertEquals(a.toString(), QUESTION.getId());
-                }
-        );
+        final Object id = this.repository.deleteByIdAsync(QUESTION.getId()).toBlocking().single();
+        Assert.assertTrue(id instanceof String);
+        Assert.assertEquals(id.toString(), QUESTION.getId());
 
-        this.repository.deleteByIdAsync(QUESTION.getId()).subscribe(
-                a -> {
-                    Assert.assertTrue(false); // should not reach here.
-                },
-                e -> {
-                    Assert.assertTrue(e instanceof DocumentClientException);
-                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
-                }
-        );
+        try {
+            this.repository.deleteByIdAsync(NOT_EXIST_ID).toBlocking().single();
+            Assert.fail("Should trigger RuntimeException.");
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause instanceof DocumentClientException);
+            Assert.assertEquals(((DocumentClientException) cause).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+        }
     }
 
     @Test
     public void testDeleteAll() {
         final Question question = new Question("new-id", "new-url");
-
         this.repository.save(question);
-        this.repository.findByIdAsync(question.getId()).subscribe(q -> Assert.assertEquals(question, q));
+
+        final Question found = this.repository.findByIdAsync(question.getId()).toBlocking().single();
+        Assert.assertEquals(found, question);
 
         this.repository.deleteAllAsync().toCompletable().await();
 
@@ -117,31 +104,18 @@ public class QuestionRepositoryAsyncIT {
 
     @Test
     public void testDelete() {
-        this.repository.findByIdAsync(QUESTION.getId()).subscribe(q -> Assert.assertEquals(QUESTION, q));
-        this.repository.deleteAsync(QUESTION).subscribe(q -> Assert.assertEquals(QUESTION, q));
+        this.repository.findByIdAsync(QUESTION.getId()).toCompletable().await();
+        this.repository.deleteAsync(QUESTION).toCompletable().await();
 
-        this.repository.findByIdAsync(QUESTION.getId()).subscribe(
-                a -> {
-                    Assert.assertTrue(false); // should not reach here.
-                },
-                e -> {
-                    Assert.assertTrue(e instanceof DocumentClientException);
-                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
-                }
-        );
+        Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
 
-        final Question question = new Question("new-id", "new-url");
-        this.repository.save(question);
-
-        this.repository.deleteAsync(QUESTION).subscribe(
-                a -> {
-                    Assert.assertTrue(false); // should not reach here.
-                },
-                e -> {
-                    Assert.assertTrue(e instanceof DocumentClientException);
-                    Assert.assertEquals(((DocumentClientException) e).getStatusCode(), HttpStatus.SC_NOT_FOUND);
-                }
-        );
+        try {
+            this.repository.deleteAsync(QUESTION).toCompletable().await();
+            Assert.fail("Should trigger RuntimeException.");
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause instanceof DocumentClientException);
+            Assert.assertEquals(((DocumentClientException) cause).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+        }
     }
-
 }
