@@ -26,5 +26,7 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends Paging
     Observable<T> deleteAllAsync();
 
     Observable<Page<T>> findAllAsync(Pageable pageable);
+
+    Observable<Long> countAllAsync();
 }
 
