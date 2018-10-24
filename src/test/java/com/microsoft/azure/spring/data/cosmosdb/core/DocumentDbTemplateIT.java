@@ -37,7 +37,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
@@ -282,21 +285,21 @@ public class DocumentDbTemplateIT {
     @Test
     public void testInsertAsync() {
         this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
+        Person inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
+                .toBlocking().single();
+
+        assertThat(inserted).isEqualTo(TEST_PERSON_0);
+
+        inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
+                .toBlocking().single();
+
+        assertThat(inserted).isEqualTo(TEST_PERSON_1);
     }
 
-    @Test
+    @Test(expected = DocumentDBAccessException.class)
     public void testInsertAsyncException() {
         this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
-                .subscribe(
-                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
-                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
-                );
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
+        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
     }
 }
