@@ -596,10 +596,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     // Internal class to wrap count and FeedResponse data
     @AllArgsConstructor
+    @Getter @Setter
     private static class PageResponse<T extends Resource> {
-        @Getter @Setter
         private long count;
-        @Getter @Setter
         private FeedResponse<T> response;
     }
 
