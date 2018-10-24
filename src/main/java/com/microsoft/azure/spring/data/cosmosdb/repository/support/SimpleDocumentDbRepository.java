@@ -109,7 +109,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public Iterable<T> findAll() {
-        return operation.findAll(information.getCollectionName(), information.getJavaType());
+        return operation.findAll(information.getCollectionName(), information.getJavaType(),
+                information.getPartitionKeyFieldName());
     }
 
     /**
@@ -168,6 +169,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public long count() {
         return operation.count(information.getCollectionName());
+    }
+
+    @Override
+    public Observable<Long> countAllAsync() {
+        return operation.countAsync(information.getCollectionName());
     }
 
     /**
@@ -301,5 +307,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(pageable, "pageable should not be null");
 
         return operation.findAllAsync(pageable, information.getJavaType(), information.getCollectionName());
+    }
+
+    @Override
+    public Observable<T> findAllAsync() {
+        return operation.findAllAsync(information.getCollectionName(), information.getJavaType(),
+                information.getPartitionKeyFieldName());
     }
 }

@@ -22,7 +22,9 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.BeansException;
@@ -237,20 +239,25 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         deleteAllAsync(collectionName, partitionKeyNames).toCompletable().await();
     }
 
-    public <T> List<T> findAll(Class<T> entityClass) {
-        Assert.notNull(entityClass, "entityClass should not be null");
-
-        return findAll(getCollectionName(entityClass), entityClass);
+    @Override
+    public <T> List<T> findAll(String collectionName, final Class<T> domainClass, String partitionKeyName) {
+        return findAllAsync(collectionName, domainClass, partitionKeyName).toList().toBlocking().single();
     }
 
-    public <T> List<T> findAll(String collectionName, final Class<T> domainClass) {
+    @Override
+    public <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(domainClass, "entityClass should not be null");
+        Assert.notNull(entityClass, "entityClass should not be null");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final List<Document> results = findDocuments(query, domainClass, collectionName);
+        final List<String> keyNames = StringUtils.hasText(partitionKeyName) ? Arrays.asList(partitionKeyName) :
+                new ArrayList<>();
 
-        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
+        return findDocumentsAsync(query, collectionName, keyNames)
+                .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass))
+                .onErrorResumeNext(e -> {
+                    throw new DocumentDBAccessException("Failed to find all documents.", e);
+                }).map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
     @Override
@@ -608,8 +615,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
 
-        return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first()
-                .map(r -> {
+        final Observable<Long> countObservable = countAsync(query, domainClass, collectionName);
+
+        return Observable.zip(countObservable, executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first(),
+                (count, response) -> new PageResponse<>(count, response))
+                .doOnError(e -> {
+                    throw new DocumentDBAccessException("Failed to execute pagination query.", e);
+                })
+                .map(pageResponse -> {
+                    final FeedResponse<com.microsoft.azure.cosmosdb.Document> r = pageResponse.getResponse();
+                    final long count = pageResponse.getCount();
+
                     log.debug(r.getResults().size() + " documents returned.");
                     final List<T> result = r.getResults().stream().filter(Objects::nonNull)
                             .map(d -> mappingDocumentDbConverter.readAsync(domainClass, d))
@@ -618,8 +634,16 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
                             pageable.getPageSize(), r.getResponseContinuation());
 
-                    return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+                    return new PageImpl<>(result, pageRequest, count);
                 });
+    }
+
+    // Internal class to wrap count and FeedResponse data
+    @AllArgsConstructor
+    @Getter @Setter
+    private static class PageResponse<T extends Resource> {
+        private long count;
+        private FeedResponse<T> response;
     }
 
     @Override
@@ -627,35 +651,35 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be empty");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final com.microsoft.azure.documentdb.SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
-
-        return getCountValue(querySpec, true, collectionName);
+        return getCountValue(query, true, collectionName).toBlocking().single();
     }
 
     @Override
     public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
-        Assert.notNull(domainClass, "domainClass should not be null");
-        Assert.hasText(collectionName, "collectionName should not be empty");
-
-        final com.microsoft.azure.documentdb.SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-
-        return getCountValue(querySpec, isCrossPartitionQuery, collectionName);
+        return getCountValue(query, isCrossPartitionQuery, collectionName).toBlocking().single();
     }
 
-    private long getCountValue(com.microsoft.azure.documentdb.SqlQuerySpec querySpec, boolean isCrossPartitionQuery,
-                               String collectionName) {
-        final com.microsoft.azure.documentdb.FeedResponse<Document> feedResponse =
-                executeQuery(querySpec, isCrossPartitionQuery, collectionName);
-        final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
+    @Override
+    public Observable<Long> countAsync(String collectionName) {
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
+        return getCountValue(query, true, collectionName);
+    }
 
-        if (value instanceof Integer) {
-            return Long.valueOf((Integer) value);
-        } else if (value instanceof Long) {
-            return (Long) value;
-        } else {
-            throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
-        }
+    @Override
+    public <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName) {
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
+        return getCountValue(query, isCrossPartitionQuery, collectionName);
+    }
+
+    private Observable<Long> getCountValue(DocumentQuery query, boolean isCrossPartitionQuery, String collectionName) {
+        final SqlQuerySpec querySpec = new CountQueryGenerator().generateAsync(query);
+
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery);
+
+        return executeQueryAsync(querySpec, collectionName, feedOptions)
+                .map(response -> response.getResults().get(0).getLong(COUNT_VALUE_KEY));
     }
 
     @Override

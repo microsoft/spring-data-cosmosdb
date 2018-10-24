@@ -24,9 +24,7 @@ public interface DocumentDbOperations {
 
     DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information);
 
-    <T> List<T> findAll(Class<T> entityClass);
-
-    <T> List<T> findAll(String collectionName, Class<T> entityClass);
+    <T> List<T> findAll(String collectionName, Class<T> entityClass, String partitionKeyName);
 
     <T> Optional<T> findById(String collectionName, Object id, Class<T> entityClass, PartitionKey key);
 
@@ -83,4 +81,10 @@ public interface DocumentDbOperations {
 
     <T> Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
                                         List<String> partitionKeyNames);
+
+    <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName);
+
+    Observable<Long> countAsync(String collectionName);
+
+    <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
 }
