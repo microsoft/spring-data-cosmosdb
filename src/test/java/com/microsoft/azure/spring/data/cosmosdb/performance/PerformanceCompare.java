@@ -154,6 +154,8 @@ public class PerformanceCompare {
 
     @Test
     public void findBySortingTest() {
+        prepareListData(TIMES);
+
         final Sort sort = new Sort(Sort.Direction.ASC, "name");
         final List<Sort> sortList = buildSortList(sort, TIMES);
 
@@ -189,11 +191,12 @@ public class PerformanceCompare {
 
     @Test
     public void countTest() {
+        prepareListData(TIMES);
+
         final long springCost = getSupplier(TIMES, repository::count);
         final long sdkCost = getSupplier(TIMES, sdkService::count);
 
-        report.addItem(new PerfItem(OperationType.COUNT, springCost, sdkCost, TIMES));
-        assertPerf(springCost, sdkCost, ACCEPTANCE_DIFF);
+        verifyResult(OperationType.COUNT, springCost, sdkCost, ACCEPTANCE_DIFF);
     }
 
     /**
