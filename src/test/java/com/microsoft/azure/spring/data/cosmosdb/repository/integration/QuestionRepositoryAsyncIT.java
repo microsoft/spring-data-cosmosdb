@@ -64,6 +64,7 @@ public class QuestionRepositoryAsyncIT {
 
         try {
             this.repository.findByIdAsync(NOT_EXIST_ID).toCompletable().await();
+            Assert.fail("Should trigger RuntimeException.");
         } catch (RuntimeException e) {
             final Throwable cause = e.getCause();
             Assert.assertTrue(cause instanceof DocumentClientException);
@@ -79,6 +80,7 @@ public class QuestionRepositoryAsyncIT {
 
         try {
             this.repository.deleteByIdAsync(NOT_EXIST_ID).toBlocking().single();
+            Assert.fail("Should trigger RuntimeException.");
         } catch (RuntimeException e) {
             final Throwable cause = e.getCause();
             Assert.assertTrue(cause instanceof DocumentClientException);
