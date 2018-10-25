@@ -87,21 +87,30 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private void validate(DocumentQuery query, String collectionName, Class<?> entityClass,
                           List<String> partitionKeyNames) {
-        Assert.notNull(query, "DocumentQuery should not be null.");
+        validate(query, entityClass);
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces.");
-        Assert.notNull(entityClass, "domainClass should not be null.");
         Assert.notNull(partitionKeyNames, "partitionKeyNames should not be null.");
     }
 
     private <T> void validate(String collectionName, T entity) {
-        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces.");
+        validate(collectionName);
         Assert.notNull(entity, "entity should not be null.");
+    }
+
+    private void validate(DocumentQuery query, Class<?> entityClass) {
+        Assert.notNull(query, "DocumentQuery should not be null.");
+        Assert.notNull(entityClass, "entityClass should not be null.");
     }
 
     private void validate(String collectionName, Object entity, Class<?> entityClass) {
         validate(collectionName, entity);
 
-        Assert.notNull(entityClass, "domainClass should not be null.");
+        Assert.notNull(entityClass, "entityClass should not be null.");
+    }
+
+    private void validate(DocumentQuery query, String collectionName, Class<?> entityClass) {
+        validate(collectionName);
+        validate(query, entityClass);
     }
 
     @Override
@@ -480,24 +489,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> Boolean exists(@NonNull DocumentQuery query, @NonNull String collectionName,
-                              @NonNull Class<T> entityClass, @NonNull List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
+    public Boolean exists(@NonNull DocumentQuery query, @NonNull String collectionName, @NonNull Class<?> entityClass) {
+        validate(query, collectionName, entityClass);
 
-        return existsAsync(query, collectionName, entityClass, partitionKeyNames)
-                .toBlocking()
-                .single();
+        return existsAsync(query, collectionName, entityClass).toBlocking().single();
     }
 
     @Override
-    public <T> Observable<Boolean> existsAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
-                                               @NonNull Class<T> entityClass, @NonNull List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
+    public Observable<Boolean> existsAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
+                                           @NonNull Class<?> entityClass) {
+        validate(query, collectionName, entityClass);
 
-        return findAsync(query, collectionName, entityClass, partitionKeyNames)
-                .count()
-                .map(c -> c > 0)
-                .single();
+        return countAsync(query, collectionName, entityClass).map(c -> c > 0).single();
     }
 
     private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
@@ -591,7 +594,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
 
-        final Observable<Long> countObservable = countAsync(query, domainClass, collectionName);
+        final Observable<Long> countObservable = countAsync(query, collectionName, domainClass);
 
         return Observable.zip(countObservable, executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first(),
                 (count, response) -> new PageResponse<>(count, response))
@@ -612,14 +615,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
                     return new PageImpl<>(result, pageRequest, count);
                 });
-    }
-
-    // Internal class to wrap count and FeedResponse data
-    @AllArgsConstructor
-    @Getter @Setter
-    private static class PageResponse<T extends Resource> {
-        private long count;
-        private FeedResponse<T> response;
     }
 
     @Override
@@ -643,7 +638,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName) {
+    public Observable<Long> countAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
+                                       @NonNull Class<?> domainClass) {
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         return getCountValue(query, isCrossPartitionQuery, collectionName);
     }
@@ -679,5 +675,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (id instanceof String) {
             Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
         }
+    }
+
+    // Internal class to wrap count and FeedResponse data
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    private static class PageResponse<T extends Resource> {
+        private long count;
+        private FeedResponse<T> response;
     }
 }

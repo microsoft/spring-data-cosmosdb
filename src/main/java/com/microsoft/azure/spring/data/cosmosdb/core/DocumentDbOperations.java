@@ -44,8 +44,7 @@ public interface DocumentDbOperations {
     <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass,
                      List<String> partitionKeyNames);
 
-    <T> Boolean exists(DocumentQuery query, String collectionName, Class<T> entityClass,
-                       List<String> partitionKeyNames);
+    Boolean exists(DocumentQuery query, String collectionName, Class<?> entityClass);
 
     <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
 
@@ -79,12 +78,11 @@ public interface DocumentDbOperations {
     <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
                                 List<String> partitionKeyNames);
 
-    <T> Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
-                                        List<String> partitionKeyNames);
+    Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass);
 
     <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName);
 
     Observable<Long> countAsync(String collectionName);
 
-    <T> Observable<Long> countAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
+    Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> domainClass);
 }

@@ -56,9 +56,7 @@ public interface DocumentDbQueryExecution {
         @Override
         @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
-
-            return operations.exists(query, collection, type, information.getPartitionKeyNames());
+            return operations.exists(query, collection, type);
         }
     }
 
