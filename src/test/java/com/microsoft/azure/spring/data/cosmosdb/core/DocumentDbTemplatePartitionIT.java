@@ -97,15 +97,16 @@ public class DocumentDbTemplatePartitionIT {
     public void testFindWithPartition() {
         Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
         DocumentQuery query = new DocumentQuery(criteria);
-        List<PartitionPerson> result = dbTemplate.find(query, PartitionPerson.class,
-                PartitionPerson.class.getSimpleName());
+        List<PartitionPerson> result = dbTemplate.find(query, personInfo.getCollectionName(), PartitionPerson.class,
+                personInfo.getPartitionKeyNames());
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_0);
 
         criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
-        result = dbTemplate.find(query, PartitionPerson.class, PartitionPerson.class.getSimpleName());
+        result = dbTemplate.find(query, personInfo.getCollectionName(), PartitionPerson.class,
+                personInfo.getPartitionKeyNames());
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_0);
@@ -116,8 +117,8 @@ public class DocumentDbTemplatePartitionIT {
         final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final List<PartitionPerson> result = dbTemplate.find(query, PartitionPerson.class,
-                PartitionPerson.class.getSimpleName());
+        final List<PartitionPerson> result = dbTemplate.find(query, personInfo.getCollectionName(),
+                PartitionPerson.class, personInfo.getPartitionKeyNames());
         assertThat(result.size()).isEqualTo(0);
     }
 

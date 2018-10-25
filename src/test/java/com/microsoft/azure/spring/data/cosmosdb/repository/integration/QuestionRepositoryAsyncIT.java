@@ -101,4 +101,21 @@ public class QuestionRepositoryAsyncIT {
         Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
         Assert.assertFalse(this.repository.findById(question.getId()).isPresent());
     }
+
+    @Test
+    public void testDelete() {
+        this.repository.findByIdAsync(QUESTION.getId()).toCompletable().await();
+        this.repository.deleteAsync(QUESTION).toCompletable().await();
+
+        Assert.assertFalse(this.repository.findById(QUESTION.getId()).isPresent());
+
+        try {
+            this.repository.deleteAsync(QUESTION).toCompletable().await();
+            Assert.fail("Should trigger RuntimeException.");
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause instanceof DocumentClientException);
+            Assert.assertEquals(((DocumentClientException) cause).getStatusCode(), HttpStatus.SC_NOT_FOUND);
+        }
+    }
 }

@@ -241,7 +241,7 @@ public class DocumentDbTemplateIT {
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        dbTemplate.countAsync(query, Person.class, collectionName).subscribe(count -> assertThat(count).isEqualTo(1));
+        dbTemplate.countAsync(query, collectionName, Person.class).subscribe(count -> assertThat(count).isEqualTo(1));
     }
 
     @Test
