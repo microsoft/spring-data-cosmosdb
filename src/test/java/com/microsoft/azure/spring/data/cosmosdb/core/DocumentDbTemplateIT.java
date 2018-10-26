@@ -106,7 +106,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindAll() {
-        dbTemplate.deleteAll(collectionName, Lists.newArrayList());
+        dbTemplate.deleteAll(collectionName, null);
         final List<Person> insertedList = insertMultiPerson(5);
         final List<Person> result = dbTemplate.findAll(collectionName, Person.class, null);
         assertThat(result.size()).isEqualTo(insertedList.size());
@@ -115,7 +115,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void findAllAsync() {
-        dbTemplate.deleteAll(collectionName, Lists.newArrayList());
+        dbTemplate.deleteAll(collectionName, null);
         final List<Person> insertedList = insertMultiPerson(5);
         dbTemplate.findAllAsync(collectionName, Person.class, null).toList()
                 .subscribe(result -> {
@@ -229,7 +229,7 @@ public class DocumentDbTemplateIT {
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, Person.class, collectionName);
+        final long count = dbTemplate.count(query, collectionName, Person.class, null);
         assertThat(count).isEqualTo(1);
     }
 
@@ -241,7 +241,7 @@ public class DocumentDbTemplateIT {
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        dbTemplate.countAsync(query, collectionName, Person.class).subscribe(count -> assertThat(count).isEqualTo(1));
+        assertThat(dbTemplate.countAsync(query, collectionName, Person.class, null).toBlocking().single()).isEqualTo(1);
     }
 
     @Test
@@ -249,12 +249,12 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
-        final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+        final Page<Person> page1 = dbTemplate.findAll(pageRequest, collectionName, Person.class, null);
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
 
-        final Page<Person> page2 = dbTemplate.findAll(page1.getPageable(), Person.class, collectionName);
+        final Page<Person> page2 = dbTemplate.findAll(page1.getPageable(), collectionName, Person.class, null);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
     }
@@ -265,11 +265,11 @@ public class DocumentDbTemplateIT {
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
 
-        dbTemplate.findAllAsync(pageRequest, Person.class, collectionName).subscribe(page1 -> {
+        dbTemplate.findAllAsync(pageRequest, collectionName, Person.class, null).subscribe(page1 -> {
                     assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
                     validateNonLastPage(page1, PAGE_SIZE_1);
 
-                    dbTemplate.findAllAsync(page1.getPageable(), Person.class, collectionName)
+                    dbTemplate.findAllAsync(page1.getPageable(), collectionName, Person.class, null)
                             .subscribe(page2 -> {
                                 assertThat(page2.getContent().size()).isEqualTo(1);
                                 validateLastPage(page2, PAGE_SIZE_1);
@@ -286,7 +286,7 @@ public class DocumentDbTemplateIT {
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
-        final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
+        final Page<Person> page = dbTemplate.paginationQuery(query, collectionName, Person.class, null);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
     }
@@ -300,7 +300,7 @@ public class DocumentDbTemplateIT {
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
-        dbTemplate.paginationQueryAsync(query, Person.class, collectionName)
+        dbTemplate.paginationQueryAsync(query, collectionName, Person.class, null)
                 .subscribe(page -> {
                     assertThat(page.getContent().size()).isEqualTo(1);
                     validateLastPage(page, PAGE_SIZE_2);
@@ -309,7 +309,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testInsertAsync() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyFieldName());
         Person inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
                 .toBlocking().single();
 
@@ -323,7 +323,7 @@ public class DocumentDbTemplateIT {
 
     @Test(expected = DocumentDBAccessException.class)
     public void testInsertAsyncException() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyFieldName());
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
         this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
     }

@@ -23,9 +23,7 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 
@@ -55,22 +53,22 @@ public class DocumentDbTemplateIllegalTest {
     @Test
     public void deleteIllegalShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getMethod("delete", DocumentQuery.class, String.class, Class.class,
-                List.class);
+                String.class);
         final Criteria criteria = Criteria.getInstance(IS_EQUAL, "faker", Arrays.asList("faker-value"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        checkIllegalArgument(method, null, DUMMY_COLL, Person.class, new ArrayList<>());
-        checkIllegalArgument(method, query, DUMMY_COLL, null, new ArrayList<>());
-        checkIllegalArgument(method, query, null, Person.class, new ArrayList<>());
+        checkIllegalArgument(method, null, DUMMY_COLL, Person.class, null);
+        checkIllegalArgument(method, query, DUMMY_COLL, null, null);
+        checkIllegalArgument(method, query, null, Person.class, null);
     }
 
     @Test
     public void deleteIllegalCollectionShouldFail() throws NoSuchMethodException {
-        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, List.class);
+        final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, String.class);
 
-        checkIllegalArgument(method, NULL_STR, new ArrayList<>());
-        checkIllegalArgument(method, EMPTY_STR, new ArrayList<>());
-        checkIllegalArgument(method, WHITESPACES_STR, new ArrayList<>());
+        checkIllegalArgument(method, NULL_STR, null);
+        checkIllegalArgument(method, EMPTY_STR, null);
+        checkIllegalArgument(method, WHITESPACES_STR, null);
     }
 
     @Test

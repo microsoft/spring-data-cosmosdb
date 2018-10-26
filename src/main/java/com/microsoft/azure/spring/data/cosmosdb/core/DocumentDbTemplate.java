@@ -9,7 +9,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -31,8 +30,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import rx.Observable;
@@ -40,12 +37,12 @@ import rx.Observable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperationValidator.validate;
+
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
 
     private static final String COUNT_VALUE_KEY = "_aggregate";
-
-    private final DocumentClient documentClient;
 
     private final DocumentDbFactory documentDbFactory;
 
@@ -58,14 +55,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private AsyncDocumentClient asyncDocumentClient;
 
     public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
-                              MappingDocumentDbConverter mappingDocumentDbConverter,
-                              String dbName) {
+                              MappingDocumentDbConverter mappingDocumentDbConverter, String dbName) {
         Assert.notNull(documentDbFactory, "DocumentDbFactory must not be null!");
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
 
         this.dbName = dbName;
-        this.dbLink = getDatabaseLink(dbName);
-        this.documentClient = documentDbFactory.getDocumentClient();
+        this.dbLink = "dbs/" + dbName;
         this.documentDbFactory = documentDbFactory;
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
     }
@@ -78,116 +73,90 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.asyncDocumentClient;
     }
 
+    private String getCollectionLink(String collectionName) {
+        return this.dbLink + "/colls/" + collectionName;
+    }
+
+    private String getDocumentLink(String collectionName, Object documentId) {
+        return getCollectionLink(collectionName) + "/docs/" + documentId;
+    }
+
+    private String getPartitionKeyPath(String partitionKey) {
+        return "/" + partitionKey;
+    }
+
+    private RequestOptions getRequestOptions(PartitionKey key, Integer requestUnit) {
+        if (key == null && requestUnit == null) {
+            return null;
+        }
+
+        final RequestOptions requestOptions = new RequestOptions();
+
+        if (key != null) {
+            requestOptions.setPartitionKey(key);
+        }
+
+        if (requestUnit != null) {
+            requestOptions.setOfferThroughput(requestUnit);
+        }
+
+        return requestOptions;
+    }
+
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 
-    private void validate(String collectionName) {
-        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces.");
-    }
-
-    private void validate(DocumentQuery query, String collectionName, Class<?> entityClass,
-                          List<String> partitionKeyNames) {
-        validate(query, entityClass);
-        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces.");
-        Assert.notNull(partitionKeyNames, "partitionKeyNames should not be null.");
-    }
-
-    private <T> void validate(String collectionName, T entity) {
-        validate(collectionName);
-        Assert.notNull(entity, "entity should not be null.");
-    }
-
-    private void validate(DocumentQuery query, Class<?> entityClass) {
-        Assert.notNull(query, "DocumentQuery should not be null.");
-        Assert.notNull(entityClass, "entityClass should not be null.");
-    }
-
-    private void validate(String collectionName, Object entity, Class<?> entityClass) {
+    @Override
+    public <T> Observable<T> insertAsync(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
-        Assert.notNull(entityClass, "entityClass should not be null.");
-    }
+        @SuppressWarnings("unchecked") final Class<T> entityClass = (Class<T>) entity.getClass();
+        final String collectionLink = getCollectionLink(collectionName);
+        final Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
 
-    private void validate(DocumentQuery query, String collectionName, Class<?> entityClass) {
-        validate(collectionName);
-        validate(query, entityClass);
+        return getAsyncDocumentClient()
+                .createDocument(collectionLink, document, getRequestOptions(key, null), false)
+                .doOnNext(r -> log.debug("Create Document Async from {}.", collectionLink))
+                .onErrorReturn(e -> {
+                    throw new DocumentDBAccessException("failed to insert entity", e);
+                })
+                .map(ResourceResponse::getResource)
+                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
     @Override
-    public <T> T insert(@NonNull String collectionName, @NonNull T entity, @Nullable PartitionKey key) {
+    public <T> T insert(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
         return insertAsync(collectionName, entity, key).toBlocking().single();
     }
 
     @Override
-    public <T> Observable<T> insertAsync(@NonNull String collectionName, @NonNull T entity,
-                                         @Nullable PartitionKey key) {
-        validate(collectionName, entity);
-
-        @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) entity.getClass();
-        final String collectionLink = getCollectionLink(collectionName);
-        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
-
-        return getAsyncDocumentClient()
-                .createDocument(collectionLink, document, getRequestOptions(key, null), false)
-                .doOnNext(r -> log.debug("Create Document Async from {}.", collectionLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to insert domain", e);
-                })
-                .map(ResourceResponse::getResource)
-                .map(d -> this.mappingDocumentDbConverter.readAsync(domainClass, d));
-    }
-
-    @Override
-    public <T> void upsert(@NonNull String collectionName, @NonNull T entity, @Nullable PartitionKey key) {
-        validate(collectionName, entity);
-
-        upsertAsync(collectionName, entity, key).toBlocking().single();
-    }
-
-    @Override
-    public <T> Observable<T> upsertAsync(@NonNull String collectionName, @NonNull T entity,
-                                         @Nullable PartitionKey key) {
+    public <T> Observable<T> upsertAsync(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
         final String collectionLink = getCollectionLink(collectionName);
-        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
+        final Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
 
         return getAsyncDocumentClient()
                 .upsertDocument(collectionLink, document, getRequestOptions(key, null), false)
                 .doOnNext(r -> log.debug("Upsert Document Async from {}.", collectionLink))
                 .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to upsert domain", e);
+                    throw new DocumentDBAccessException("failed to upsert entity", e);
                 })
                 .map(d -> entity);
     }
 
     @Override
-    public <T> Optional<T> findById(@NonNull String collectionName, @NonNull Object id, @NonNull Class<T> entityClass,
-                                    @Nullable PartitionKey key) {
-        validate(collectionName, id, entityClass);
-        assertValidId(id);
+    public <T> void upsert(String collectionName, T entity, PartitionKey key) {
+        validate(collectionName, entity);
 
-        try {
-            return Optional.of(findByIdAsync(collectionName, id, entityClass, key).toBlocking().single());
-        } catch (RuntimeException e) {
-            final Throwable cause = e.getCause();
-
-            if (cause instanceof DocumentClientException
-                    && ((DocumentClientException) cause).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return Optional.empty();
-            }
-
-            throw new DocumentDBAccessException("Failed to read Document", e);
-        }
+        upsertAsync(collectionName, entity, key).toCompletable().await();
     }
 
     @Override
-    public <T> Observable<T> findByIdAsync(@NonNull String collectionName, @NonNull Object id,
-                                           @NonNull Class<T> entityClass, @Nullable PartitionKey key) {
-        validate(collectionName, id, entityClass);
-        assertValidId(id);
+    public <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key) {
+        validate(id, collectionName, entityClass);
 
         final RequestOptions options = new RequestOptions();
         final String collectionLink = getCollectionLink(collectionName);
@@ -201,22 +170,39 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
-    private Observable<com.microsoft.azure.cosmosdb.Document> deleteDocumentsAsync(
-            @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+    @Override
+    public <T> Optional<T> findById(String collectionName, Object id, Class<T> entityClass, PartitionKey key) {
+        validate(id, collectionName, entityClass);
 
-        Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
+        try {
+            return Optional.of(findByIdAsync(collectionName, id, entityClass, key).toBlocking().single());
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
 
-        return findDocumentsAsync(query, collectionName, partitionKeyNames)
-                .doOnSubscribe(() -> log.debug("Delete Document Async."))
+            if (cause instanceof DocumentClientException) {
+                final DocumentClientException exception = (DocumentClientException) cause;
+                if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    return Optional.empty();
+                }
+            }
+
+            throw new DocumentDBAccessException("Failed to read Document", e);
+        }
+    }
+
+    private Observable<Document> deleteDocuments(DocumentQuery query, String collectionName, String partitionKeyName) {
+        validate(query, collectionName);
+
+        return findDocuments(query, collectionName, partitionKeyName)
+                .doOnSubscribe(() -> log.debug("Delete Documents Async."))
                 .onErrorResumeNext(e -> {
                     throw new DocumentDBAccessException("Failed to delete Document", e);
                 })
                 .flatMap(d -> {
                     final RequestOptions options = new RequestOptions();
 
-                    if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
-                        final String keyName = partitionKeyNames.get(0);
-                        options.setPartitionKey(new PartitionKey(d.get(keyName)));
+                    if (StringUtils.hasText(partitionKeyName)) {
+                        options.setPartitionKey(new PartitionKey(d.get(partitionKeyName)));
                     }
 
                     return getAsyncDocumentClient()
@@ -226,55 +212,45 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> Observable<T> deleteAllAsync(@NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
-        validate(collectionName, partitionKeyNames);
+    public <T> Observable<T> deleteAllAsync(String collectionName, String partitionKeyName) {
+        validate(collectionName);
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
 
-        return deleteDocumentsAsync(query, collectionName, partitionKeyNames)
-                .onErrorResumeNext(e -> {
-                    throw new DocumentDBAccessException("Failed to retrieve Document", e);
-                })
+        return deleteDocuments(query, collectionName, partitionKeyName)
                 .flatMap(d -> Observable.empty());
     }
 
     @Override
-    public void deleteAll(@NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
-        validate(collectionName, partitionKeyNames);
+    public void deleteAll(String collectionName, String partitionKeyName) {
+        validate(collectionName);
 
-        deleteAllAsync(collectionName, partitionKeyNames).toCompletable().await();
-    }
-
-    @Override
-    public <T> List<T> findAll(String collectionName, final Class<T> domainClass, String partitionKeyName) {
-        return findAllAsync(collectionName, domainClass, partitionKeyName).toList().toBlocking().single();
+        deleteAllAsync(collectionName, partitionKeyName).toCompletable().await();
     }
 
     @Override
     public <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName) {
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(entityClass, "entityClass should not be null");
+        validate(collectionName, entityClass);
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final List<String> keyNames = StringUtils.hasText(partitionKeyName) ? Arrays.asList(partitionKeyName) :
-                new ArrayList<>();
 
-        return findDocumentsAsync(query, collectionName, keyNames)
-                .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass))
-                .onErrorResumeNext(e -> {
+        return findDocuments(query, collectionName, partitionKeyName)
+                .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass.getSimpleName()))
+                .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("Failed to find all documents.", e);
-                }).map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                })
+                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
     }
 
     @Override
-    public void deleteCollection(@NonNull String collectionName) {
-        validate(collectionName);
+    public <T> List<T> findAll(String collectionName, Class<T> entityClass, String partitionKeyName) {
+        validate(collectionName, entityClass);
 
-        deleteCollectionAsync(collectionName).toCompletable().await();
+        return findAllAsync(collectionName, entityClass, partitionKeyName).toList().toBlocking().single();
     }
 
     @Override
-    public Observable<String> deleteCollectionAsync(@NonNull String collectionName) {
+    public Observable<String> deleteCollectionAsync(String collectionName) {
         validate(collectionName);
 
         final String collectionLink = getCollectionLink(collectionName);
@@ -288,10 +264,44 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(r -> collectionName);
     }
 
-    public String getCollectionName(Class<?> domainClass) {
-        Assert.notNull(domainClass, "domainClass should not be null");
+    @Override
+    public void deleteCollection(String collectionName) {
+        validate(collectionName);
 
-        return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
+        deleteCollectionAsync(collectionName).toCompletable().await();
+    }
+
+    @Override
+    public Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key) {
+        validate(id, collectionName);
+
+        final String documentLink = getDocumentLink(collectionName, id.toString());
+        final RequestOptions options = getRequestOptions(key, null);
+
+        return getAsyncDocumentClient()
+                .deleteDocument(documentLink, options)
+                .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
+                .map(r -> id);
+    }
+
+    @Override
+    public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
+        validate(id, collectionName);
+
+        try {
+            deleteByIdAsync(collectionName, id, partitionKey).toCompletable().await();
+        } catch (RuntimeException e) {
+            final Throwable cause = e.getCause();
+
+            if (cause instanceof DocumentClientException) {
+                final DocumentClientException exception = (DocumentClientException) cause;
+                if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    return;
+                }
+            }
+
+            throw new DocumentDBAccessException("Failed to delete Document", e);
+        }
     }
 
     private void createDatabaseIfNotExists() {
@@ -315,7 +325,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .await();
     }
 
-    private DocumentCollection createDocumentCollectionInstance(@NonNull DocumentDbEntityInformation information) {
+    private DocumentCollection createDocumentCollectionInstance(DocumentDbEntityInformation information) {
         final IndexingPolicy policy = information.getIndexingPolicy();
         final DocumentCollection collection = new DocumentCollection();
 
@@ -338,16 +348,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return collection;
     }
 
-    private Optional<DocumentCollection> getCollection(@NonNull String collectionName) {
-        validate(collectionName);
-
+    private Optional<DocumentCollection> getDocumentCollection(String collectionName) {
         final String sqlQuery = "SELECT * FROM r WHERE r.id=@id";
         final SqlParameter sqlParameter = new SqlParameter("@id", collectionName);
         final SqlParameterCollection sqlParameterCollection = new SqlParameterCollection(sqlParameter);
         final SqlQuerySpec sqlQuerySpec = new SqlQuerySpec(sqlQuery, sqlParameterCollection);
 
         try {
-            final DocumentCollection collection = getAsyncDocumentClient().queryCollections(dbLink, sqlQuerySpec, null)
+            final DocumentCollection collection = getAsyncDocumentClient()
+                    .queryCollections(dbLink, sqlQuerySpec, null)
                     .filter(r -> !r.getResults().isEmpty())
                     .map(r -> r.getResults().get(0))
                     .toBlocking()
@@ -362,99 +371,37 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information) {
+    public DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information) {
+        validate(information);
+
         final String collectionName = information.getCollectionName();
 
         createDatabaseIfNotExists();
 
-        return getCollection(collectionName).orElseGet(() -> {
-            log.info("Creating Collection [{}] of Database [{}] ...", collectionName, this.dbName);
+        return getDocumentCollection(collectionName).orElseGet(() -> {
             final DocumentCollection collection = createDocumentCollectionInstance(information);
 
             collection.setId(collectionName);
 
-            return getAsyncDocumentClient().createCollection(this.dbLink, collection, null)
+            log.info("Creating Collection [{}] of Database [{}] ...", collectionName, this.dbName);
+
+            return getAsyncDocumentClient()
+                    .createCollection(this.dbLink, collection, null)
                     .map(ResourceResponse::getResource)
                     .toBlocking()
                     .single();
         });
     }
 
-    @Override
-    public void deleteById(@NonNull String collectionName, @NonNull Object id, @Nullable PartitionKey partitionKey) {
-        validate(collectionName, id);
-        assertValidId(id);
-
-        try {
-            deleteByIdAsync(collectionName, id, partitionKey).toBlocking().single();
-        } catch (RuntimeException e) {
-            final Throwable cause = e.getCause();
-
-            if (cause instanceof DocumentClientException
-                    && ((DocumentClientException) cause).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return;
-            }
-
-            throw new DocumentDBAccessException("Failed to delete Document", e);
-        }
-    }
-
-    @Override
-    public Observable<Object> deleteByIdAsync(@NonNull String collectionName, @NonNull Object id,
-                                              @Nullable PartitionKey key) {
-        validate(collectionName, id);
-        assertValidId(id);
-
-        final String documentLink = getDocumentLink(collectionName, id.toString());
-        final RequestOptions options = getRequestOptions(key, null);
-
-        return getAsyncDocumentClient()
-                .deleteDocument(documentLink, options)
-                .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
-                .map(r -> id);
-    }
-
-    private String getDatabaseLink(String databaseName) {
-        return "dbs/" + databaseName;
-    }
-
-    private String getCollectionLink(String collectionName) {
-        return this.dbLink + "/colls/" + collectionName;
-    }
-
-    private String getDocumentLink(String collectionName, Object documentId) {
-        return getCollectionLink(collectionName) + "/docs/" + documentId;
-    }
-
-    private String getPartitionKeyPath(String partitionKey) {
-        return "/" + partitionKey;
-    }
-
-    private RequestOptions getRequestOptions(PartitionKey key, Integer requestUnit) {
-        if (key == null && requestUnit == null) {
-            return null;
-        }
-
-        final RequestOptions requestOptions = new RequestOptions();
-        if (key != null) {
-            requestOptions.setPartitionKey(key);
-        }
-        if (requestUnit != null) {
-            requestOptions.setOfferThroughput(requestUnit);
-        }
-
-        return requestOptions;
-    }
-
-    private Observable<com.microsoft.azure.cosmosdb.Document> executeQueryAsyncDocument(
-            @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
-        return executeQueryAsync(sqlQuerySpec, collectionName, options)
+    private Observable<Document> executeQueryDocument(SqlQuerySpec sqlQuerySpec, String collectionName,
+                                                      FeedOptions options) {
+        return executeQuery(sqlQuerySpec, collectionName, options)
                 .map(FeedResponse::getResults)
                 .flatMap(Observable::from);
     }
 
-    private Observable<FeedResponse<com.microsoft.azure.cosmosdb.Document>> executeQueryAsync(
-            @NonNull SqlQuerySpec sqlQuerySpec, @NonNull String collectionName, @NonNull FeedOptions options) {
+    private Observable<FeedResponse<Document>> executeQuery(SqlQuerySpec sqlQuerySpec, String collectionName,
+                                                            FeedOptions options) {
         final String selfLink = getCollectionLink(collectionName);
 
         return getAsyncDocumentClient()
@@ -463,151 +410,150 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public <T> List<T> find(@NonNull DocumentQuery query, @NonNull String collectionName,
-                            @NonNull Class<T> entityClass, @NonNull List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
+    public <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                       String partitionKeyName) {
+        validate(query, collectionName, entityClass);
+
+        final FeedOptions options = new FeedOptions();
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+
+        options.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyName));
+
+        return executeQueryDocument(sqlQuerySpec, collectionName, options)
+                .map(d -> getConverter().readAsync(entityClass, d));
+    }
+
+    @Override
+    public <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass, String partitionKeyName) {
+        validate(query, collectionName, entityClass);
         validateQuery(query, entityClass, collectionName);
 
         return Lists.newArrayList(
-                findAsync(query, collectionName, entityClass, partitionKeyNames).toBlocking().getIterator());
+                findAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().getIterator());
     }
 
     @Override
-    public <T> Observable<T> findAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
-                                       @NonNull Class<T> entityClass, List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
-
-        final FeedOptions feedOptions = new FeedOptions();
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
-
-        feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyNames));
-
-        return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions)
-                .map(FeedResponse::getResults)
-                .flatMap(Observable::from)
-                .map(d -> this.getConverter().readAsync(entityClass, d));
-    }
-
-    @Override
-    public Boolean exists(@NonNull DocumentQuery query, @NonNull String collectionName, @NonNull Class<?> entityClass) {
+    public Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+                                           String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
-        return existsAsync(query, collectionName, entityClass).toBlocking().single();
+        return countAsync(query, collectionName, entityClass, partitionKeyName).map(c -> c > 0).single();
     }
 
     @Override
-    public Observable<Boolean> existsAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
-                                           @NonNull Class<?> entityClass) {
+    public Boolean exists(DocumentQuery query, String collectionName, Class<?> entityClass, String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
-        return countAsync(query, collectionName, entityClass).map(c -> c > 0).single();
+        return existsAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().single();
     }
 
-    private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
+    private void validateQuery(DocumentQuery query, Class<?> entityClass, String collectionName) {
         if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             return;
         }
 
-        final Optional<DocumentCollection> optional = getCollection(collectionName);
+        final Optional<DocumentCollection> optional = getDocumentCollection(collectionName);
 
         Assert.isTrue(optional.isPresent(), "Collection should be created already.");
 
         if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(optional.get()));
+            query.validateSort(entityClass, QueryValidator.isCollectionSupportSortByString(optional.get()));
         }
         if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
             query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(optional.get()));
         }
     }
 
-    private Observable<com.microsoft.azure.cosmosdb.Document> findDocumentsAsync(
-            @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
+    private Observable<Document> findDocuments(DocumentQuery query, String collectionName, String partitionKeyName) {
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
         final FeedOptions options = new FeedOptions();
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyNames);
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyName);
 
         options.setEnableCrossPartitionQuery(isCrossPartitionQuery);
 
-        return executeQueryAsyncDocument(sqlQuerySpec, collectionName, options);
+        return executeQueryDocument(sqlQuerySpec, collectionName, options);
+    }
+
+    @Override
+    public <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                         String partitionKeyName) {
+        validate(query, collectionName, entityClass);
+
+        return deleteDocuments(query, collectionName, partitionKeyName)
+                .map(d -> getConverter().readAsync(entityClass, d));
     }
 
     /**
-     * Delete the DocumentQuery, need to query the domains at first, then delete the document
-     * from the result.
+     * Delete the DocumentQuery, need to query the entity at first, then delete the document from the result.
      * The cosmosdb Sql API do _NOT_ support DELETE query, we cannot add one DeleteQueryGenerator.
      *
      * @param query          The representation for query method.
-     * @param entityClass    Class of domain
+     * @param entityClass    Class of entity
      * @param collectionName Collection Name of database
      * @param <T>            Entity type
      * @return All the deleted documents as List.
      */
     @Override
-    public <T> List<T> delete(@NonNull DocumentQuery query, @NonNull String collectionName,
-                              @NonNull Class<T> entityClass, @NonNull List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
+    public <T> List<T> delete(DocumentQuery query, String collectionName, Class<T> entityClass,
+                              String partitionKeyNames) {
+        validate(query, collectionName, entityClass);
 
         return Lists.newArrayList(
                 deleteAsync(query, collectionName, entityClass, partitionKeyNames).toBlocking().getIterator());
     }
 
     @Override
-    public <T> Observable<T> deleteAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
-                                         @NonNull Class<T> entityClass, @NonNull List<String> partitionKeyNames) {
-        validate(query, collectionName, entityClass, partitionKeyNames);
+    public <T> Observable<Page<T>> findAllAsync(Pageable pageable, String collectionName, Class<T> entityClass,
+                                                String partitionKeyName) {
+        validate(pageable, collectionName, entityClass);
 
-        return deleteDocumentsAsync(query, collectionName, partitionKeyNames)
-                .map(d -> getConverter().readAsync(entityClass, d));
-    }
-
-    @Override
-    public <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName) {
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
-        return paginationQuery(query, domainClass, collectionName);
+
+        return paginationQueryAsync(query, collectionName, entityClass, partitionKeyName);
     }
 
     @Override
-    public <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName) {
+    public <T> Page<T> findAll(Pageable pageable, String collectionName, Class<T> entityClass,
+                               String partitionKeyName) {
+        validate(collectionName, entityClass);
+
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
-        return paginationQueryAsync(query, domainClass, collectionName);
+
+        return paginationQuery(query, collectionName, entityClass, partitionKeyName);
     }
 
     @Override
-    public <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName) {
-        return paginationQueryAsync(query, domainClass, collectionName).toBlocking().single();
-    }
-
-    @Override
-    public <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, Class<T> domainClass,
-                                                        String collectionName) {
-        Assert.isTrue(query.getPageable().getPageSize() > 0, "pageable should have page size larger than 0");
-        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+    public <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, String collectionName,
+                                                        Class<T> entityClass, String partitionKeyName) {
+        validate(query, collectionName, entityClass, query.getPageable());
 
         final Pageable pageable = query.getPageable();
-        final FeedOptions feedOptions = new FeedOptions();
+        final FeedOptions options = new FeedOptions();
+
         if (pageable instanceof DocumentDbPageRequest) {
-            feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
+            options.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
         }
 
-        feedOptions.setMaxItemCount(pageable.getPageSize());
-        feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
+        options.setMaxItemCount(pageable.getPageSize());
+        options.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyName));
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final Observable<Long> countObservable = countAsync(query, collectionName, entityClass, partitionKeyName);
+        final Observable<FeedResponse<Document>> responseObservable
+                = executeQuery(sqlQuerySpec, collectionName, options).first();
 
-        final Observable<Long> countObservable = countAsync(query, collectionName, domainClass);
-
-        return Observable.zip(countObservable, executeQueryAsync(sqlQuerySpec, collectionName, feedOptions).first(),
-                (count, response) -> new PageResponse<>(count, response))
+        return Observable.zip(countObservable, responseObservable, PageResponse::new)
                 .doOnError(e -> {
                     throw new DocumentDBAccessException("Failed to execute pagination query.", e);
                 })
                 .map(pageResponse -> {
-                    final FeedResponse<com.microsoft.azure.cosmosdb.Document> r = pageResponse.getResponse();
+                    final FeedResponse<Document> r = pageResponse.getResponse();
                     final long count = pageResponse.getCount();
 
                     log.debug(r.getResults().size() + " documents returned.");
-                    final List<T> result = r.getResults().stream().filter(Objects::nonNull)
-                            .map(d -> mappingDocumentDbConverter.readAsync(domainClass, d))
+                    final List<T> result = r.getResults()
+                            .stream().filter(Objects::nonNull)
+                            .map(d -> mappingDocumentDbConverter.readAsync(entityClass, d))
                             .collect(Collectors.toList());
 
                     final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
@@ -618,40 +564,55 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public long count(String collectionName) {
-        Assert.hasText(collectionName, "collectionName should not be empty");
+    public <T> Page<T> paginationQuery(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                       String partitionKeyName) {
+        validate(query, collectionName, entityClass);
 
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        return getCountValue(query, true, collectionName).toBlocking().single();
-    }
-
-    @Override
-    public <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName) {
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        return getCountValue(query, isCrossPartitionQuery, collectionName).toBlocking().single();
-    }
-
-    @Override
-    public Observable<Long> countAsync(String collectionName) {
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        return getCountValue(query, true, collectionName);
-    }
-
-    @Override
-    public Observable<Long> countAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
-                                       @NonNull Class<?> domainClass) {
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        return getCountValue(query, isCrossPartitionQuery, collectionName);
+        return paginationQueryAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().single();
     }
 
     private Observable<Long> getCountValue(DocumentQuery query, boolean isCrossPartitionQuery, String collectionName) {
         final SqlQuerySpec querySpec = new CountQueryGenerator().generateAsync(query);
+        final FeedOptions options = new FeedOptions();
 
-        final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery);
+        options.setEnableCrossPartitionQuery(isCrossPartitionQuery);
 
-        return executeQueryAsync(querySpec, collectionName, feedOptions)
-                .map(response -> response.getResults().get(0).getLong(COUNT_VALUE_KEY));
+        return executeQuery(querySpec, collectionName, options)
+                .map(r -> r.getResults().get(0).getLong(COUNT_VALUE_KEY));
+    }
+
+    @Override
+    public Observable<Long> countAsync(String collectionName) {
+        validate(collectionName);
+
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
+
+        // TODO: not sure if no partitionKey in entity with true Query will result in DocumentClientException.
+        return getCountValue(query, true, collectionName);
+    }
+
+    @Override
+    public long count(String collectionName) {
+        validate(collectionName);
+
+        return countAsync(collectionName).toBlocking().single();
+    }
+
+    @Override
+    public Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+                                       String partitionKeyName) {
+        validate(query, collectionName, entityClass);
+
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyName);
+
+        return getCountValue(query, isCrossPartitionQuery, collectionName);
+    }
+
+    @Override
+    public long count(DocumentQuery query, String collectionName, Class<?> entityClass, String partitionKeyName) {
+        validate(query, collectionName, entityClass);
+
+        return countAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().single();
     }
 
     @Override
@@ -659,30 +620,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.mappingDocumentDbConverter;
     }
 
-    @SuppressWarnings("unchecked")
-    private List<String> getPartitionKeyNames(Class<?> domainClass) {
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
-
-        if (entityInfo.getPartitionKeyFieldName() == null) {
-            return new ArrayList<>();
-        }
-
-        return Arrays.asList(entityInfo.getPartitionKeyFieldName());
-    }
-
-    private void assertValidId(Object id) {
-        Assert.notNull(id, "id should not be null");
-        if (id instanceof String) {
-            Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
-        }
-    }
-
     // Internal class to wrap count and FeedResponse data
     @AllArgsConstructor
     @Getter
     @Setter
     private static class PageResponse<T extends Resource> {
+
         private long count;
+
         private FeedResponse<T> response;
     }
 }
