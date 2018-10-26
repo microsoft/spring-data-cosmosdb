@@ -6,13 +6,13 @@
 package com.microsoft.azure.spring.data.cosmosdb.core.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.cosmosdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

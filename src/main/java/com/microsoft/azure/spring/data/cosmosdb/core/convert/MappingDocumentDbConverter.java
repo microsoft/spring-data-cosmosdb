@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.cosmosdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentEntity;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
@@ -60,7 +60,6 @@ public class MappingDocumentDbConverter
             return null;
         }
 
-        // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();
         } else if (fromPropertyValue instanceof Enum) {
@@ -70,8 +69,8 @@ public class MappingDocumentDbConverter
         return fromPropertyValue;
     }
 
-    public <T extends Object> T readAsync(Class<T> domainClass,
-                                          @NonNull com.microsoft.azure.cosmosdb.Document document) {
+    @Override
+    public <T extends Object> T read(Class<T> domainClass, @NonNull Document document) {
         final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainClass);
         Assert.notNull(mappingContext.getPersistentEntity(domainClass), "entity not be null");
 
@@ -85,39 +84,6 @@ public class MappingDocumentDbConverter
         } catch (IOException e) {
             throw new DocumentDBAccessException("Failed to read the source document " + document.toJson()
                     + "  to target type " + domainClass, e);
-        }
-    }
-
-    @Override
-    public <R extends Object> R read(Class<R> type, Document sourceDocument) {
-        if (sourceDocument == null) {
-            return null;
-        }
-
-        final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(type);
-        Assert.notNull(entity, "Entity is null.");
-
-        return readInternal(entity, type, sourceDocument);
-    }
-
-    protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
-                                                final Document sourceDocument) {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        try {
-            final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
-            final Object idValue = sourceDocument.getId();
-            final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
-
-            if (idProperty != null) {
-                // Replace the key id to the actual id field name in domain
-                jsonObject.remove(Constants.ID_PROPERTY_NAME);
-                jsonObject.put(idProperty.getName(), idValue);
-            }
-
-            return objectMapper.readValue(jsonObject.toString(), type);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
-                    + "  to target type " + type, e);
         }
     }
 
@@ -158,17 +124,17 @@ public class MappingDocumentDbConverter
         return document;
     }
 
-    public com.microsoft.azure.cosmosdb.Document toCosmosdbDocument(@NonNull Object domain) {
+    public Document toCosmosdbDocument(@NonNull Object domain) {
         final DocumentDbPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(domain.getClass());
         final ConvertingPropertyAccessor accessor = getPropertyAccessor(domain);
 
         Assert.notNull(persistentEntity, "no mapping metadata for domain: " + domain.getClass().getName());
 
-        final com.microsoft.azure.cosmosdb.Document document;
+        final Document document;
         final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
 
         try {
-            document = new com.microsoft.azure.cosmosdb.Document(objectMapper.writeValueAsString(domain));
+            document = new Document(objectMapper.writeValueAsString(domain));
         } catch (JsonProcessingException e) {
             throw new DocumentDBAccessException("Failed to map document value.", e);
         }

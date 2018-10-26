@@ -6,9 +6,8 @@
 
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.microsoft.azure.cosmosdb.ConnectionPolicy;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -37,14 +36,6 @@ public class DocumentDbFactory {
         }
     }
 
-    public DocumentClient getDocumentClient() {
-        final ConnectionPolicy policy = config.getConnectionPolicy();
-        final String userAgent = String.join(";", getUserAgent(), policy.getUserAgentSuffix());
-
-        policy.setUserAgentSuffix(userAgent);
-
-        return new DocumentClient(config.getUri(), config.getKey(), policy, config.getConsistencyLevel());
-    }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
@@ -54,7 +45,7 @@ public class DocumentDbFactory {
     }
 
     public AsyncDocumentClient getAsyncDocumentClient() {
-        final com.microsoft.azure.cosmosdb.ConnectionPolicy policy = config.getAsyncConnectionPolicy();
+        final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = String.join(";", getUserAgent(), policy.getUserAgentSuffix());
 
         policy.setUserAgentSuffix(userAgent);
@@ -62,8 +53,8 @@ public class DocumentDbFactory {
         return new AsyncDocumentClient.Builder()
                 .withServiceEndpoint(config.getUri())
                 .withMasterKeyOrResourceToken(config.getKey())
-                .withConnectionPolicy(config.getAsyncConnectionPolicy())
-                .withConsistencyLevel(config.getAsyncConsistencyLevel())
+                .withConnectionPolicy(config.getConnectionPolicy())
+                .withConsistencyLevel(config.getConsistencyLevel())
                 .build();
     }
 }

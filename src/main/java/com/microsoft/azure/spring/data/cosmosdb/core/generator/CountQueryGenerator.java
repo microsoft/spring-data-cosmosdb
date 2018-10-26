@@ -12,12 +12,7 @@ import org.springframework.lang.NonNull;
 public class CountQueryGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
 
     @Override
-    public com.microsoft.azure.documentdb.SqlQuerySpec generate(DocumentQuery query) {
+    public SqlQuerySpec generate(@NonNull DocumentQuery query) {
         return super.generateQuery(query, "SELECT VALUE COUNT(1) FROM r");
-    }
-
-    @Override
-    public SqlQuerySpec generateAsync(@NonNull DocumentQuery query) {
-        return super.generateQueryAsync(query, "SELECT VALUE COUNT(1) FROM r");
     }
 }

@@ -54,7 +54,6 @@ public class DocumentDbFactoryUnitTest {
                 DocumentDBConfig.builder(DOCUMENTDB_FAKE_HOST, DOCUMENTDB_FAKE_KEY, DB_NAME).build();
         final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
 
-        assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains("spring-data");
         assertThat(factory.getAsyncDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains("spring-data");
     }
 }

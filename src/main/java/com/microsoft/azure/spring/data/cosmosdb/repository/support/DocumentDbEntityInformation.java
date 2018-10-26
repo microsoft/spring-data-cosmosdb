@@ -6,14 +6,10 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.microsoft.azure.cosmosdb.ExcludedPath;
-import com.microsoft.azure.cosmosdb.IncludedPath;
-import com.microsoft.azure.cosmosdb.IndexingMode;
-import com.microsoft.azure.cosmosdb.IndexingPolicy;
+import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
@@ -97,11 +93,11 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     @Nullable
-    public com.microsoft.azure.cosmosdb.PartitionKey getPartitionKey(@NonNull T entity) {
+    public PartitionKey getPartitionKey(@NonNull T entity) {
         if (this.partitionKeyField == null) {
             return null;
         } else {
-            return new com.microsoft.azure.cosmosdb.PartitionKey(getPartitionKeyFieldValue(entity));
+            return new PartitionKey(getPartitionKeyFieldValue(entity));
         }
     }
 
@@ -155,7 +151,8 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Field getPartitionKeyField(Class<?> domainClass) {
         Field keyField = null;
 
-        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, PartitionKey.class);
+        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass,
+                com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey.class);
 
         if (fields.size() == 1) {
             keyField = fields.get(0);
@@ -198,11 +195,11 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
 
     private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
-        Boolean isAutomatic = Boolean.valueOf(Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC);
+        Boolean isAutomatic = Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC;
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
-            isAutomatic = Boolean.valueOf(annotation.automatic());
+            isAutomatic = annotation.automatic();
         }
 
         return isAutomatic;
