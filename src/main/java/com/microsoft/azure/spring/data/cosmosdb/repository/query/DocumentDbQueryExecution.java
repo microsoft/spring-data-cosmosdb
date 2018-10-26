@@ -14,20 +14,6 @@ import org.springframework.data.domain.Pageable;
 public interface DocumentDbQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String collection);
 
-    final class CollectionExecution implements DocumentDbQueryExecution {
-
-        private final DocumentDbOperations operations;
-
-        public CollectionExecution(DocumentDbOperations operations) {
-            this.operations = operations;
-        }
-
-        @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.getCollectionName(type);
-        }
-    }
-
     final class MultiEntityExecution implements DocumentDbQueryExecution {
 
         private final DocumentDbOperations operations;
@@ -41,7 +27,7 @@ public interface DocumentDbQueryExecution {
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
             final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
 
-            return operations.find(query, collection, type, information.getPartitionKeyNames());
+            return operations.find(query, collection, type, information.getPartitionKeyFieldName());
         }
     }
 
@@ -56,7 +42,9 @@ public interface DocumentDbQueryExecution {
         @Override
         @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.exists(query, collection, type);
+            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
+
+            return operations.exists(query, collection, type, information.getPartitionKeyFieldName());
         }
     }
 
@@ -73,7 +61,7 @@ public interface DocumentDbQueryExecution {
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
             final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
 
-            return operations.delete(query, collection, type, information.getPartitionKeyNames());
+            return operations.delete(query, collection, type, information.getPartitionKeyFieldName());
         }
     }
 
@@ -87,6 +75,7 @@ public interface DocumentDbQueryExecution {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
             if (pageable.getPageNumber() != 0 && !(pageable instanceof DocumentDbPageRequest)) {
                 throw new IllegalStateException("Not the first page but Pageable is not a valid " +
@@ -95,7 +84,9 @@ public interface DocumentDbQueryExecution {
 
             query.with(pageable);
 
-            return operations.paginationQuery(query, type, collection);
+            final DocumentDbEntityInformation information = new DocumentDbEntityInformation(type);
+
+            return operations.paginationQuery(query, collection, type, information.getPartitionKeyFieldName());
         }
     }
 }

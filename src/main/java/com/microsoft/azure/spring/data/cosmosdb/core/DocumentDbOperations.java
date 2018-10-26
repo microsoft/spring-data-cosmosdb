@@ -20,8 +20,6 @@ import java.util.Optional;
 
 public interface DocumentDbOperations {
 
-    String getCollectionName(Class<?> entityClass);
-
     DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information);
 
     <T> List<T> findAll(String collectionName, Class<T> entityClass, String partitionKeyName);
@@ -34,27 +32,27 @@ public interface DocumentDbOperations {
 
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName, List<String> partitionKeyNames);
+    void deleteAll(String collectionName, String partitionKeyName);
 
     void deleteCollection(String collectionName);
 
-    <T> List<T> delete(DocumentQuery query, String collectionName, Class<T> entityClass,
-                       List<String> partitionKeyNames);
+    <T> List<T> delete(DocumentQuery query, String collectionName, Class<T> entityClass, String partitionKeyName);
 
-    <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass,
-                     List<String> partitionKeyNames);
+    <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass, String partitionKeyName);
 
-    Boolean exists(DocumentQuery query, String collectionName, Class<?> entityClass);
+    Boolean exists(DocumentQuery query, String collectionName, Class<?> entityClass, String partitionKeyName);
 
-    <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
+    <T> Page<T> findAll(Pageable pageable, String collectionName, Class<T> entityClass, String partitionKeyName);
 
-    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName);
+    <T> Page<T> paginationQuery(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                String partitionKeyName);
 
-    <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, Class<T> domainClass, String collectionName);
+    <T> Observable<Page<T>> paginationQueryAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+                                                 String partitionKeyName);
 
     long count(String collectionName);
 
-    <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
+    long count(DocumentQuery query, String collectionName, Class<?> entityClass, String partitionKeyName);
 
     MappingDocumentDbConverter getConverter();
 
@@ -66,23 +64,26 @@ public interface DocumentDbOperations {
 
     Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key);
 
-    <T> Observable<T> deleteAllAsync(String collectionName, List<String> partitionKeyNames);
+    <T> Observable<T> deleteAllAsync(String collectionName, String partitionKeyName);
 
-    <T> Observable<Page<T>> findAllAsync(Pageable pageable, Class<T> domainClass, String collectionName);
+    <T> Observable<Page<T>> findAllAsync(Pageable pageable, String collectionName, Class<T> entityClass,
+                                         String partitionKeyName);
 
     Observable<String> deleteCollectionAsync(String collectionName);
 
     <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
-                                  List<String> partitionKeyNames);
+                                  String partitionKeyName);
 
     <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
-                                List<String> partitionKeyNames);
+                                String partitionKeyName);
 
-    Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass);
+    Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+                                    String partitionKeyName);
 
     <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName);
 
     Observable<Long> countAsync(String collectionName);
 
-    Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> domainClass);
+    Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+                                String partitionKeyName);
 }

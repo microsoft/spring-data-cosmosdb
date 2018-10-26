@@ -21,7 +21,6 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
@@ -248,16 +247,6 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         return pathsCollection;
-    }
-
-    public List<String> getPartitionKeyNames() {
-        final String fieldName = this.getPartitionKeyFieldName();
-
-        if (fieldName == null) {
-            return new ArrayList<>();
-        }
-
-        return Collections.singletonList(fieldName);
     }
 }
 

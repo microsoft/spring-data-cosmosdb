@@ -50,14 +50,6 @@ public class DocumentQuery {
         return this;
     }
 
-    private boolean isCrossPartitionQuery(@NonNull String keyName) {
-        Assert.hasText(keyName, "PartitionKey should have text.");
-
-        final Optional<Criteria> criteria = this.getSubjectCriteria(this.criteria, keyName);
-
-        return criteria.map(criteria1 -> criteria1.getType() != CriteriaType.IS_EQUAL).orElse(true);
-    }
-
     private boolean hasKeywordOr() {
         // If there is OR keyword in DocumentQuery, the top node of Criteria must be OR type.
         return this.criteria.getType() == CriteriaType.OR;
@@ -66,18 +58,18 @@ public class DocumentQuery {
     /**
      * Indicate if DocumentQuery should enable cross partition query.
      *
-     * @param partitionKeys The list of partitionKey names.
+     * @param partitionKeyName The list of partitionKey names.
      * @return
      */
-    public boolean isCrossPartitionQuery(@NonNull List<String> partitionKeys) {
-        if (partitionKeys.isEmpty()) {
+    public boolean isCrossPartitionQuery(String partitionKeyName) {
+        if (partitionKeyName == null) {
             return true;
         }
 
-        for (final String keyName : partitionKeys) {
-            if (isCrossPartitionQuery(keyName)) {
-                return true;
-            }
+        final Optional<Criteria> criteria = this.getSubjectCriteria(this.criteria, partitionKeyName);
+
+        if (criteria.map(criteria1 -> criteria1.getType() != CriteriaType.IS_EQUAL).orElse(true)) {
+            return true;
         }
 
         return this.hasKeywordOr();
@@ -92,7 +84,7 @@ public class DocumentQuery {
             return Optional.of(criteria);
         }
 
-        for (final Criteria subCriteria: criteria.getSubCriteria()) {
+        for (final Criteria subCriteria : criteria.getSubCriteria()) {
             if (getCriteriaByType(criteriaType, subCriteria).isPresent()) {
                 return Optional.of(subCriteria);
             }
@@ -154,7 +146,7 @@ public class DocumentQuery {
     /**
      * Validate if starts with is valid for cosmosdb.
      *
-     * @param isCollectionSupportStartsWith  indicate if collection support starts with keyword.
+     * @param isCollectionSupportStartsWith indicate if collection support starts with keyword.
      */
     public void validateStartsWith(boolean isCollectionSupportStartsWith) {
         if (!this.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {

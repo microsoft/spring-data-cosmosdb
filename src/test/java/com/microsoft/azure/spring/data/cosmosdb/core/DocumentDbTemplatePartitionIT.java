@@ -90,23 +90,21 @@ public class DocumentDbTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        dbTemplate.deleteAll(collectionName, partitionKeyName);
     }
 
     @Test
     public void testFindWithPartition() {
         Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
         DocumentQuery query = new DocumentQuery(criteria);
-        List<PartitionPerson> result = dbTemplate.find(query, personInfo.getCollectionName(), PartitionPerson.class,
-                personInfo.getPartitionKeyNames());
+        List<PartitionPerson> result = dbTemplate.find(query, collectionName, PartitionPerson.class, partitionKeyName);
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_0);
 
         criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
-        result = dbTemplate.find(query, personInfo.getCollectionName(), PartitionPerson.class,
-                personInfo.getPartitionKeyNames());
+        result = dbTemplate.find(query, collectionName, PartitionPerson.class, partitionKeyName);
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_0);
@@ -117,8 +115,8 @@ public class DocumentDbTemplatePartitionIT {
         final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final List<PartitionPerson> result = dbTemplate.find(query, personInfo.getCollectionName(),
-                PartitionPerson.class, personInfo.getPartitionKeyNames());
+        final List<PartitionPerson> result = dbTemplate.find(query, collectionName, PartitionPerson.class,
+                partitionKeyName);
         assertThat(result.size()).isEqualTo(0);
     }
 
@@ -128,7 +126,7 @@ public class DocumentDbTemplatePartitionIT {
         final PartitionPerson newPerson = new PartitionPerson(null, firstName, NEW_LAST_NAME, null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        dbTemplate.upsert(personInfo.getCollectionName(), newPerson, new PartitionKey(partitionKeyValue));
+        dbTemplate.upsert(collectionName, newPerson, new PartitionKey(partitionKeyValue));
 
         final List<PartitionPerson> result = dbTemplate.findAll(collectionName, PartitionPerson.class,
                 partitionKeyName);
@@ -144,7 +142,7 @@ public class DocumentDbTemplatePartitionIT {
     public void testUpdatePartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON_0.getPersonId(), UPDATED_FIRST_NAME,
                 TEST_PERSON_0.getLastName(), TEST_PERSON_0.getHobbies(), TEST_PERSON_0.getShippingAddresses());
-        dbTemplate.upsert(personInfo.getCollectionName(), updated, new PartitionKey(updated.getLastName()));
+        dbTemplate.upsert(collectionName, updated, new PartitionKey(updated.getLastName()));
 
         final List<PartitionPerson> result = dbTemplate.findAll(collectionName, PartitionPerson.class,
                 partitionKeyName);
@@ -157,7 +155,7 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         // insert new document with same partition key
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
+        dbTemplate.insert(collectionName, TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final List<PartitionPerson> inserted = dbTemplate.findAll(collectionName, PartitionPerson.class,
                 partitionKeyName);
@@ -179,7 +177,7 @@ public class DocumentDbTemplatePartitionIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
+        dbTemplate.insert(collectionName, TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
@@ -187,13 +185,13 @@ public class DocumentDbTemplatePartitionIT {
 
     @Test
     public void testCountForPartitionedCollectionByQuery() {
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
+        dbTemplate.insert(collectionName, TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_1.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, PartitionPerson.class, collectionName);
+        final long count = dbTemplate.count(query, collectionName, PartitionPerson.class, partitionKeyName);
         assertThat(count).isEqualTo(1);
     }
 
@@ -203,47 +201,49 @@ public class DocumentDbTemplatePartitionIT {
                 Arrays.asList("non-exist-first-name"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = dbTemplate.count(query, PartitionPerson.class, collectionName);
+        final long count = dbTemplate.count(query, collectionName, PartitionPerson.class, partitionKeyName);
         assertThat(count).isEqualTo(0);
     }
 
     @Test
     public void testPartitionedFindAllPageableMultiPages() {
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
+        dbTemplate.insert(collectionName, TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
-        final Page<PartitionPerson> page1 = dbTemplate.findAll(pageRequest, PartitionPerson.class, collectionName);
+        final Page<PartitionPerson> page1 = dbTemplate.findAll(pageRequest, collectionName, PartitionPerson.class,
+                partitionKeyName);
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
 
-        final Page<PartitionPerson> page2 = dbTemplate.findAll(page1.getPageable(),
-                PartitionPerson.class, collectionName);
+        final Page<PartitionPerson> page2 = dbTemplate.findAll(page1.getPageable(), collectionName,
+                PartitionPerson.class, partitionKeyName);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
     }
 
     @Test
     public void testPartitionedPaginationQuery() {
-        dbTemplate.insert(personInfo.getCollectionName(), TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
+        dbTemplate.insert(collectionName, TEST_PERSON_1, new PartitionKey(TEST_PERSON_1.getLastName()));
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(FIRST_NAME));
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
-        final Page<PartitionPerson> page = dbTemplate.paginationQuery(query, PartitionPerson.class, collectionName);
+        final Page<PartitionPerson> page = dbTemplate.paginationQuery(query, collectionName, PartitionPerson.class,
+                partitionKeyName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
     }
 
     @Test
     public void testInsertAsync() {
-        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        dbTemplate.deleteAll(collectionName, partitionKeyName);
 
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_1, null)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
     }
 
@@ -252,11 +252,11 @@ public class DocumentDbTemplatePartitionIT {
         final PartitionKey key0 = new PartitionKey(TEST_PERSON_0.getLastName());
         final PartitionKey key1 = new PartitionKey(TEST_PERSON_1.getLastName());
 
-        dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyNames());
+        dbTemplate.deleteAll(collectionName, partitionKeyName);
 
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key0)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key0)
                 .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, key1)
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key1)
                 .subscribe(
                         p -> assertThat(p).isEqualTo(TEST_PERSON_0),
                         e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
