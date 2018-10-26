@@ -18,27 +18,24 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
 
-import javax.xml.crypto.dsig.SignatureProperties;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import static com.microsoft.azure.spring.data.cosmosdb.core.convert.DateConversionConstants.ISO_8601_COMPATIBLE_DATE_PATTERN;
+import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
 public class MappingDocumentDbConverter
         implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
         ApplicationContextAware {
-
-
 
     protected final MappingContext<? extends DocumentDbPersistentEntity<?>,
             DocumentDbPersistentProperty> mappingContext;

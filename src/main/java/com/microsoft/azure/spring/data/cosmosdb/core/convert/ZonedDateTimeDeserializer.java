@@ -7,7 +7,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.annotations.VisibleForTesting;
@@ -17,7 +16,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-import static com.microsoft.azure.spring.data.cosmosdb.core.convert.DateConversionConstants.ISO_8601_COMPATIBLE_DATE_PATTERN;
+import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
 public class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
 
@@ -28,7 +27,7 @@ public class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
     }
 
     @VisibleForTesting
-    ZonedDateTime parse(final JsonParser jsonParser) throws IOException {
+    public ZonedDateTime parse(final JsonParser jsonParser) throws IOException {
         if (jsonParser.getValueAsString() == null) {
             return null;
         }
