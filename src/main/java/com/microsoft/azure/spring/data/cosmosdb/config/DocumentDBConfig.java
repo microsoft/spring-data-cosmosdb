@@ -5,8 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
+import com.microsoft.azure.cosmosdb.ConnectionPolicy;
+import com.microsoft.azure.cosmosdb.ConsistencyLevel;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,10 +25,6 @@ public class DocumentDBConfig {
 
     private ConsistencyLevel consistencyLevel;
 
-    private com.microsoft.azure.cosmosdb.ConnectionPolicy asyncConnectionPolicy;
-
-    private com.microsoft.azure.cosmosdb.ConsistencyLevel asyncConsistencyLevel;
-
     private boolean allowTelemetry;
 
     public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
@@ -37,9 +33,7 @@ public class DocumentDBConfig {
                 .key(key)
                 .database(database)
                 .connectionPolicy(ConnectionPolicy.GetDefault())
-                .consistencyLevel(ConsistencyLevel.Session)
-                .asyncConnectionPolicy(com.microsoft.azure.cosmosdb.ConnectionPolicy.GetDefault())
-                .asyncConsistencyLevel(com.microsoft.azure.cosmosdb.ConsistencyLevel.Session);
+                .consistencyLevel(ConsistencyLevel.Session);
     }
 
     public static DocumentDBConfigBuilder builder(String connectionString, String database) {

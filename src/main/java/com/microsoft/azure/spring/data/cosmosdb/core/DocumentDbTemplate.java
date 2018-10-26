@@ -121,7 +121,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     throw new DocumentDBAccessException("failed to insert entity", e);
                 })
                 .map(ResourceResponse::getResource)
-                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
 
     @Override
@@ -167,7 +167,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .readDocument(getDocumentLink(collectionName, id), options)
                 .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
                 .map(ResourceResponse::getResource)
-                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
 
     @Override
@@ -239,7 +239,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("Failed to find all documents.", e);
                 })
-                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
 
     @Override
@@ -415,12 +415,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass);
 
         final FeedOptions options = new FeedOptions();
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
 
         options.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyName));
 
         return executeQueryDocument(sqlQuerySpec, collectionName, options)
-                .map(d -> getConverter().readAsync(entityClass, d));
+                .map(d -> getConverter().read(entityClass, d));
     }
 
     @Override
@@ -465,7 +465,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private Observable<Document> findDocuments(DocumentQuery query, String collectionName, String partitionKeyName) {
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final FeedOptions options = new FeedOptions();
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyName);
 
@@ -480,7 +480,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass);
 
         return deleteDocuments(query, collectionName, partitionKeyName)
-                .map(d -> getConverter().readAsync(entityClass, d));
+                .map(d -> getConverter().read(entityClass, d));
     }
 
     /**
@@ -537,7 +537,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         options.setMaxItemCount(pageable.getPageSize());
         options.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyName));
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final Observable<Long> countObservable = countAsync(query, collectionName, entityClass, partitionKeyName);
         final Observable<FeedResponse<Document>> responseObservable
                 = executeQuery(sqlQuerySpec, collectionName, options).first();
@@ -553,7 +553,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     log.debug(r.getResults().size() + " documents returned.");
                     final List<T> result = r.getResults()
                             .stream().filter(Objects::nonNull)
-                            .map(d -> mappingDocumentDbConverter.readAsync(entityClass, d))
+                            .map(d -> mappingDocumentDbConverter.read(entityClass, d))
                             .collect(Collectors.toList());
 
                     final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
@@ -572,7 +572,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private Observable<Long> getCountValue(DocumentQuery query, boolean isCrossPartitionQuery, String collectionName) {
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generateAsync(query);
+        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
         final FeedOptions options = new FeedOptions();
 
         options.setEnableCrossPartitionQuery(isCrossPartitionQuery);

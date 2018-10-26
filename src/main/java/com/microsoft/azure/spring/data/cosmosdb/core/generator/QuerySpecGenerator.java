@@ -16,7 +16,5 @@ public interface QuerySpecGenerator {
      * @param query tree structured query condition.
      * @return SqlQuerySpec executed by documentDb client.
      */
-    com.microsoft.azure.documentdb.SqlQuerySpec generate(DocumentQuery query);
-
-    SqlQuerySpec generateAsync(DocumentQuery query);
+    SqlQuerySpec generate(DocumentQuery query);
 }

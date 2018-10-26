@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -58,19 +57,11 @@ public class AbstractDocumentDbConfigurationUnitTest {
     @Configuration
     static class TestDocumentDbConfiguration extends AbstractDocumentDbConfiguration {
         @Mock
-        private DocumentClient mockClient;
-
-        @Mock
         private AsyncDocumentClient mockAsyncClient;
 
         @Override
         public DocumentDBConfig getConfig() {
             return DocumentDBConfig.builder("https://fake-uri", "fake-key", TestConstants.DB_NAME).build();
-        }
-
-        @Override
-        public DocumentClient documentClient() {
-            return mockClient;
         }
 
         @Override

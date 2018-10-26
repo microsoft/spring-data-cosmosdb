@@ -193,34 +193,7 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", queryTails.stream().filter(StringUtils::hasText).collect(Collectors.toList()));
     }
 
-    /**
-     * Generate SqlQuerySpec with given DocumentQuery and query head.
-     *
-     * @param query     DocumentQuery represent one query method.
-     * @param queryHead
-     * @return The SqlQuerySpec for DocumentClient.
-     */
-    protected com.microsoft.azure.documentdb.SqlQuerySpec generateQuery(@NonNull DocumentQuery query,
-                                                                        @NonNull String queryHead) {
-        Assert.hasText(queryHead, "query head should have text.");
-
-        final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
-        final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
-        final List<Pair<String, Object>> parameters = queryBody.getValue1();
-        final com.microsoft.azure.documentdb.SqlParameterCollection sqlParameters =
-                new com.microsoft.azure.documentdb.SqlParameterCollection();
-
-        sqlParameters.addAll(
-                parameters.stream()
-                        .map(p -> new com.microsoft.azure.documentdb.SqlParameter("@" + p.getValue0(),
-                                toDocumentDBValue(p.getValue1())))
-                        .collect(Collectors.toList())
-        );
-
-        return new com.microsoft.azure.documentdb.SqlQuerySpec(queryString, sqlParameters);
-    }
-
-    protected SqlQuerySpec generateQueryAsync(@NonNull DocumentQuery query, @NonNull String queryHead) {
+    protected SqlQuerySpec generateQuery(@NonNull DocumentQuery query, @NonNull String queryHead) {
         Assert.hasText(queryHead, "query head should have text.");
 
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);

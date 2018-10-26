@@ -14,12 +14,7 @@ import org.springframework.lang.NonNull;
 public class FindQuerySpecGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
 
     @Override
-    public com.microsoft.azure.documentdb.SqlQuerySpec generate(@NonNull DocumentQuery query) {
+    public SqlQuerySpec generate(@NonNull DocumentQuery query) {
         return super.generateQuery(query, "SELECT * FROM ROOT r");
-    }
-
-    @Override
-    public SqlQuerySpec generateAsync(@NonNull DocumentQuery query) {
-        return super.generateQueryAsync(query, "SELECT * FROM ROOT r");
     }
 }
