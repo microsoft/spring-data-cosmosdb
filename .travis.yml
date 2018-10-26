@@ -4,13 +4,13 @@ jdk:
 
 install: true
 
+before_script:
+    - chmod +x ./src/libs/integration-test-setup.sh
+    - ./src/libs/integration-test-setup.sh > src/test/resources/application.properties
+    - cat src/test/resources/application.properties
+
 jobs:
   include:
-    - stage: prepare
-      script:
-        - chmod +x ./src/libs/integration-test-setup.sh
-        - ./src/libs/integration-test-setup.sh > src/test/resources/application.properties
-        - cat src/test/resources/application.properties
     - stage: test
       script:
         - mvn clean package
