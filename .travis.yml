@@ -2,18 +2,24 @@ language: java
 jdk:
   - oraclejdk8
 
-before_script:
-  - chmod +x ./src/libs/integration-test-setup.sh
-  - ./src/libs/integration-test-setup.sh > src/test/resources/application.properties
-  - cat src/test/resources/application.properties
+install: true
 
-script:
-  - mvn clean package
-  - set -o pipefail
-  - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
-  - if [ "$TRAVIS_BRANCH" = "master" ]; then mvn -P performance-test clean verify; fi
-
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
-
+jobs:
+  include:
+    - stage: prepare
+      script:
+        - chmod +x ./src/libs/integration-test-setup.sh
+        - ./src/libs/integration-test-setup.sh > src/test/resources/application.properties
+        - cat src/test/resources/application.properties
+    - stage: test
+      script:
+        - mvn clean package
+        - set -o pipefail
+        - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+    - stage: performance-test
+      script:
+        - mvn -P performance-test clean verify
+      if: branch = master AND type != pull_request
+    - stage: code-coverage
+      script:
+        - bash <(curl -s https://codecov.io/bash)
