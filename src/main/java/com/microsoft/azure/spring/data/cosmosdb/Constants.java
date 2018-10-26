@@ -6,11 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.documentdb.IndexingMode;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Constants {
-    private Constants() {
-        // Hide the implicit public one
-    }
 
     public static final String DEFAULT_COLLECTION_NAME = "";
     public static final String DEFAULT_REQUEST_UNIT = "4000";
@@ -28,5 +28,7 @@ public class Constants {
     public static final String USER_AGENT_SUFFIX = "spring-data/";
 
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
+
+    public static final String ISO_8601_COMPATIBLE_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:s:SSSXXX";
 }
 
