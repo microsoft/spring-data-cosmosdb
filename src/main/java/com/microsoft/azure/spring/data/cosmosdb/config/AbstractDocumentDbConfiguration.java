@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
@@ -29,11 +28,6 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     @Bean
     public AsyncDocumentClient asyncDocumentClient() {
         return this.documentDbFactory().getAsyncDocumentClient();
-    }
-
-    @Bean
-    public DocumentClient documentClient() {
-        return this.documentDbFactory().getDocumentClient();
     }
 
     @Bean

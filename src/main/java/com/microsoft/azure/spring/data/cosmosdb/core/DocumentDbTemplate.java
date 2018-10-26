@@ -9,7 +9,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.*;
 import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -45,8 +44,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
-    private final DocumentClient documentClient;
-
     private final DocumentDbFactory documentDbFactory;
 
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
@@ -65,7 +62,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         this.dbName = dbName;
         this.dbLink = getDatabaseLink(dbName);
-        this.documentClient = documentDbFactory.getDocumentClient();
         this.documentDbFactory = documentDbFactory;
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
     }
@@ -127,7 +123,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) entity.getClass();
         final String collectionLink = getCollectionLink(collectionName);
-        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
+        final Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
 
         return getAsyncDocumentClient()
                 .createDocument(collectionLink, document, getRequestOptions(key, null), false)
@@ -136,7 +132,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     throw new DocumentDBAccessException("failed to insert domain", e);
                 })
                 .map(ResourceResponse::getResource)
-                .map(d -> this.mappingDocumentDbConverter.readAsync(domainClass, d));
+                .map(d -> this.mappingDocumentDbConverter.read(domainClass, d));
     }
 
     @Override
@@ -152,7 +148,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(collectionName, entity);
 
         final String collectionLink = getCollectionLink(collectionName);
-        final com.microsoft.azure.cosmosdb.Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
+        final Document document = mappingDocumentDbConverter.toCosmosdbDocument(entity);
 
         return getAsyncDocumentClient()
                 .upsertDocument(collectionLink, document, getRequestOptions(key, null), false)
@@ -198,12 +194,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .readDocument(getDocumentLink(collectionName, id), options)
                 .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
                 .map(ResourceResponse::getResource)
-                .map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
 
-    private Observable<com.microsoft.azure.cosmosdb.Document> deleteDocumentsAsync(
-            @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
-
+    private Observable<Document> deleteDocumentsAsync(@NonNull DocumentQuery query, @NonNull String collectionName,
+                                                      @NonNull List<String> partitionKeyNames) {
         Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
         return findDocumentsAsync(query, collectionName, partitionKeyNames)
@@ -263,7 +258,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass))
                 .onErrorResumeNext(e -> {
                     throw new DocumentDBAccessException("Failed to find all documents.", e);
-                }).map(d -> this.mappingDocumentDbConverter.readAsync(entityClass, d));
+                }).map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
 
     @Override
@@ -478,14 +473,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass, partitionKeyNames);
 
         final FeedOptions feedOptions = new FeedOptions();
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
 
         feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyNames));
 
         return executeQueryAsync(sqlQuerySpec, collectionName, feedOptions)
                 .map(FeedResponse::getResults)
                 .flatMap(Observable::from)
-                .map(d -> this.getConverter().readAsync(entityClass, d));
+                .map(d -> this.getConverter().read(entityClass, d));
     }
 
     @Override
@@ -522,7 +517,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private Observable<com.microsoft.azure.cosmosdb.Document> findDocumentsAsync(
             @NonNull DocumentQuery query, @NonNull String collectionName, @NonNull List<String> partitionKeyNames) {
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
         final FeedOptions options = new FeedOptions();
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyNames);
 
@@ -557,7 +552,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass, partitionKeyNames);
 
         return deleteDocumentsAsync(query, collectionName, partitionKeyNames)
-                .map(d -> getConverter().readAsync(entityClass, d));
+                .map(d -> getConverter().read(entityClass, d));
     }
 
     @Override
@@ -592,7 +587,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         feedOptions.setMaxItemCount(pageable.getPageSize());
         feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateAsync(query);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
 
         final Observable<Long> countObservable = countAsync(query, collectionName, domainClass);
 
@@ -607,7 +602,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
                     log.debug(r.getResults().size() + " documents returned.");
                     final List<T> result = r.getResults().stream().filter(Objects::nonNull)
-                            .map(d -> mappingDocumentDbConverter.readAsync(domainClass, d))
+                            .map(d -> mappingDocumentDbConverter.read(domainClass, d))
                             .collect(Collectors.toList());
 
                     final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
@@ -645,7 +640,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private Observable<Long> getCountValue(DocumentQuery query, boolean isCrossPartitionQuery, String collectionName) {
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generateAsync(query);
+        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
 
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery);

@@ -9,7 +9,7 @@ import org.springframework.data.domain.PageRequest;
 
 /**
  * DocumentDbPageRequest representing page request during pagination query, field
- * {@link com.microsoft.azure.documentdb.FeedResponse#getResponseContinuation response continuation token} is saved
+ * {@link com.microsoft.azure.cosmosdb.FeedResponse#getResponseContinuation response continuation token} is saved
  * to help query next page.
  * <p>
  * The requestContinuation token should be saved after each request and reused in later queries.

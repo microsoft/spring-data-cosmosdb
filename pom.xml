@@ -53,10 +53,10 @@
         <powermock.version>1.7.1</powermock.version>
         <spring.boot.starter.test.version>1.5.11.RELEASE</spring.boot.starter.test.version>
         <org.projectlombok.version>1.16.18</org.projectlombok.version>
+        <org.json.version>20140107</org.json.version>
         <java.tuples.version>1.2</java.tuples.version>
         <slf4j.version>1.7.25</slf4j.version>
 
-        <azure.documentdb.version>1.16.2</azure.documentdb.version>
         <azure.cosmosdb.version>2.2.0</azure.cosmosdb.version>
         <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
@@ -109,12 +109,6 @@
             <version>${spring.springframework.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-documentdb</artifactId>
-            <version>${azure.documentdb.version}</version>
-        </dependency>
-
         <!-- Azure Cosmosdb SQL API Async SDK -->
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -154,6 +148,12 @@
             <groupId>org.javatuples</groupId>
             <artifactId>javatuples</artifactId>
             <version>${java.tuples.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${org.json.version}</version>
         </dependency>
 
         <!-- Test -->
