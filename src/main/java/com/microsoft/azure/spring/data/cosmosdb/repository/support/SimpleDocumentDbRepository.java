@@ -25,10 +25,7 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -173,6 +170,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param ids iterable ids
      * @return Observable batch entities found
      */
+    @Override
     public Observable<T> findAllByIdAsync(Iterable<ID> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
 
@@ -181,9 +179,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 .reduce(Observable::merge)
                 .orElseThrow(() -> new DocumentDBAccessException("failed to find entity."))
                 .doOnSubscribe(() -> log.debug("find All entities by iterable id"))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to find entity.", e);
-                })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.immediate());
     }
@@ -196,9 +191,14 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public List<T> findAllById(Iterable<ID> ids) {
+        // TODO: investigate leverage finAllByIdAsync directly.
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        return findAllByIdAsync(ids).toList().toBlocking().single();
+        final List<T> entities = new ArrayList<>();
+
+        ids.forEach(id -> findById(id).ifPresent(entities::add));
+
+        return entities;
     }
 
     /**

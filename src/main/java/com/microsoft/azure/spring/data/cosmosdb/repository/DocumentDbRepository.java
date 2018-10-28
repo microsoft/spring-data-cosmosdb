@@ -24,6 +24,8 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends Paging
 
     Observable<T> deleteAllAsync(Iterable<? extends T> entities);
 
+    Observable<T> findAllByIdAsync(Iterable<ID> ids);
+
     Observable<T> findByIdAsync(ID id);
 
     Observable<Boolean> existsByIdAsync(ID id);

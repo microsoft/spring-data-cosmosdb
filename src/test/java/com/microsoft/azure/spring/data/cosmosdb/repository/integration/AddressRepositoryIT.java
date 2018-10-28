@@ -119,11 +119,8 @@ public class AddressRepositoryIT {
         repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(2));
     }
 
-    @Test
-    public void deleteWithoutPartitionedColumnShouldFail() {
-        expectedException.expect(DocumentDBAccessException.class);
-        expectedException.expectMessage("Failed to delete Document");
-
+    @Test(expected = DocumentDBAccessException.class)
+    public void deleteByIdException() {
         repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode());
     }
 
