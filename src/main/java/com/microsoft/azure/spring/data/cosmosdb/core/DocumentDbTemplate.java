@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -166,6 +167,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .readDocument(getDocumentLink(collectionName, id), options)
                 .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
+                .onErrorResumeNext(e -> {
+                    if (e instanceof DocumentClientException) {
+                        final DocumentClientException exception = (DocumentClientException) e;
+                        if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                            return Observable.empty();
+                        }
+                    }
+
+                    throw new DocumentDBAccessException("fail to read document", e);
+                })
+                .single()
                 .map(ResourceResponse::getResource)
                 .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
@@ -176,17 +188,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         try {
             return Optional.of(findByIdAsync(collectionName, id, entityClass, key).toBlocking().single());
-        } catch (RuntimeException e) {
-            final Throwable cause = e.getCause();
-
-            if (cause instanceof DocumentClientException) {
-                final DocumentClientException exception = (DocumentClientException) cause;
-                if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                    return Optional.empty();
-                }
-            }
-
-            throw new DocumentDBAccessException("Failed to read Document", e);
+        } catch (NoSuchElementException ignore) {
+            return Optional.empty();
         }
     }
 
@@ -208,7 +211,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     return getAsyncDocumentClient()
                             .deleteDocument(d.getSelfLink(), options)
                             .map(r -> d);
-                });
+                })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.immediate());
     }
 
     @Override
@@ -239,7 +244,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("Failed to find all documents.", e);
                 })
-                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
+                .subscribeOn(Schedulers.newThread())
+                .map(d -> this.mappingDocumentDbConverter.read(entityClass, d))
+                .observeOn(Schedulers.immediate());
     }
 
     @Override
@@ -281,6 +288,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .deleteDocument(documentLink, options)
                 .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
+                .onErrorReturn(e -> {
+                    throw new DocumentDBAccessException("fail to delete document", e);
+                })
+                .single()
                 .map(r -> id);
     }
 
@@ -288,20 +299,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
         validate(id, collectionName);
 
-        try {
-            deleteByIdAsync(collectionName, id, partitionKey).toCompletable().await();
-        } catch (RuntimeException e) {
-            final Throwable cause = e.getCause();
-
-            if (cause instanceof DocumentClientException) {
-                final DocumentClientException exception = (DocumentClientException) cause;
-                if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                    return;
-                }
-            }
-
-            throw new DocumentDBAccessException("Failed to delete Document", e);
-        }
+        deleteByIdAsync(collectionName, id, partitionKey).toCompletable().await();
     }
 
     private void createDatabaseIfNotExists() {
