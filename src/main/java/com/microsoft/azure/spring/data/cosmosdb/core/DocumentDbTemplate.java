@@ -117,7 +117,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .createDocument(collectionLink, document, getRequestOptions(key, null), false)
-                .doOnNext(r -> log.debug("Create Document Async from {}.", collectionLink))
+                .doOnSubscribe(() -> log.debug("Create Document Async from {}.", collectionLink))
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to insert entity", e);
                 })
@@ -141,7 +141,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .upsertDocument(collectionLink, document, getRequestOptions(key, null), false)
-                .doOnNext(r -> log.debug("Upsert Document Async from {}.", collectionLink))
+                .doOnSubscribe(() -> log.debug("Upsert Document Async from {}.", collectionLink))
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to upsert entity", e);
                 })
@@ -166,7 +166,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .readDocument(getDocumentLink(collectionName, id), options)
-                .doOnNext(r -> log.debug("Read Document Async from {}.", collectionLink))
+                .doOnSubscribe(() -> log.debug("Read Document Async from {}.", collectionLink))
                 .onErrorResumeNext(e -> {
                     if (e instanceof DocumentClientException) {
                         final DocumentClientException exception = (DocumentClientException) e;
@@ -241,11 +241,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return findDocuments(query, collectionName, partitionKeyName)
                 .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass.getSimpleName()))
-                .onErrorReturn(e -> {
+                .onErrorResumeNext(e -> {
                     throw new DocumentDBAccessException("Failed to find all documents.", e);
                 })
-                .subscribeOn(Schedulers.newThread())
                 .map(d -> this.mappingDocumentDbConverter.read(entityClass, d))
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.immediate());
     }
 
@@ -264,7 +264,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .deleteCollection(collectionLink, null)
-                .doOnNext(r -> log.debug("Delete Connection {} Async.", collectionLink))
+                .doOnSubscribe(() -> log.debug("Delete Connection {} Async.", collectionLink))
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to delete collection: " + collectionName, e);
                 })
@@ -287,7 +287,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return getAsyncDocumentClient()
                 .deleteDocument(documentLink, options)
-                .doOnNext(r -> log.debug("Delete Document Async from {}", documentLink))
+                .doOnSubscribe(() -> log.debug("Delete Document Async from {}", documentLink))
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("fail to delete document", e);
                 })
@@ -303,7 +303,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private void createDatabaseIfNotExists() {
-        getAsyncDocumentClient().readDatabase(this.dbLink, null)
+        getAsyncDocumentClient()
+                .readDatabase(this.dbLink, null)
                 .doOnNext(r -> log.info("Database [{}] exists already.", this.dbName))
                 .onErrorResumeNext(e -> {
                     if (e instanceof DocumentClientException) {
