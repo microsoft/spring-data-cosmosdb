@@ -18,7 +18,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalCollectionException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -387,32 +386,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        validateQuery(query, domainClass, collectionName);
+        try {
+            final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
+            final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-
-        return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
+            return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            throw new DocumentDBAccessException("Failed to execute find operation from " + collectionName, e);
+        }
     }
 
     public <T> Boolean exists(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
         return this.find(query, domainClass, collectionName).size() > 0;
     }
-
-    private void validateQuery(@NonNull DocumentQuery query, @NonNull Class<?> domainClass, String collectionName) {
-        if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            return;
-        }
-
-        final DocumentCollection documentCollection = getDocCollection(collectionName);
-        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(domainClass, QueryValidator.isCollectionSupportSortByString(documentCollection));
-        }
-        if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(documentCollection));
-        }
-    }
-
 
     private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
                                          @NonNull String collectionName) {
@@ -545,21 +531,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         } else {
             throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
         }
-    }
-
-    private DocumentCollection getDocCollection(String collectionName) {
-        final String databaseLink = getDatabaseLink(this.databaseName);
-        final SqlParameterCollection parameters = new SqlParameterCollection(new SqlParameter("@id", collectionName));
-        final SqlQuerySpec querySpec = new SqlQuerySpec("SELECT * FROM ROOT r WHERE r.id=@id", parameters);
-        final List<DocumentCollection> collections = getDocumentClient().queryCollections(databaseLink, querySpec, null)
-                .getQueryIterable().toList();
-
-        if (collections.size() != 1) {
-            throw new IllegalCollectionException("expect only one collection: " + collectionName
-                    + " in database: " + this.databaseName + ", but found " + collections.size());
-        }
-
-        return collections.get(0);
     }
 
     private String getCollectionSelfLink(@NonNull String collectionName) {
