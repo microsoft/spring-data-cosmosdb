@@ -5,9 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
@@ -157,12 +159,5 @@ public class AddressRepositoryIT {
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getStreet()).isEqualTo(updatedAddress.getStreet());
         assertThat(results.get(0).getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
-    }
-
-    @Test(expected = IllegalQueryException.class)
-    public void testFindAllSortMissMatchException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "city");
-
-        this.repository.findAll(sort);
     }
 }
