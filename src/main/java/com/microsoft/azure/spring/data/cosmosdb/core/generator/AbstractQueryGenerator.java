@@ -88,14 +88,8 @@ public abstract class AbstractQueryGenerator {
 
     @SuppressWarnings("unchecked")
     private String generateInQuery(Criteria criteria) {
-        Assert.isTrue(criteria.getSubjectValues().size() == 1, "Criteria should have only one subject value");
-
-        if (!(criteria.getSubjectValues().get(0) instanceof Collection)) {
-            throw new IllegalQueryException("IN keyword requires Collection type in parameters");
-        }
-
         final List<String> inRangeValues = new ArrayList<>();
-        final Collection values = (Collection) criteria.getSubjectValues().get(0);
+        final Collection values = criteria.getSubjectValues();
 
         values.forEach(o -> {
             if (o instanceof Integer || o instanceof Long) {

@@ -48,6 +48,8 @@ public interface DocumentDbOperations {
 
     <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
 
+    <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> entityClass, String collectionName);
+
     <T> Boolean exists(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
