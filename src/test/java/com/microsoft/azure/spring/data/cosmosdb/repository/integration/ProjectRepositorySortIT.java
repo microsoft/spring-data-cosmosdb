@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
@@ -16,6 +17,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -23,6 +26,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -176,6 +181,37 @@ public class ProjectRepositorySortIT {
 
         Assert.assertEquals(references.size(), projects.size());
         Assert.assertEquals(references, projects);
+    }
+
+    @Test
+    public void testFindAllWithPageableAndSort() {
+        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Pageable pageable = new DocumentDbPageRequest(0, 5, null, sort);
+
+        final Page<Project> result = this.repository.findAll(pageable);
+
+        final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
+        references.sort(Comparator.comparing(Project::getName).reversed());
+
+        Assert.assertEquals(references.size(), result.getContent().size());
+        Assert.assertEquals(references, result.getContent());
+        validateLastPage(result, 5);
+    }
+
+    @Test
+    public void testFindWithPageableAndSort() {
+        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Pageable pageable = new DocumentDbPageRequest(0, 5, null, sort);
+
+        final Page<Project> result = this.repository.findByForkCount(FORK_COUNT_3, pageable);
+
+        final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
+
+        references.sort(Comparator.comparing(Project::getName).reversed());
+
+        Assert.assertEquals(references.size(), result.getContent().size());
+        Assert.assertEquals(references, result.getContent());
+        validateLastPage(result, 5);
     }
 }
 

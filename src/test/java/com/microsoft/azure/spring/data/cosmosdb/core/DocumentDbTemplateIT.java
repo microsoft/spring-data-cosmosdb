@@ -33,6 +33,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
@@ -42,9 +43,7 @@ import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -55,6 +54,9 @@ public class DocumentDbTemplateIT {
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
+            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+
+    private static final Person TEST_PERSON_3 = new Person(TestConstants.ID_3, TestConstants.NEW_FIRST_NAME,
             TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
@@ -223,5 +225,24 @@ public class DocumentDbTemplateIT {
         final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
+    }
+
+    @Test
+    public void testFindAllWithPageableAndSort() {
+        dbTemplate.insert(TEST_PERSON_2, null);
+        dbTemplate.insert(TEST_PERSON_3, null);
+
+        final Sort sort = new Sort(Sort.Direction.DESC, "firstName");
+        final PageRequest pageRequest = DocumentDbPageRequest.of(0, PAGE_SIZE_3, null, sort);
+
+        final Page<Person> page = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+        assertThat(page.getContent().size()).isEqualTo(3);
+        validateLastPage(page, PAGE_SIZE_3);
+
+        final List<Person> result = page.getContent();
+        assertThat(result.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);
+        assertThat(result.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
+        assertThat(result.get(2).getFirstName()).isEqualTo(FIRST_NAME);
+
     }
 }

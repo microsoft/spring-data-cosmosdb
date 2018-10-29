@@ -7,6 +7,8 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.Collection;
@@ -82,4 +84,6 @@ public interface ProjectRepository extends DocumentDbRepository<Project, String>
     List<Project> findByNameIsNotNull();
 
     List<Project> findByNameIsNotNullAndHasReleased(boolean hasReleased);
+
+    Page<Project> findByForkCount(Long forkCount, Pageable pageable);
 }
