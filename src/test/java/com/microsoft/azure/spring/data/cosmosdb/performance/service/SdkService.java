@@ -150,6 +150,8 @@ public class SdkService {
 
         options.setRequestContinuation(q.getResponseContinuation());
 
+        count(); // Mock same behavior with Spring pageable query, requires total elements count
+
         return entities;
     }
 }
