@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 /**
  * DocumentDbPageRequest representing page request during pagination query, field
@@ -27,6 +28,15 @@ public class DocumentDbPageRequest extends PageRequest {
 
     public static DocumentDbPageRequest of(int page, int size, String requestContinuation) {
         return new DocumentDbPageRequest(page, size, requestContinuation);
+    }
+
+    public DocumentDbPageRequest(int page, int size, String requestContinuation, Sort sort) {
+        super(page, size, sort);
+        this.requestContinuation = requestContinuation;
+    }
+
+    public static DocumentDbPageRequest of(int page, int size, String requestContinuation, Sort sort) {
+        return new DocumentDbPageRequest(page, size, requestContinuation, sort);
     }
 
     public String getRequestContinuation() {
