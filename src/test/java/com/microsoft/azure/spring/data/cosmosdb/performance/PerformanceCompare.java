@@ -141,11 +141,10 @@ public class PerformanceCompare {
 
     @Test
     public void findByMultipleIdsTest() {
-        final List<Iterable<String>> idList_1 = listBatchIds(recurTimes, batchSize);
-        final List<Iterable<String>> idList_2 = listBatchIds(recurTimes, batchSize);
+        final List<Iterable<String>> idList = listBatchIds(recurTimes, batchSize);
 
-        final long springCost = acceptInputListFunc(idList_1, repository::findAllById);
-        final long sdkCost = acceptInputListFunc(idList_2, sdkService::findAllById);
+        final long springCost = acceptInputListFunc(idList, repository::findAllById);
+        final long sdkCost = acceptInputListFunc(idList, sdkService::findAllById);
 
         verifyResult(OperationType.FIND_BY_IDS, springCost, sdkCost, acceptanceDiff);
     }

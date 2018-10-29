@@ -36,20 +36,22 @@ public class SdkService {
         this.collectionLink = "dbs/" + PERF_DATABASE_NAME + "/colls/" + SDK_COLLECTION_NAME;
     }
 
-    public Document save(PerfPerson person) {
+    public PerfPerson save(PerfPerson person) {
         try {
             final String personJson = gson.toJson(person);
             final Document personDoc = new Document(personJson);
 
-            return documentClient.createDocument(collectionLink, personDoc,
+            final Document doc = documentClient.createDocument(collectionLink, personDoc,
                     null, false).getResource();
+
+            return gson.fromJson(doc.toJson(), PerfPerson.class);
         } catch (DocumentClientException e) {
             throw new IllegalStateException(e); // Runtime exception to fail directly
         }
     }
 
-    public Iterable<Document> saveAll(Iterable<PerfPerson> personIterable) {
-        final List<Document> result = Lists.newArrayList();
+    public List<PerfPerson> saveAll(Iterable<PerfPerson> personIterable) {
+        final List<PerfPerson> result = Lists.newArrayList();
         personIterable.forEach(person -> result.add(save(person)));
 
         return result;
@@ -74,22 +76,29 @@ public class SdkService {
                 collectionName + ".id='" + id + "'", new FeedOptions()).getQueryIterator().next();
     }
 
-    public List<Document> findAllById(Iterable<String> ids) {
+    public List<PerfPerson> findAllById(Iterable<String> ids) {
         final String idsInList = String.join(",",
                 Arrays.asList(ids).stream().map(id -> "'" + id +  "'").collect(Collectors.toList()));
         final String sql = "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".id IN ("
                 + idsInList + ")";
 
-        return documentClient.queryDocuments(collectionLink, sql, new FeedOptions()).getQueryIterable().toList();
+        final List<Document> docs = documentClient.queryDocuments(collectionLink, sql,
+                new FeedOptions()).getQueryIterable().toList();
+
+        return fromDocuments(docs);
     }
 
-    public List<Document> findAll() {
-        return documentClient.queryDocuments(collectionLink, "SELECT * FROM  " + collectionName,
-                new FeedOptions()).getQueryIterable().toList();
+    public List<PerfPerson> findAll() {
+        final List<Document> docs = documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM  " + collectionName, new FeedOptions()).getQueryIterable().toList();
+
+        return fromDocuments(docs);
     }
 
     public boolean deleteAll() {
-        final List<Document> documents = findAll();
+        final List<Document> documents = documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM  " + collectionName, new FeedOptions()).getQueryIterable().toList();
+
         documents.forEach(document -> {
             try {
                 documentClient.deleteDocument(document.getSelfLink(), null);
@@ -101,11 +110,13 @@ public class SdkService {
         return true;
     }
 
-    public List<Document> searchDocuments(Sort sort) {
+    public List<PerfPerson> searchDocuments(Sort sort) {
         final Sort.Order order = sort.iterator().next(); // Only one Order supported
-        return documentClient.queryDocuments(collectionLink, "SELECT * FROM  " + collectionName +
-                        " ORDER BY " + collectionName + "." + order.getProperty() + " " + order.getDirection().name(),
-                new FeedOptions()).getQueryIterable().toList();
+        final List<Document> docs = documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM  " + collectionName + " ORDER BY " + collectionName + "." + order.getProperty()
+                        + " " + order.getDirection().name(), new FeedOptions()).getQueryIterable().toList();
+
+        return fromDocuments(docs);
     }
 
     public long count() {
@@ -116,12 +127,12 @@ public class SdkService {
         return result instanceof Integer ? Long.valueOf((Integer) result) : (Long) result;
     }
 
-    public List<Document> findByName(String name) {
+    public List<PerfPerson> findByName(String name) {
         final Iterator<Document> result = documentClient.queryDocuments(collectionLink,
                 "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".name='"
                         + name + "'", new FeedOptions()).getQueryIterator();
 
-        return Lists.newArrayList(result);
+        return fromDocuments(Lists.newArrayList(result));
     }
 
     public void queryTwoPages(int pageSize) {
@@ -153,5 +164,10 @@ public class SdkService {
         count(); // Mock same behavior with Spring pageable query, requires total elements count
 
         return entities;
+    }
+
+    private List<PerfPerson> fromDocuments(List<Document> documents) {
+        return documents.stream().map(d -> gson.fromJson(d.toJson(), PerfPerson.class))
+                .collect(Collectors.toList());
     }
 }
