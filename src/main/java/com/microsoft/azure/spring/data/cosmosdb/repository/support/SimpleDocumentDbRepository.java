@@ -23,7 +23,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -121,11 +120,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public List<T> findAllById(Iterable<ID> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        final List<T> entities = new ArrayList<>();
-
-        ids.forEach(id -> findById(id).ifPresent(entities::add));
-
-        return entities;
+        return operation.findByIds(ids, information.getJavaType(), information.getCollectionName());
     }
 
     /**

@@ -33,10 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -379,6 +376,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final String selfLink = getCollectionSelfLink(collectionName);
 
         return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
+    }
+
+    @Override
+    public <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> entityClass, String collectionName) {
+        Assert.notNull(ids, "Id list should not be null");
+        Assert.notNull(entityClass, "entityClass should not be null.");
+        Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
+
+        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IN, "id",
+                Collections.singletonList(ids)));
+        return find(query, entityClass, collectionName);
     }
 
     public <T> List<T> find(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
