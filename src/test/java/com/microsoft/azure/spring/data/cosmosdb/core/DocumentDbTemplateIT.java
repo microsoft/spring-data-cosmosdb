@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -118,6 +119,19 @@ public class DocumentDbTemplateIT {
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 TestConstants.NOT_EXIST_ID, Person.class);
         assertThat(nullResult).isNull();
+    }
+
+    @Test
+    public void testFindByMultiIds() {
+        dbTemplate.insert(TEST_PERSON_2, null);
+        dbTemplate.insert(TEST_PERSON_3, null);
+
+        final List<Object> ids = Lists.newArrayList(ID_1, ID_2, ID_3);
+        final List<Person> result = dbTemplate.findByIds(ids, Person.class, collectionName);
+
+        final List<Person> expected = Lists.newArrayList(TEST_PERSON, TEST_PERSON_2, TEST_PERSON_3);
+        assertThat(result.size()).isEqualTo(expected.size());
+        assertThat(result).containsAll(expected);
     }
 
     @Test
