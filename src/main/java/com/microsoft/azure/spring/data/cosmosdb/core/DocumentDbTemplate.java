@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
@@ -387,7 +386,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.IN, "id",
-                Lists.newArrayList(ids)));
+                Collections.singletonList(ids)));
         return find(query, entityClass, collectionName);
     }
 
