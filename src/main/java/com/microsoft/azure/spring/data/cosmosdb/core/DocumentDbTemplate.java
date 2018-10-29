@@ -468,7 +468,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName) {
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
-        if (pageable.getSort() != null) {
+        if (pageable.getSort().isSorted()) {
             query.with(pageable.getSort());
         }
 
