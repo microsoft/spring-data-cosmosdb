@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
 
@@ -195,7 +196,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteAll(Iterable<? extends T> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        entities.forEach(this::delete);
+        StreamSupport.stream(entities.spliterator(), true).forEach(this::delete);
     }
 
     /**
