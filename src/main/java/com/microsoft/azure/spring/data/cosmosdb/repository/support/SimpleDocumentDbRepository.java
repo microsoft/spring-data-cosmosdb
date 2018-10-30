@@ -137,9 +137,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
             return Optional.empty();
         }
 
-        final T result = operation.findById(information.getCollectionName(), id, information.getJavaType());
-
-        return result == null ? Optional.empty() : Optional.of(result);
+        return Optional.ofNullable(operation.findById(information.getCollectionName(), id, information.getJavaType()));
     }
 
     /**

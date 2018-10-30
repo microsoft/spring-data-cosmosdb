@@ -34,7 +34,7 @@ public class PropertyLoader {
         if (allowed == null) {
             return true;
         } else {
-            return allowed.equalsIgnoreCase("false") ? false : true;
+            return !allowed.equalsIgnoreCase("false");
         }
     }
 

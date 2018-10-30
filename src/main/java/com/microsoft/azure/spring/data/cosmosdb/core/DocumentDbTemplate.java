@@ -558,7 +558,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             return new ArrayList<>();
         }
 
-        return Arrays.asList(entityInfo.getPartitionKeyFieldName());
+        return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
     private void assertValidId(Object id) {

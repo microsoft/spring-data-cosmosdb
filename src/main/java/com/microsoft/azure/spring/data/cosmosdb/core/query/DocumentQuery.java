@@ -68,13 +68,10 @@ public class DocumentQuery {
             return true;
         }
 
-        for (final String keyName : partitionKeys) {
-            if (isCrossPartitionQuery(keyName)) {
-                return true;
-            }
-        }
-
-        return this.hasKeywordOr();
+        return partitionKeys.stream().filter(this::isCrossPartitionQuery)
+                .findFirst()
+                .map(p -> true)
+                .orElse(hasKeywordOr());
     }
 
     public Optional<Criteria> getCriteriaByType(@NonNull CriteriaType criteriaType) {
