@@ -82,8 +82,11 @@ public class SdkService {
         final String sql = "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".id IN ("
                 + idsInList + ")";
 
-        final List<Document> docs = documentClient.queryDocuments(collectionLink, sql,
-                new FeedOptions()).getQueryIterable().toList();
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.setEnableCrossPartitionQuery(true);
+
+        final List<Document> docs = documentClient.queryDocuments(collectionLink, sql, feedOptions)
+                .getQueryIterable().toList();
 
         return fromDocuments(docs);
     }
