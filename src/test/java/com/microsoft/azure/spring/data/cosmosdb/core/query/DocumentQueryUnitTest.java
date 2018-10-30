@@ -24,8 +24,8 @@ public class DocumentQueryUnitTest {
 
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        Assert.assertEquals(query.getCriteria(), criteria);
-        Assert.assertEquals(query.getSort(), Sort.unsorted());
-        Assert.assertEquals(query.getPageable(), Pageable.unpaged());
+        Assert.assertEquals(criteria, query.getCriteria());
+        Assert.assertEquals(Sort.unsorted(), query.getSort());
+        Assert.assertEquals(Pageable.unpaged(), query.getPageable());
     }
 }

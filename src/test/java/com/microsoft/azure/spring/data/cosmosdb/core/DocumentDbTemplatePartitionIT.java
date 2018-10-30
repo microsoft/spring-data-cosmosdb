@@ -98,14 +98,14 @@ public class DocumentDbTemplatePartitionIT {
                 PartitionPerson.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0), TEST_PERSON);
+        assertEquals(TEST_PERSON, result.get(0));
 
         criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(ID_1));
         query = new DocumentQuery(criteria);
         result = dbTemplate.find(query, PartitionPerson.class, PartitionPerson.class.getSimpleName());
 
         assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0), TEST_PERSON);
+        assertEquals(TEST_PERSON, result.get(0));
     }
 
     @Test

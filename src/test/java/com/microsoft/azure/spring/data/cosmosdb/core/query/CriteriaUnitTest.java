@@ -25,9 +25,9 @@ public class CriteriaUnitTest {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, CRITERIA_KEY, values);
 
         Assert.assertTrue(criteria.getSubCriteria().isEmpty());
-        Assert.assertEquals(criteria.getSubjectValues(), values);
-        Assert.assertEquals(criteria.getType(), CriteriaType.IS_EQUAL);
-        Assert.assertEquals(criteria.getSubject(), CRITERIA_KEY);
+        Assert.assertEquals(values, criteria.getSubjectValues());
+        Assert.assertEquals(CriteriaType.IS_EQUAL, criteria.getType());
+        Assert.assertEquals(CRITERIA_KEY, criteria.getSubject());
         Assert.assertTrue(CriteriaType.isBinary(criteria.getType()));
     }
 
@@ -44,9 +44,9 @@ public class CriteriaUnitTest {
         Assert.assertEquals(criteria.getType(), CriteriaType.AND);
         Assert.assertTrue(CriteriaType.isClosed(criteria.getType()));
 
-        Assert.assertEquals(criteria.getSubCriteria().size(), 2);
-        Assert.assertEquals(criteria.getSubCriteria().get(0), leftCriteria);
-        Assert.assertEquals(criteria.getSubCriteria().get(1), rightCriteria);
+        Assert.assertEquals(2, criteria.getSubCriteria().size());
+        Assert.assertEquals(leftCriteria, criteria.getSubCriteria().get(0));
+        Assert.assertEquals(rightCriteria, criteria.getSubCriteria().get(1));
     }
 
     @Test(expected = IllegalQueryException.class)

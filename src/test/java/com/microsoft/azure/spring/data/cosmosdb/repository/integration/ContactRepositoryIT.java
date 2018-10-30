@@ -155,7 +155,7 @@ public class ContactRepositoryIT {
         final Optional<Contact> optional = this.repository.findById(TEST_CONTACT.getLogicId());
 
         Assert.assertTrue(optional.isPresent());
-        Assert.assertEquals(optional.get(), TEST_CONTACT);
+        Assert.assertEquals(TEST_CONTACT, optional.get());
         Assert.assertFalse(this.repository.findById("").isPresent());
     }
 }
