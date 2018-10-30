@@ -69,7 +69,7 @@ public interface DocumentDbOperations {
     <T> Observable<Page<T>> findAllAsync(Pageable pageable, String collectionName, Class<T> entityClass,
                                          String partitionKeyName);
 
-    Observable<String> deleteCollectionAsync(String collectionName);
+    Observable<DocumentCollection> deleteCollectionAsync(String collectionName);
 
     <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
                                   String partitionKeyName);
