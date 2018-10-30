@@ -100,7 +100,7 @@ public class PerformanceCompare {
 
     @Test
     public void saveMultipleRecordsTest() {
-        final List<Iterable<PerfPerson>> personList = PerfDataProvider.getMultiPerfData(recurTimes, batchSize);
+        final List<Iterable<PerfPerson>> personList = PerfDataProvider.getMultiPerfData(batchSize, recurTimes);
 
         final long springCost = acceptInputListFunc(personList, repository::saveAll);
         final long sdkCost = acceptInputListFunc(personList, sdkService::saveAll);
@@ -263,7 +263,7 @@ public class PerformanceCompare {
 
 
     private List<Iterable<PerfPerson>> prepareListBatchData(int times, int batchSize) {
-        final List<Iterable<PerfPerson>> personList = PerfDataProvider.getMultiPerfData(times, batchSize);
+        final List<Iterable<PerfPerson>> personList = PerfDataProvider.getMultiPerfData(batchSize, times);
 
         applyInputListFunc(personList, repository::saveAll);
         applyInputListFunc(personList, sdkService::saveAll);
