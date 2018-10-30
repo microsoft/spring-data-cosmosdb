@@ -106,8 +106,8 @@ public class MemoRepositoryIT {
 
         memos = this.repository.findByDateBefore(memoDate);
 
-        Assert.assertEquals(memos.size(), 1);
-        Assert.assertEquals(memos.get(0), testMemo1);
+        Assert.assertEquals(1, memos.size());
+        Assert.assertEquals(testMemo1, memos.get(0));
 
         memos = this.repository.findByDateBefore(memoDateAfter);
         final List<Memo> reference = Arrays.asList(testMemo1, testMemo2);
