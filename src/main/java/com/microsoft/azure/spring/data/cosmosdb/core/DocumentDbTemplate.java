@@ -285,10 +285,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
+    public void deleteById(String collectionName, Object id, PartitionKey key) {
         validate(id, collectionName);
 
-        deleteByIdAsync(collectionName, id, partitionKey).toCompletable().await();
+        deleteByIdAsync(collectionName, id, key).toCompletable().await();
     }
 
     private void createDatabaseIfNotExists() {
