@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
+import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
@@ -25,8 +26,13 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
+
+import static com.microsoft.azure.spring.data.cosmosdb.Constants.ID_PROPERTY_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IN;
 
 @Slf4j
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
@@ -65,7 +71,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * save the entity async
+     * save the entity asynchronously
      *
      * @param entity to be saved
      * @param <S>    entity type
@@ -105,7 +111,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * batch save entities async
+     * batch save entities asynchronously
      *
      * @param entities iterable batch entities
      * @param <S>      entity type
@@ -145,7 +151,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * find all entities from one collection async
+     * find all entities from one collection asynchronously
      *
      * @return Observable batch entities found
      */
@@ -174,13 +180,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public Observable<T> findAllByIdAsync(Iterable<ID> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        return StreamSupport.stream(ids.spliterator(), true)
-                .map(this::findByIdAsync)
-                .reduce(Observable::merge)
-                .orElseThrow(() -> new DocumentDBAccessException("failed to find entity."))
-                .doOnSubscribe(() -> log.debug("find All entities by iterable id"))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(Schedulers.immediate());
+        final List<ID> idList = Lists.newArrayList(ids);
+        final Criteria criteria = Criteria.getInstance(IN, ID_PROPERTY_NAME, Collections.singletonList(idList));
+        final DocumentQuery query = new DocumentQuery(criteria);
+
+        return this.operation.findAsync(query, collectionName, entityClass, partitionKeyName);
     }
 
     /**
@@ -191,14 +195,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public List<T> findAllById(Iterable<ID> ids) {
-        // TODO: investigate leverage finAllByIdAsync directly.
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        final List<T> entities = new ArrayList<>();
-
-        ids.forEach(id -> findById(id).ifPresent(entities::add));
-
-        return entities;
+        return findAllByIdAsync(ids).toList().toBlocking().single();
     }
 
     /**
@@ -274,7 +273,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document from given entity id async
+     * delete one document from given entity id asynchronously
      *
      * @param id the id of entity
      * @return Observable of the id value
@@ -289,7 +288,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document from given entity async
+     * delete one document from given entity asynchronously
      *
      * @param entity the entity instance
      * @return Observable of given entity
@@ -328,7 +327,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete all the domains of a collection async
+     * delete all the domains of a collection asynchronously
      *
      * @return Observable of empty entity
      */
@@ -352,9 +351,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 .reduce(Observable::merge)
                 .orElseThrow(() -> new DocumentDBAccessException("failed to delete entity"))
                 .doOnSubscribe(() -> log.debug("delete All entities by iterable id"))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to find entity.", e);
-                })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.immediate());
     }
@@ -381,16 +377,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public Observable<Boolean> existsByIdAsync(ID id) {
         Assert.notNull(id, "id should not be null");
 
-        // TODO: investigate if we can simplify to isEmpty.
-        return findByIdAsync(id)
-                .map(Objects::nonNull)
-                .onErrorResumeNext(e -> {
-                    if (e instanceof NoSuchElementException) {
-                        return Observable.just(false);
-                    }
-
-                    throw new DocumentDBAccessException("failed to existById", e);
-                });
+        return findByIdAsync(id).isEmpty().map(b -> !b);
     }
 
     /**

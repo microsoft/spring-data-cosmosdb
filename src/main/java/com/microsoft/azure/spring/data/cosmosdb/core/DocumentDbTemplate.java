@@ -74,6 +74,22 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.asyncDocumentClient;
     }
 
+    private <T> Observable<T> databaseAccessExceptionIgnoreNotFoundHandler(Throwable e) {
+        if (e instanceof DocumentClientException) {
+            final DocumentClientException exception = (DocumentClientException) e;
+
+            if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return Observable.empty();
+            }
+        }
+
+        throw new DocumentDBAccessException("failed to access cosmosdb database", e);
+    }
+
+    private <T> Observable<T> databaseAccessExceptionHandler(Throwable e) {
+        throw new DocumentDBAccessException("failed to access cosmosdb database", e);
+    }
+
     private String getCollectionLink(String collectionName) {
         return this.dbLink + "/colls/" + collectionName;
     }
@@ -118,9 +134,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .createDocument(collectionLink, document, getRequestOptions(key, null), false)
                 .doOnSubscribe(() -> log.debug("Create Document Async from {}.", collectionLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to insert entity", e);
-                })
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
                 .map(ResourceResponse::getResource)
                 .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
@@ -142,9 +156,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .upsertDocument(collectionLink, document, getRequestOptions(key, null), false)
                 .doOnSubscribe(() -> log.debug("Upsert Document Async from {}.", collectionLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to upsert entity", e);
-                })
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
                 .map(d -> entity);
     }
 
@@ -167,17 +179,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .readDocument(getDocumentLink(collectionName, id), options)
                 .doOnSubscribe(() -> log.debug("Read Document Async from {}.", collectionLink))
-                .onErrorResumeNext(e -> {
-                    if (e instanceof DocumentClientException) {
-                        final DocumentClientException exception = (DocumentClientException) e;
-                        if (exception.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                            return Observable.empty();
-                        }
-                    }
-
-                    throw new DocumentDBAccessException("fail to read document", e);
-                })
-                .single()
+                .onErrorResumeNext(this::databaseAccessExceptionIgnoreNotFoundHandler)
                 .map(ResourceResponse::getResource)
                 .map(d -> this.mappingDocumentDbConverter.read(entityClass, d));
     }
@@ -198,9 +200,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return findDocuments(query, collectionName, partitionKeyName)
                 .doOnSubscribe(() -> log.debug("Delete Documents Async."))
-                .onErrorResumeNext(e -> {
-                    throw new DocumentDBAccessException("Failed to delete Document", e);
-                })
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
                 .flatMap(d -> {
                     final RequestOptions options = new RequestOptions();
 
@@ -208,9 +208,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                         options.setPartitionKey(new PartitionKey(d.get(partitionKeyName)));
                     }
 
-                    return getAsyncDocumentClient()
-                            .deleteDocument(d.getSelfLink(), options)
-                            .map(r -> d);
+                    return getAsyncDocumentClient().deleteDocument(d.getSelfLink(), options).map(r -> d);
                 })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.immediate());
@@ -222,8 +220,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
 
-        return deleteDocuments(query, collectionName, partitionKeyName)
-                .flatMap(d -> Observable.empty());
+        return deleteDocuments(query, collectionName, partitionKeyName).flatMap(d -> Observable.empty());
     }
 
     @Override
@@ -241,12 +238,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return findDocuments(query, collectionName, partitionKeyName)
                 .doOnSubscribe(() -> log.debug("Find all documents for Class {} async", entityClass.getSimpleName()))
-                .onErrorResumeNext(e -> {
-                    throw new DocumentDBAccessException("Failed to find all documents.", e);
-                })
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
                 .map(d -> this.mappingDocumentDbConverter.read(entityClass, d))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(Schedulers.immediate());
+                .subscribeOn(Schedulers.newThread());
     }
 
     @Override
@@ -257,7 +251,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public Observable<String> deleteCollectionAsync(String collectionName) {
+    public Observable<DocumentCollection> deleteCollectionAsync(String collectionName) {
         validate(collectionName);
 
         final String collectionLink = getCollectionLink(collectionName);
@@ -265,10 +259,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .deleteCollection(collectionLink, null)
                 .doOnSubscribe(() -> log.debug("Delete Connection {} Async.", collectionLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to delete collection: " + collectionName, e);
-                })
-                .map(r -> collectionName);
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
+                .map(ResourceResponse::getResource);
     }
 
     @Override
@@ -288,18 +280,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return getAsyncDocumentClient()
                 .deleteDocument(documentLink, options)
                 .doOnSubscribe(() -> log.debug("Delete Document Async from {}", documentLink))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("fail to delete document", e);
-                })
-                .single()
+                .onErrorResumeNext(this::databaseAccessExceptionIgnoreNotFoundHandler)
                 .map(r -> id);
     }
 
     @Override
-    public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
+    public void deleteById(String collectionName, Object id, PartitionKey key) {
         validate(id, collectionName);
 
-        deleteByIdAsync(collectionName, id, partitionKey).toCompletable().await();
+        deleteByIdAsync(collectionName, id, key).toCompletable().await();
     }
 
     private void createDatabaseIfNotExists() {
@@ -419,7 +408,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         options.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(partitionKeyName));
 
         return executeQueryDocument(sqlQuerySpec, collectionName, options)
-                .map(d -> getConverter().read(entityClass, d));
+                .map(d -> getConverter().read(entityClass, d))
+                .onErrorResumeNext(this::databaseAccessExceptionHandler);
     }
 
     @Override
@@ -479,7 +469,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass);
 
         return deleteDocuments(query, collectionName, partitionKeyName)
-                .map(d -> getConverter().read(entityClass, d));
+                .map(d -> getConverter().read(entityClass, d))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.immediate());
     }
 
     /**
@@ -577,6 +569,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         options.setEnableCrossPartitionQuery(isCrossPartitionQuery);
 
         return executeQuery(querySpec, collectionName, options)
+                .onErrorResumeNext(this::databaseAccessExceptionHandler)
                 .map(r -> r.getResults().get(0).getLong(COUNT_VALUE_KEY));
     }
 
@@ -586,7 +579,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
 
-        // TODO: not sure if no partitionKey in entity with true Query will result in DocumentClientException.
         return getCountValue(query, true, collectionName);
     }
 

@@ -6,21 +6,23 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
+import lombok.NonNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -54,8 +56,17 @@ public class QuestionRepositoryAsyncIT {
         this.repository.deleteAll();
     }
 
+    private void assertQuestionListEquals(@NonNull List<Question> found, @NonNull List<Question> expected) {
+        Assert.assertEquals(found.size(), expected.size());
+
+        found.sort(Comparator.comparing(Question::getId));
+        expected.sort(Comparator.comparing(Question::getId));
+
+        Assert.assertEquals(found, expected);
+    }
+
     @Test
-    public void testSaveAsync() {
+    public void testSave() {
         final Question question = new Question("id", "link");
 
         Question found = this.repository.saveAsync(question).toBlocking().single();
@@ -87,19 +98,39 @@ public class QuestionRepositoryAsyncIT {
         this.repository.saveAll(QUESTIONS);
 
         final List<Question> entities = Arrays.asList(QUESTION_0, QUESTION_1);
+        List<Question> found = this.repository.deleteAllAsync(entities).toList().toBlocking().single();
 
-        this.repository.deleteAllAsync(entities).toCompletable().await();
-
+        assertQuestionListEquals(entities, found);
         Assert.assertFalse(this.repository.findById(QUESTION_0.getId()).isPresent());
         Assert.assertTrue(this.repository.findById(QUESTION_2.getId()).isPresent());
 
-        try {
-            final Question question = new Question(NOT_EXIST_ID, "fake-url");
-            this.repository.deleteAllAsync(Arrays.asList(QUESTION_0, question)).toCompletable().await();
-            Assert.fail("Should not reach here.");
-        } catch (RuntimeException e) {
-            Assert.assertTrue(e instanceof DocumentDBAccessException);
-        }
+        this.repository.saveAll(QUESTIONS);
+        final Question question = new Question(NOT_EXIST_ID, "fake-url");
+        found = this.repository.deleteAllAsync(Arrays.asList(QUESTION_0, question)).toList().toBlocking().single();
+
+        assertQuestionListEquals(Collections.singletonList(QUESTION_0), found);
+
+        this.repository.deleteAll();
+        found = this.repository.deleteAllAsync(Arrays.asList(QUESTION_0, question)).toList().toBlocking().single();
+
+        Assert.assertTrue(found.isEmpty());
+    }
+
+    @Test
+    public void testFindAllById() {
+        this.repository.saveAll(QUESTIONS);
+        List<String> ids = Arrays.asList(QUESTION_ID_0, QUESTION_ID_2);
+
+        List<Question> found = this.repository.findAllByIdAsync(ids).toList().toBlocking().single();
+        assertQuestionListEquals(found, Arrays.asList(QUESTION_0, QUESTION_2));
+
+        ids = Arrays.asList(QUESTION_ID_0, NOT_EXIST_ID);
+        found = this.repository.findAllByIdAsync(ids).toList().toBlocking().single();
+        assertQuestionListEquals(found, Collections.singletonList(QUESTION_0));
+
+        ids = Collections.singletonList(NOT_EXIST_ID);
+        found = this.repository.findAllByIdAsync(ids).toList().toBlocking().single();
+        Assert.assertTrue(found.isEmpty());
     }
 
     @Test
@@ -108,11 +139,8 @@ public class QuestionRepositoryAsyncIT {
         final Question question = this.repository.findByIdAsync(QUESTION_0.getId()).toBlocking().single();
 
         Assert.assertEquals(question, QUESTION_0);
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testFindByIdException() {
-        this.repository.findByIdAsync(NOT_EXIST_ID).toCompletable().await();
+        Assert.assertTrue(this.repository.findByIdAsync(NOT_EXIST_ID).isEmpty().toBlocking().single());
+        Assert.assertTrue(this.repository.findByIdAsync("").isEmpty().toBlocking().single());
     }
 
     @Test
@@ -131,11 +159,7 @@ public class QuestionRepositoryAsyncIT {
         Assert.assertTrue(id instanceof String);
         Assert.assertEquals(id.toString(), QUESTION_0.getId());
         Assert.assertFalse(this.repository.existsByIdAsync(QUESTION_0.getId()).toBlocking().single());
-    }
-
-    @Test(expected = DocumentDBAccessException.class)
-    public void testDeleteByIdException() {
-        this.repository.deleteByIdAsync(NOT_EXIST_ID).toBlocking().single();
+        Assert.assertTrue(this.repository.deleteByIdAsync(NOT_EXIST_ID).isEmpty().toBlocking().single());
     }
 
     @Test
@@ -152,18 +176,45 @@ public class QuestionRepositoryAsyncIT {
     }
 
     @Test
-    public void testDelete() {
+    public void testFindAllSort() {
         this.repository.saveAll(QUESTIONS);
 
+        final Sort sort = new Sort(Sort.Direction.ASC, "url");
+        final List<Question> questions = this.repository.findAllAsync(sort).toList().toBlocking().single();
+
+        Assert.assertTrue(questions.isEmpty()); // Question Collection need indexing config for sorting.
+    }
+
+    @Test
+    public void testDelete() {
+        this.repository.saveAll(QUESTIONS);
         Assert.assertTrue(this.repository.findById(QUESTION_0.getId()).isPresent());
 
         this.repository.deleteAsync(QUESTION_0).toCompletable().await();
-
         Assert.assertFalse(this.repository.findById(QUESTION_0.getId()).isPresent());
+
+        Assert.assertTrue(this.repository.deleteAsync(QUESTION_0).isEmpty().toBlocking().single());
     }
 
-    @Test(expected = DocumentDBAccessException.class)
-    public void testDeleteException() {
-        this.repository.deleteAsync(QUESTION_0).toCompletable().await();
+    @Test
+    public void testFindAll() {
+        this.repository.saveAll(QUESTIONS);
+
+        final List<Question> found = this.repository.findAllAsync().toList().toBlocking().single();
+        assertQuestionListEquals(found, QUESTIONS);
+
+        this.repository.deleteAll();
+        Assert.assertTrue(this.repository.findAllAsync().toList().toBlocking().single().isEmpty());
+    }
+
+    @Test
+    public void testCount() {
+        this.repository.saveAll(QUESTIONS);
+
+        Assert.assertEquals(Long.valueOf(QUESTIONS.size()), this.repository.countAllAsync().toBlocking().single());
+
+        this.repository.deleteAll();
+
+        Assert.assertEquals(Long.valueOf(0), this.repository.countAllAsync().toBlocking().single());
     }
 }
