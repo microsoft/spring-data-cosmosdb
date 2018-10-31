@@ -71,7 +71,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * save the entity async
+     * save the entity asynchronously
      *
      * @param entity to be saved
      * @param <S>    entity type
@@ -111,7 +111,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * batch save entities async
+     * batch save entities asynchronously
      *
      * @param entities iterable batch entities
      * @param <S>      entity type
@@ -151,7 +151,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * find all entities from one collection async
+     * find all entities from one collection asynchronously
      *
      * @return Observable batch entities found
      */
@@ -273,7 +273,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document from given entity id async
+     * delete one document from given entity id asynchronously
      *
      * @param id the id of entity
      * @return Observable of the id value
@@ -288,7 +288,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete one document from given entity async
+     * delete one document from given entity asynchronously
      *
      * @param entity the entity instance
      * @return Observable of given entity
@@ -327,7 +327,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete all the domains of a collection async
+     * delete all the domains of a collection asynchronously
      *
      * @return Observable of empty entity
      */

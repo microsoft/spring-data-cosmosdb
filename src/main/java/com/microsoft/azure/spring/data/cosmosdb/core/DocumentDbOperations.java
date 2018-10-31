@@ -24,8 +24,8 @@ import java.util.Optional;
  *
  * <p>
  * <b>Collection</b>
- * A collection is a container of JSON documents and the associated JavaScript application logic. Collections can span
- * one or more partitions/servers and can scale to handle practically unlimited volumes of storage or throughput.
+ * A collection is a container of JSON documents. Collections can span one or more partitions/servers and can scale to
+ * handle practically unlimited volumes of storage or throughput.
  * </p>
  *
  * <p>
@@ -42,7 +42,7 @@ public interface DocumentDbOperations {
      * query if collection exists, or create the collection.
      *
      * @param information ${@link DocumentDbEntityInformation} of entity
-     * @return the existed or created collection
+     * @return the existing or created collection
      */
     DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information);
 
