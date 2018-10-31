@@ -129,9 +129,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                 .onErrorReturn(e -> {
                     throw new DocumentDBAccessException("failed to save entity.", e);
                 })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(Schedulers.immediate())
-                .map(d -> entities.iterator().next());
+                .subscribeOn(Schedulers.newThread());
     }
 
     /**
@@ -145,9 +143,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        saveAllAsync(entities).toCompletable().await();
-
-        return entities;
+        return saveAllAsync(entities).toList().toBlocking().single();
     }
 
     /**
