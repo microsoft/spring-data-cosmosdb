@@ -7,9 +7,8 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
-import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
-import lombok.SneakyThrows;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -20,12 +19,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rx.Observable;
-import rx.Subscriber;
-import rx.schedulers.Schedulers;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
