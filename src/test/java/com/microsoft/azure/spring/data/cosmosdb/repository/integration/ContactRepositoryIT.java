@@ -9,6 +9,8 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
@@ -18,10 +20,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rx.Observable;
+import rx.Subscriber;
+import rx.schedulers.Schedulers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -157,5 +161,18 @@ public class ContactRepositoryIT {
         Assert.assertTrue(optional.isPresent());
         Assert.assertEquals(optional.get(), TEST_CONTACT);
         Assert.assertFalse(this.repository.findById("").isPresent());
+    }
+
+    @Test
+    public void testSaveAllWithEmptyId() {
+        final Contact contact1 = new Contact(null, "title1");
+        final Contact contact2 = new Contact(null, "title2");
+
+        final Iterable<Contact> savedContacts = this.repository.saveAll(Arrays.asList(contact1, contact2));
+
+        savedContacts.forEach(contact -> {
+            Assert.assertTrue("Saved contact should have valid id value",
+                    StringUtils.isNotBlank(contact.getLogicId()));
+        });
     }
 }
