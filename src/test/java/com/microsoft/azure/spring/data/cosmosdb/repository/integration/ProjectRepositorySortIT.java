@@ -6,7 +6,9 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
@@ -113,14 +115,14 @@ public class ProjectRepositorySortIT {
         Assert.assertEquals(projects, PROJECTS);
     }
 
-    @Test(expected = IllegalQueryException.class)
+    @Test(expected = DocumentDBAccessException.class)
     public void testFindAllSortMoreThanOneOrderException() {
         final Sort sort = new Sort(Sort.Direction.ASC, "name", "creator");
 
         this.repository.findAll(sort);
     }
 
-    @Test(expected = IllegalQueryException.class)
+    @Test(expected = DocumentDBAccessException.class)
     public void testFindAllSortIgnoreCaseException() {
         final Sort.Order order = Sort.Order.by("name").ignoreCase();
         final Sort sort = Sort.by(order);
@@ -128,14 +130,14 @@ public class ProjectRepositorySortIT {
         this.repository.findAll(sort);
     }
 
-    @Test(expected = IllegalQueryException.class)
+    @Test(expected = DocumentDBAccessException.class)
     public void testFindAllSortMissMatchException() {
         final Sort sort = new Sort(Sort.Direction.ASC, "fake-name");
 
         this.repository.findAll(sort);
     }
 
-    @Test(expected = IllegalQueryException.class)
+    @Test(expected = DocumentDBAccessException.class)
     public void testFindAllSortWithIdName() {
         final Sort sort = new Sort(Sort.Direction.ASC, "id");
 
