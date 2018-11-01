@@ -115,8 +115,6 @@ public class SimpleDocumentDbRepositoryUnitTest {
     public void findAllAsync() {
         final Observable<Person> personObservable = repository.findAllAsync();
 
-        personObservable.subscribe(person -> {
-            assertEquals(TEST_PERSON, person);
-        });
+        assertEquals(TEST_PERSON, personObservable.toBlocking().single());
     }
 }

@@ -113,10 +113,11 @@ public class AddressRepositoryIT {
 
     @Test
     public void testCountAllAsync() {
-        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(4));
+        assertThat(repository.countAllAsync().toBlocking().single()).isEqualTo(4);
 
         repository.deleteByCity(TestConstants.CITY);
-        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(2));
+
+        assertThat(repository.countAllAsync().toBlocking().single()).isEqualTo(2);
     }
 
     @Test(expected = DocumentDBAccessException.class)

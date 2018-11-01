@@ -80,15 +80,14 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindAllAsyncByPage() {
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
-        repository.findAllAsync(pageRequest).subscribe(page -> {
-            assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
-            validateNonLastPage(page, PAGE_SIZE_3);
 
-            repository.findAllAsync(page.getPageable()).subscribe(nextPage -> {
-                assertThat(nextPage.getContent().size()).isEqualTo(1);
-                validateLastPage(nextPage, PAGE_SIZE_3);
-            });
-        });
+        Page page = repository.findAllAsync(pageRequest).toBlocking().single();
+        assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
+        validateNonLastPage(page, PAGE_SIZE_3);
+
+        page = repository.findAllAsync(page.getPageable()).toBlocking().single();
+        assertThat(page.getContent().size()).isEqualTo(1);
+        validateLastPage(page, PAGE_SIZE_3);
     }
 
     @Test

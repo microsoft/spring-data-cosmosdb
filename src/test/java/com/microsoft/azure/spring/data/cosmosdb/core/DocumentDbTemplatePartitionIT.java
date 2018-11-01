@@ -90,7 +90,7 @@ public class DocumentDbTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        dbTemplate.deleteAll(collectionName, partitionKeyName);
+        dbTemplate.deleteCollection(collectionName);
     }
 
     @Test
@@ -241,25 +241,20 @@ public class DocumentDbTemplatePartitionIT {
     public void testInsertAsync() {
         dbTemplate.deleteAll(collectionName, partitionKeyName);
 
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
+        PartitionPerson person = dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null).toBlocking().single();
+        assertThat(person).isEqualTo(TEST_PERSON_0);
+
+        person = this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null).toBlocking().single();
+        assertThat(person).isEqualTo(TEST_PERSON_1);
     }
 
-    @Test
+    @Test(expected = DocumentDBAccessException.class)
     public void testInsertAsyncException() {
         final PartitionKey key0 = new PartitionKey(TEST_PERSON_0.getLastName());
         final PartitionKey key1 = new PartitionKey(TEST_PERSON_1.getLastName());
 
-        dbTemplate.deleteAll(collectionName, partitionKeyName);
-
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key0)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key1)
-                .subscribe(
-                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
-                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
-                );
+        this.dbTemplate.deleteAll(collectionName, partitionKeyName);
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key0).toCompletable().await();
+        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key1).toCompletable().await();
     }
 }
