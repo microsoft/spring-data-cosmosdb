@@ -415,10 +415,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public <T> List<T> find(DocumentQuery query, String collectionName, Class<T> entityClass, String partitionKeyName) {
         validate(query, collectionName, entityClass);
-        validateQuery(query, entityClass, collectionName);
 
-        return Lists.newArrayList(
-                findAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().getIterator());
+        try {
+            return findAsync(query, collectionName, entityClass, partitionKeyName).toList().toBlocking().single();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            throw new DocumentDBAccessException("Failed to execute find operation from " + collectionName, e);
+        }
     }
 
     @Override
@@ -434,23 +436,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         validate(query, collectionName, entityClass);
 
         return existsAsync(query, collectionName, entityClass, partitionKeyName).toBlocking().single();
-    }
-
-    private void validateQuery(DocumentQuery query, Class<?> entityClass, String collectionName) {
-        if (!query.getSort().isSorted() && !query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            return;
-        }
-
-        final Optional<DocumentCollection> optional = getDocumentCollection(collectionName);
-
-        Assert.isTrue(optional.isPresent(), "Collection should be created already.");
-
-        if (query.getSort().isSorted()) { // avoiding unnecessary query with DocumentCollection
-            query.validateSort(entityClass, QueryValidator.isCollectionSupportSortByString(optional.get()));
-        }
-        if (query.getCriteriaByType(CriteriaType.STARTS_WITH).isPresent()) {
-            query.validateStartsWith(QueryValidator.isCollectionSupportStartsWith(optional.get()));
-        }
     }
 
     private Observable<Document> findDocuments(DocumentQuery query, String collectionName, String partitionKeyName) {
