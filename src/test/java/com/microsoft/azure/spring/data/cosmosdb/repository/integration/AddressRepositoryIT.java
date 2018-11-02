@@ -165,11 +165,4 @@ public class AddressRepositoryIT {
         assertThat(results.get(0).getStreet()).isEqualTo(updatedAddress.getStreet());
         assertThat(results.get(0).getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
     }
-
-    @Test(expected = IllegalQueryException.class)
-    public void testFindAllSortMissMatchException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "city");
-
-        this.repository.findAll(sort);
-    }
 }
