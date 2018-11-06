@@ -123,8 +123,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 
-    @Override
-    public <T> Observable<T> insertAsync(String collectionName, T entity, PartitionKey key) {
+    private <T> Observable<T> insertAsync(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
         @SuppressWarnings("unchecked") final Class<T> entityClass = (Class<T>) entity.getClass();
@@ -146,8 +145,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return insertAsync(collectionName, entity, key).toBlocking().single();
     }
 
-    @Override
-    public <T> Observable<T> upsertAsync(String collectionName, T entity, PartitionKey key) {
+    private  <T> Observable<T> upsertAsync(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
         final String collectionLink = getCollectionLink(collectionName);
@@ -167,8 +165,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         upsertAsync(collectionName, entity, key).toCompletable().await();
     }
 
-    @Override
-    public <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key) {
+    private <T> Observable<T> findByIdAsync(String collectionName, Object id, Class<T> entityClass, PartitionKey key) {
         validate(id, collectionName, entityClass);
 
         final RequestOptions options = new RequestOptions();
@@ -214,8 +211,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .observeOn(Schedulers.immediate());
     }
 
-    @Override
-    public <T> Observable<T> deleteAllAsync(String collectionName, String partitionKeyName) {
+    private <T> Observable<T> deleteAllAsync(String collectionName, String partitionKeyName) {
         validate(collectionName);
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
@@ -230,8 +226,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         deleteAllAsync(collectionName, partitionKeyName).toCompletable().await();
     }
 
-    @Override
-    public <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName) {
+    private <T> Observable<T> findAllAsync(String collectionName, Class<T> entityClass, String partitionKeyName) {
         validate(collectionName, entityClass);
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
@@ -250,8 +245,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return findAllAsync(collectionName, entityClass, partitionKeyName).toList().toBlocking().single();
     }
 
-    @Override
-    public Observable<DocumentCollection> deleteCollectionAsync(String collectionName) {
+    private Observable<DocumentCollection> deleteCollectionAsync(String collectionName) {
         validate(collectionName);
 
         final String collectionLink = getCollectionLink(collectionName);
@@ -270,8 +264,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         deleteCollectionAsync(collectionName).toCompletable().await();
     }
 
-    @Override
-    public Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key) {
+    private Observable<Object> deleteByIdAsync(String collectionName, Object id, PartitionKey key) {
         validate(id, collectionName);
 
         final String documentLink = getDocumentLink(collectionName, id.toString());
@@ -397,8 +390,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .doOnNext(r -> log.debug("Query Document Async from {}", selfLink));
     }
 
-    @Override
-    public <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+    private <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
                                        String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
@@ -423,8 +415,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    @Override
-    public Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+    private Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
                                            String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
@@ -448,8 +439,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return executeQueryDocument(sqlQuerySpec, collectionName, options);
     }
 
-    @Override
-    public <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
+    private <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
                                          String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
@@ -476,16 +466,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return Lists.newArrayList(
                 deleteAsync(query, collectionName, entityClass, partitionKeyNames).toBlocking().getIterator());
-    }
-
-    @Override
-    public <T> Observable<Page<T>> findAllAsync(Pageable pageable, String collectionName, Class<T> entityClass,
-                                                String partitionKeyName) {
-        validate(pageable, collectionName, entityClass);
-
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(pageable);
-
-        return paginationQueryAsync(query, collectionName, entityClass, partitionKeyName);
     }
 
     @Override
@@ -558,8 +538,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .map(r -> r.getResults().get(0).getLong(COUNT_VALUE_KEY));
     }
 
-    @Override
-    public Observable<Long> countAsync(String collectionName) {
+    private Observable<Long> countAsync(String collectionName) {
         validate(collectionName);
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
@@ -574,8 +553,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return countAsync(collectionName).toBlocking().single();
     }
 
-    @Override
-    public Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
+    private Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
                                        String partitionKeyName) {
         validate(query, collectionName, entityClass);
 

@@ -9,14 +9,12 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -109,14 +107,6 @@ public class AddressRepositoryIT {
         repository.deleteByCity(TestConstants.CITY);
         final long newCount = repository.count();
         assertThat(newCount).isEqualTo(2);
-    }
-
-    @Test
-    public void testCountAllAsync() {
-        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(4));
-
-        repository.deleteByCity(TestConstants.CITY);
-        repository.countAllAsync().subscribe(count -> assertThat(count).isEqualTo(2));
     }
 
     @Test(expected = DocumentDBAccessException.class)
