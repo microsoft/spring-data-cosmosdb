@@ -145,7 +145,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return insertAsync(collectionName, entity, key).toBlocking().single();
     }
 
-    private  <T> Observable<T> upsertAsync(String collectionName, T entity, PartitionKey key) {
+    private <T> Observable<T> upsertAsync(String collectionName, T entity, PartitionKey key) {
         validate(collectionName, entity);
 
         final String collectionLink = getCollectionLink(collectionName);
@@ -391,7 +391,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private <T> Observable<T> findAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
-                                       String partitionKeyName) {
+                                        String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
         final FeedOptions options = new FeedOptions();
@@ -416,7 +416,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private Observable<Boolean> existsAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
-                                           String partitionKeyName) {
+                                            String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
         return countAsync(query, collectionName, entityClass, partitionKeyName).map(c -> c > 0).single();
@@ -440,7 +440,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private <T> Observable<T> deleteAsync(DocumentQuery query, String collectionName, Class<T> entityClass,
-                                         String partitionKeyName) {
+                                          String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
         return deleteDocuments(query, collectionName, partitionKeyName)
@@ -554,7 +554,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private Observable<Long> countAsync(DocumentQuery query, String collectionName, Class<?> entityClass,
-                                       String partitionKeyName) {
+                                        String partitionKeyName) {
         validate(query, collectionName, entityClass);
 
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(partitionKeyName);

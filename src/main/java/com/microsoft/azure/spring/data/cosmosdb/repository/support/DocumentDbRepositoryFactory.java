@@ -54,7 +54,7 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
-                                                               EvaluationContextProvider evaluationContextProvider) {
+                                                                   EvaluationContextProvider evaluationContextProvider) {
         return Optional.of(new DocumentDbQueryLookupStrategy(dbOperations, evaluationContextProvider));
     }
 

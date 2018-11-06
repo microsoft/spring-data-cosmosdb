@@ -6,8 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ResultProcessor;

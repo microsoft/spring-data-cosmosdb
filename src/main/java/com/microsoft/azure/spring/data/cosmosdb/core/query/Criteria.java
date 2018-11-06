@@ -14,10 +14,10 @@ import java.util.List;
 @Getter
 public class Criteria {
 
-    private String subject;
-    private List<Object> subjectValues;
     private final CriteriaType type;
     private final List<Criteria> subCriteria;
+    private String subject;
+    private List<Object> subjectValues;
 
     private Criteria(CriteriaType type) {
         this.type = type;

@@ -39,9 +39,6 @@ public enum CriteriaType {
     FALSE("= false"),
     BETWEEN("BETWEEN");
 
-    @Getter
-    private String sqlKeyword;
-
     // Map Part.Type to CriteriaType
     private static final Map<Part.Type, CriteriaType> PART_TREE_TYPE_TO_CRITERIA;
 
@@ -69,6 +66,9 @@ public enum CriteriaType {
 
         PART_TREE_TYPE_TO_CRITERIA = Collections.unmodifiableMap(map);
     }
+
+    @Getter
+    private String sqlKeyword;
 
     /**
      * Check if PartType is NOT supported.
