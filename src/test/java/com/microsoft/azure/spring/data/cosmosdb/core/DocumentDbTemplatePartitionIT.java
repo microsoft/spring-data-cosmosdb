@@ -17,7 +17,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -235,31 +234,5 @@ public class DocumentDbTemplatePartitionIT {
                 partitionKeyName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
-    }
-
-    @Test
-    public void testInsertAsync() {
-        dbTemplate.deleteAll(collectionName, partitionKeyName);
-
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_1, null)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_1));
-    }
-
-    @Test
-    public void testInsertAsyncException() {
-        final PartitionKey key0 = new PartitionKey(TEST_PERSON_0.getLastName());
-        final PartitionKey key1 = new PartitionKey(TEST_PERSON_1.getLastName());
-
-        dbTemplate.deleteAll(collectionName, partitionKeyName);
-
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key0)
-                .subscribe(p -> assertThat(p).isEqualTo(TEST_PERSON_0));
-        this.dbTemplate.insertAsync(collectionName, TEST_PERSON_0, key1)
-                .subscribe(
-                        p -> assertThat(p).isEqualTo(TEST_PERSON_0),
-                        e -> assertThat(e).isInstanceOf(DocumentDBAccessException.class)
-                );
     }
 }

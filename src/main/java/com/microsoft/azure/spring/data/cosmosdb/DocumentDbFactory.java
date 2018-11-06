@@ -36,7 +36,6 @@ public class DocumentDbFactory {
         }
     }
 
-
     private void validateConfig(@NonNull DocumentDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
         Assert.hasText(config.getKey(), "cosmosdb host key should have text!");

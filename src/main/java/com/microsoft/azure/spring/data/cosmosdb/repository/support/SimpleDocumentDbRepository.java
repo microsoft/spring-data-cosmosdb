@@ -6,13 +6,11 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -22,17 +20,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static com.microsoft.azure.spring.data.cosmosdb.Constants.ID_PROPERTY_NAME;
-import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IN;
 
 @Slf4j
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
@@ -49,9 +42,8 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
     private final boolean isIdFieldAsPartitionKey;
 
-    public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
-                                      ApplicationContext applicationContext) {
-        this(metadata, applicationContext.getBean(DocumentDbOperations.class));
+    public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata, ApplicationContext context) {
+        this(metadata, context.getBean(DocumentDbOperations.class));
     }
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
@@ -68,24 +60,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
     private void createCollectionIfNotExists() {
         this.operation.createCollectionIfNotExists(this.information);
-    }
-
-    /**
-     * save the entity asynchronously
-     *
-     * @param entity to be saved
-     * @param <S>    entity type
-     * @return Observable with one entity saved
-     */
-    @Override
-    public <S extends T> Observable<S> saveAsync(@NonNull S entity) {
-        final PartitionKey partitionKey = information.getPartitionKey(entity);
-
-        if (information.isNew(entity)) {
-            return operation.insertAsync(collectionName, entity, partitionKey);
-        } else {
-            return operation.upsertAsync(collectionName, entity, partitionKey);
-        }
     }
 
     /**
@@ -111,28 +85,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * batch save entities asynchronously
-     *
-     * @param entities iterable batch entities
-     * @param <S>      entity type
-     * @return Observable with all entities saved
-     */
-    @Override
-    public <S extends T> Observable<S> saveAllAsync(Iterable<S> entities) {
-        Assert.notNull(entities, "Iterable entities should not be null");
-
-        return StreamSupport.stream(entities.spliterator(), true)
-                .map(this::saveAsync)
-                .reduce(Observable::merge)
-                .orElseThrow(() -> new DocumentDBAccessException("failed to save entity."))
-                .doOnSubscribe(() -> log.debug("saveAll entities"))
-                .onErrorReturn(e -> {
-                    throw new DocumentDBAccessException("failed to save entity.", e);
-                })
-                .subscribeOn(Schedulers.newThread());
-    }
-
-    /**
      * batch save entities
      *
      * @param entities iterable batch entities
@@ -143,17 +95,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        return saveAllAsync(entities).toList().toBlocking().single();
-    }
-
-    /**
-     * find all entities from one collection asynchronously
-     *
-     * @return Observable batch entities found
-     */
-    @Override
-    public Observable<T> findAllAsync() {
-        return operation.findAllAsync(collectionName, entityClass, partitionKeyName);
+        return StreamSupport.stream(entities.spliterator(), true).map(this::save).collect(Collectors.toList());
     }
 
     /**
@@ -167,23 +109,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * find entities with given iterable ids
-     *
-     * @param ids iterable ids
-     * @return Observable batch entities found
-     */
-    @Override
-    public Observable<T> findAllByIdAsync(Iterable<ID> ids) {
-        Assert.notNull(ids, "Iterable ids should not be null");
-
-        final List<ID> idList = Lists.newArrayList(ids);
-        final Criteria criteria = Criteria.getInstance(IN, ID_PROPERTY_NAME, Collections.singletonList(idList));
-        final DocumentQuery query = new DocumentQuery(criteria);
-
-        return this.operation.findAsync(query, collectionName, entityClass, partitionKeyName);
-    }
-
-    /**
      * find entities based on id list from one collection without partitions
      *
      * @param ids iterable ids
@@ -193,26 +118,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public List<T> findAllById(Iterable<ID> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        return findAllByIdAsync(ids).toList().toBlocking().single();
-    }
-
-    /**
-     * find one entity with given id
-     *
-     * @param id value of id
-     * @return Observable of entity
-     */
-    @Override
-    public Observable<T> findByIdAsync(ID id) {
-        Assert.notNull(id, "id must not be null");
-
-        if (id instanceof String && !StringUtils.hasText((String) id)) {
-            return Observable.empty();
-        }
-
-        final PartitionKey key = this.isIdFieldAsPartitionKey ? new PartitionKey(id) : null;
-
-        return this.operation.findByIdAsync(collectionName, id, entityClass, key);
+        return StreamSupport.stream(ids.spliterator(), true)
+                .map(this::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -245,16 +155,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * count the documents in one collection
-     *
-     * @return the total count of documents
-     */
-    @Override
-    public Observable<Long> countAllAsync() {
-        return operation.countAsync(collectionName);
-    }
-
-    /**
      * delete one document from given entity id
      *
      * @param id the id of entity
@@ -266,37 +166,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         final PartitionKey partitionKey = isIdFieldAsPartitionKey ? new PartitionKey(id) : null;
 
         operation.deleteById(collectionName, id, partitionKey);
-    }
-
-    /**
-     * delete one document from given entity id asynchronously
-     *
-     * @param id the id of entity
-     * @return Observable of the id value
-     */
-    @Override
-    public Observable<Object> deleteByIdAsync(ID id) {
-        Assert.notNull(id, "id to be deleted should not be null");
-
-        final PartitionKey partitionKey = isIdFieldAsPartitionKey ? new PartitionKey(id) : null;
-
-        return operation.deleteByIdAsync(collectionName, id, partitionKey);
-    }
-
-    /**
-     * delete one document from given entity asynchronously
-     *
-     * @param entity the entity instance
-     * @return Observable of given entity
-     */
-    @Override
-    public Observable<T> deleteAsync(T entity) {
-        Assert.notNull(entity, "entity to be deleted should not be null");
-
-        final PartitionKey partitionKey = information.getPartitionKey(entity);
-        final Object id = information.getId(entity);
-
-        return operation.deleteByIdAsync(collectionName, id, partitionKey).map(d -> entity);
     }
 
     /**
@@ -323,35 +192,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
-     * delete all the domains of a collection asynchronously
-     *
-     * @return Observable of empty entity
-     */
-    @Override
-    public Observable<T> deleteAllAsync() {
-        return operation.deleteAllAsync(collectionName, partitionKeyName);
-    }
-
-    /**
-     * delete from given iterable entities
-     *
-     * @param entities of iterable
-     * @return Observable of batch entities deleted
-     */
-    @Override
-    public Observable<T> deleteAllAsync(Iterable<? extends T> entities) {
-        Assert.notNull(entities, "Iterable entities should not be null");
-
-        return StreamSupport.stream(entities.spliterator(), true)
-                .map(this::deleteAsync)
-                .reduce(Observable::merge)
-                .orElseThrow(() -> new DocumentDBAccessException("failed to delete entity"))
-                .doOnSubscribe(() -> log.debug("delete All entities by iterable id"))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(Schedulers.immediate());
-    }
-
-    /**
      * delete from given iterable entities
      *
      * @param entities of iterable
@@ -360,20 +200,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public void deleteAll(Iterable<? extends T> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        deleteAllAsync(entities).toCompletable().await();
-    }
-
-    /**
-     * check if document exists from given id
-     *
-     * @param id of entity
-     * @return Observable of document exists
-     */
-    @Override
-    public Observable<Boolean> existsByIdAsync(ID id) {
-        Assert.notNull(id, "id should not be null");
-
-        return findByIdAsync(id).isEmpty().map(b -> !b);
+        StreamSupport.stream(entities.spliterator(), true).forEach(this::delete);
     }
 
     /**
@@ -387,21 +214,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(id, "id should not be null");
 
         return findById(id).isPresent();
-    }
-
-    /**
-     * find all entities sorted by the given option
-     *
-     * @param sort of option
-     * @return Observable of all entities with option sorted
-     */
-    @Override
-    public Observable<T> findAllAsync(Sort sort) {
-        Assert.notNull(sort, "sort of findAll should not be null");
-
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
-
-        return operation.findAsync(query, collectionName, entityClass, partitionKeyName);
     }
 
     /**
@@ -431,18 +243,5 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(pageable, "pageable should not be null");
 
         return operation.findAll(pageable, collectionName, entityClass, partitionKeyName);
-    }
-
-    /**
-     * Returns an Observable of Page of entities meeting the paging restriction provided in the Pageable object.
-     *
-     * @param pageable
-     * @return an Observable that emits searched page
-     */
-    @Override
-    public Observable<Page<T>> findAllAsync(Pageable pageable) {
-        Assert.notNull(pageable, "pageable should not be null");
-
-        return operation.findAllAsync(pageable, collectionName, entityClass, partitionKeyName);
     }
 }

@@ -113,17 +113,6 @@ public class DocumentDbTemplateIT {
         assertThat(result).containsAll(insertedList);
     }
 
-    @Test
-    public void findAllAsync() {
-        dbTemplate.deleteAll(collectionName, null);
-        final List<Person> insertedList = insertMultiPerson(5);
-        dbTemplate.findAllAsync(collectionName, Person.class, null).toList()
-                .subscribe(result -> {
-                    assertThat(result.size()).isEqualTo(insertedList.size());
-                    assertThat(result).containsAll(insertedList);
-                });
-    }
-
     private List<Person> insertMultiPerson(int count) {
         final List<Person> personList = Lists.newArrayList();
         for (int i = 0; i < count; i++) {
@@ -213,15 +202,6 @@ public class DocumentDbTemplateIT {
     }
 
     @Test
-    public void testCountAsyncByCollection() {
-        dbTemplate.countAsync(collectionName).subscribe(prevCount -> assertThat(prevCount).isEqualTo(1));
-
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
-
-        dbTemplate.countAsync(collectionName).subscribe(newCount -> assertThat(newCount).isEqualTo(2));
-    }
-
-    @Test
     public void testCountByQuery() {
         dbTemplate.insert(collectionName, TEST_PERSON_1, null);
 
@@ -231,17 +211,6 @@ public class DocumentDbTemplateIT {
 
         final long count = dbTemplate.count(query, collectionName, Person.class, null);
         assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    public void testCountAsyncByQuery() {
-        dbTemplate.insert(this.personInfo.getCollectionName(), TEST_PERSON_1, null);
-
-        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON_1.getFirstName()));
-        final DocumentQuery query = new DocumentQuery(criteria);
-
-        assertThat(dbTemplate.countAsync(query, collectionName, Person.class, null).toBlocking().single()).isEqualTo(1);
     }
 
     @Test
@@ -257,24 +226,6 @@ public class DocumentDbTemplateIT {
         final Page<Person> page2 = dbTemplate.findAll(page1.getPageable(), collectionName, Person.class, null);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
-    }
-
-    @Test
-    public void testFindAllAsyncPageableMultiPages() {
-        dbTemplate.insert(collectionName, TEST_PERSON_1, null);
-
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
-
-        dbTemplate.findAllAsync(pageRequest, collectionName, Person.class, null).subscribe(page1 -> {
-                    assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
-                    validateNonLastPage(page1, PAGE_SIZE_1);
-
-                    dbTemplate.findAllAsync(page1.getPageable(), collectionName, Person.class, null)
-                            .subscribe(page2 -> {
-                                assertThat(page2.getContent().size()).isEqualTo(1);
-                                validateLastPage(page2, PAGE_SIZE_1);
-                            });
-                });
     }
 
     @Test
@@ -305,26 +256,5 @@ public class DocumentDbTemplateIT {
                     assertThat(page.getContent().size()).isEqualTo(1);
                     validateLastPage(page, PAGE_SIZE_2);
                 });
-    }
-
-    @Test
-    public void testInsertAsync() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyFieldName());
-        Person inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_0, null)
-                .toBlocking().single();
-
-        assertThat(inserted).isEqualTo(TEST_PERSON_0);
-
-        inserted = this.dbTemplate.insertAsync(this.personInfo.getCollectionName(), TEST_PERSON_1, null)
-                .toBlocking().single();
-
-        assertThat(inserted).isEqualTo(TEST_PERSON_1);
-    }
-
-    @Test(expected = DocumentDBAccessException.class)
-    public void testInsertAsyncException() {
-        this.dbTemplate.deleteAll(personInfo.getCollectionName(), personInfo.getPartitionKeyFieldName());
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
-        this.dbTemplate.insertAsync(personInfo.getCollectionName(), TEST_PERSON_0, null).toCompletable().await();
     }
 }

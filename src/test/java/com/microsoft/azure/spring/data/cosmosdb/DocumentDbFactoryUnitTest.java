@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.microsoft.azure.cosmosdb.rx.AsyncDocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import org.junit.Test;
@@ -54,6 +55,12 @@ public class DocumentDbFactoryUnitTest {
                 DocumentDBConfig.builder(DOCUMENTDB_FAKE_HOST, DOCUMENTDB_FAKE_KEY, DB_NAME).build();
         final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
 
-        assertThat(factory.getAsyncDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains("spring-data");
+        try {
+            final AsyncDocumentClient client = factory.getAsyncDocumentClient();
+            assertThat(client.getConnectionPolicy().getUserAgentSuffix()).contains("spring-data");
+        } catch (Exception e) {
+            System.out.print("");
+        }
+
     }
 }
