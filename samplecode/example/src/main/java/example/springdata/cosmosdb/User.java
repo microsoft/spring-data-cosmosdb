@@ -16,9 +16,7 @@
 
 package example.springdata.cosmosdb;
 
-import com.microsoft.azure.documentdb.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,7 +26,6 @@ import org.springframework.data.annotation.Id;
 import java.util.List;
 
 @Document(collection = "mycollection")
-@DocumentIndexingPolicy(mode = IndexingMode.Lazy)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
