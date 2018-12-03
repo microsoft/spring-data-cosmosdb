@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.microsoft.azure</groupId>
 			<artifactId>spring-data-cosmosdb</artifactId>
-			<version>2.0.4</version>
+			<version>2.0.5</version>
 		</dependency>
 
 		<dependency>
