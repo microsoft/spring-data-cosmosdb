@@ -140,6 +140,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${org.projectlombok.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
