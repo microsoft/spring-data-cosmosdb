@@ -19,7 +19,7 @@ jobs:
     - stage: performance-test
       script:
         - mvn -P performance-test clean verify
-          if: branch = master AND type != pull_request
+      if: branch = master AND type != pull_request
     - stage: code-coverage
       script:
         - bash <(curl -s https://codecov.io/bash)
