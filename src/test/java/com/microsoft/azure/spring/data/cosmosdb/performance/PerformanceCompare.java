@@ -39,13 +39,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = PerfConfiguration.class)
 public class PerformanceCompare {
-    @Value("${perf.recursive.times:10}")
+    @Value("${perf.recursive.times:20}")
     private int recurTimes;
 
-    @Value("${perf.batch.size:3}")
+    @Value("${perf.batch.size:5}")
     private int batchSize;
 
-    @Value("${perf.acceptance.percentage:10}")
+    @Value("${perf.acceptance.percentage:15}")
     private int acceptanceDiffPercentage;
 
     private float acceptanceDiff;
