@@ -45,8 +45,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>MM-dd-HH-mm</maven.build.timestamp.format>
 
-        <spring.springframework.version>5.0.8.RELEASE</spring.springframework.version>
-        <spring.data.version>2.0.7.RELEASE</spring.data.version>
+        <spring.springframework.version>5.1.0.RELEASE</spring.springframework.version>
+        <spring.data.version>2.1.0.RELEASE</spring.data.version>
         <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
