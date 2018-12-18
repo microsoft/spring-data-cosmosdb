@@ -442,6 +442,17 @@
             </properties>
         </profile>
         <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <properties>
+                <ai.instrumentkey>${telemetry.instrumentationKey}</ai.instrumentkey>
+            </properties>
+        </profile>
+        <profile>
             <id>doclint-java8-disable</id>
             <activation>
                 <jdk>[1.8,)</jdk>
