@@ -16,10 +16,9 @@ jobs:
         - mvn clean package
         - set -o pipefail
         - mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+        - bash <(curl -s https://codecov.io/bash)
     - stage: performance-test
       script:
         - mvn -P performance-test clean verify
       if: branch = master AND type != pull_request
-    - stage: code-coverage
-      script:
-        - bash <(curl -s https://codecov.io/bash)
+
