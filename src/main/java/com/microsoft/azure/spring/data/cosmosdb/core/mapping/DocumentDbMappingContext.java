@@ -7,7 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core.mapping;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -15,8 +14,7 @@ import org.springframework.data.util.TypeInformation;
 
 
 public class DocumentDbMappingContext
-        extends AbstractMappingContext<BasicDocumentDbPersistentEntity<?>, DocumentDbPersistentProperty>
-        implements ApplicationContextAware {
+        extends AbstractMappingContext<BasicDocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> {
 
     private ApplicationContext context;
 

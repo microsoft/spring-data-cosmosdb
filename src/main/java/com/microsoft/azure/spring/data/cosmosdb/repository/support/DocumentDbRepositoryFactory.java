@@ -16,8 +16,8 @@ import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
 
@@ -53,15 +53,16 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
     }
 
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
-                                                               EvaluationContextProvider evaluationContextProvider) {
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
+            QueryLookupStrategy.Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
         return Optional.of(new DocumentDbQueryLookupStrategy(dbOperations, evaluationContextProvider));
     }
 
     private static class DocumentDbQueryLookupStrategy implements QueryLookupStrategy {
         private final DocumentDbOperations dbOperations;
 
-        public DocumentDbQueryLookupStrategy(DocumentDbOperations operations, EvaluationContextProvider provider) {
+        public DocumentDbQueryLookupStrategy(
+                DocumentDbOperations operations, QueryMethodEvaluationContextProvider provider) {
             this.dbOperations = operations;
         }
 
