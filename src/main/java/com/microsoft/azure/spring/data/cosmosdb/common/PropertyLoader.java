@@ -20,6 +20,8 @@ public class PropertyLoader {
     private static final String APPLICATION_PROPERTY_FILE = "/application.properties";
     private static final String APPLICATION_YML_FILE = "/application.yml";
 
+    private static final String INSTRUMENTATION_KEY = "telemetry.instrumentationKey";
+
     public static String getProjectVersion() {
         return getPropertyByName("project.version", PROJECT_PROPERTY_FILE);
     }
@@ -59,5 +61,9 @@ public class PropertyLoader {
         }
 
         return properties.getProperty(name);
+    }
+
+    public static String getInstrumentationKey() {
+        return getPropertyByName(INSTRUMENTATION_KEY, PROJECT_PROPERTY_FILE);
     }
 }

@@ -25,6 +25,8 @@ public class DocumentDbFactory {
 
     private static final String USER_AGENT_SUFFIX = Constants.USER_AGENT_SUFFIX + PropertyLoader.getProjectVersion();
 
+    private static final String INSTRUMENATION_KEY = PropertyLoader.getInstrumentationKey();
+
     private String getUserAgentSuffix() {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
@@ -39,7 +41,7 @@ public class DocumentDbFactory {
         validateConfig(config);
 
         this.config = config;
-        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED);
+        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED, INSTRUMENATION_KEY);
         this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 

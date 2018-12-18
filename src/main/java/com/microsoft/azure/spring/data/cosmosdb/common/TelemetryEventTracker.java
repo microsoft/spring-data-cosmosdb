@@ -9,6 +9,7 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +31,13 @@ public class TelemetryEventTracker {
     private final TelemetryClient client;
 
 
-    public TelemetryEventTracker(boolean isTelemetryAllowed) {
+    public TelemetryEventTracker(boolean isTelemetryAllowed, String instrumentationKey) {
         this.client = new TelemetryClient();
         this.isTelemetryAllowed = isTelemetryAllowed;
+
+        if (StringUtils.hasText(instrumentationKey)) {
+            this.client.getContext().setInstrumentationKey(instrumentationKey);
+        }
     }
 
     public void trackEvent(@NonNull String eventName) {
