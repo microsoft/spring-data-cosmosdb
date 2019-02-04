@@ -9,6 +9,9 @@ import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
+
+import java.util.List;
 
 public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
 
@@ -27,12 +30,12 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
         final ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
         final String collection = ((DocumentDbEntityMetadata) method.getEntityInformation()).getCollectionName();
 
-        final DocumentDbQueryExecution execution = getExecution(accessor);
+        final DocumentDbQueryExecution execution = getExecution(accessor, processor.getReturnedType());
         return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
     }
 
 
-    private DocumentDbQueryExecution getExecution(DocumentDbParameterAccessor accessor) {
+    private DocumentDbQueryExecution getExecution(DocumentDbParameterAccessor accessor, ReturnedType returnedType) {
         if (isDeleteQuery()) {
             return new DocumentDbQueryExecution.DeleteExecution(operations);
         } else if (method.isPageQuery()) {
@@ -40,7 +43,11 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
         } else if (isExistsQuery()) {
             return new DocumentDbQueryExecution.ExistsExecution(operations);
         } else {
-            return new DocumentDbQueryExecution.MultiEntityExecution(operations);
+            if (method.isCollectionQuery()) {
+                return new DocumentDbQueryExecution.MultiEntityExecution(operations);
+            } else {
+                return new DocumentDbQueryExecution.SingleEntityExecution(operations, returnedType);
+            }
         }
     }
 
