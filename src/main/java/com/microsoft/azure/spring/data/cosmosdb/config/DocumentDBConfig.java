@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
+import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,13 +28,16 @@ public class DocumentDBConfig {
 
     private boolean allowTelemetry;
 
+    private RequestOptions requestOptions;
+
     public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
         return defaultBuilder()
                 .uri(uri)
                 .key(key)
                 .database(database)
                 .connectionPolicy(ConnectionPolicy.GetDefault())
-                .consistencyLevel(ConsistencyLevel.Session);
+                .consistencyLevel(ConsistencyLevel.Session)
+                .requestOptions(new RequestOptions());
     }
 
     public static DocumentDBConfigBuilder builder(String connectionString, String database) {

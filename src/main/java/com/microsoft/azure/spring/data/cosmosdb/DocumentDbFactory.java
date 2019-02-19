@@ -12,11 +12,13 @@ import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.util.Assert;
 
 public class DocumentDbFactory {
 
+    @Getter
     private final DocumentDBConfig config;
 
     private final TelemetryEventTracker telemetryEventTracker;
