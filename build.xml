@@ -15,12 +15,6 @@
             <arg value="${azure.test.dbname}"/>
             <redirector outputproperty="cosmosdb.key"/>
         </exec>
-        <exec osfamily="unix" executable="az">
-            <arg value="--help"/>
-        </exec>
-        <exec osfamily="windows" executable="az">
-            <arg value="--help"/>
-        </exec>
         <propertyfile file="./src/test/resources/application.properties">
             <entry key="cosmosdb.key" value="${cosmosdb.key}"/>
             <entry key="cosmosdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
