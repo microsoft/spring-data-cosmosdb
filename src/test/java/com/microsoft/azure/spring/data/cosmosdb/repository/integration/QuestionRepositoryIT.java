@@ -6,11 +6,13 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,11 +37,22 @@ public class QuestionRepositoryIT {
 
     private static final Question QUESTION = new Question(QUESTION_ID, QUESTION_URL);
 
+    private final DocumentDbEntityInformation<Question, String> entityInformation =
+            new DocumentDbEntityInformation<>(Question.class);
+
+    @Autowired
+    private DocumentDbTemplate template;
+
     @Autowired
     private QuestionRepository repository;
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
+    }
 
     @Before
     public void setup() {

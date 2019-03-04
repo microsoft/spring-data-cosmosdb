@@ -6,11 +6,13 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.google.common.collect.Lists;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -68,8 +71,19 @@ public class ProjectRepositorySortIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3, PROJECT_2, PROJECT_1, PROJECT_0);
 
+    private final DocumentDbEntityInformation<Project, String> entityInformation =
+            new DocumentDbEntityInformation<>(Project.class);
+
+    @Autowired
+    private DocumentDbTemplate template;
+
     @Autowired
     private ProjectRepository repository;
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
+    }
 
     @Before
     public void setup() {

@@ -5,22 +5,21 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -40,11 +39,22 @@ public class AddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_2, TestConstants.CITY_1);
 
+    private final DocumentDbEntityInformation<Address, String> entityInformation
+            = new DocumentDbEntityInformation<>(Address.class);
+
     @Autowired
     AddressRepository repository;
 
+    @Autowired
+    private DocumentDbTemplate template;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
+    }
 
     @Before
     public void setup() {

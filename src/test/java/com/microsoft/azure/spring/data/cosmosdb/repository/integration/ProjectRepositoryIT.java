@@ -5,9 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +20,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -67,8 +70,19 @@ public class ProjectRepositoryIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
 
+    private final DocumentDbEntityInformation<Project, String> entityInformation =
+            new DocumentDbEntityInformation<>(Project.class);
+
+    @Autowired
+    private DocumentDbTemplate template;
+
     @Autowired
     private ProjectRepository repository;
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
+    }
 
     @Before
     public void setup() {
