@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.Assert;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -43,12 +44,12 @@ public class TelemetrySender {
             final HttpEntity<String> body = new HttpEntity<>(MAPPER.writeValueAsString(eventData), headers);
 
             response = restTemplate.exchange(TELEMETRY_TARGET_URL, HttpMethod.POST, body, String.class);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to parsing telemetry even data to json, {}.", e.getMessage());
+        } catch (JsonProcessingException | HttpClientErrorException ignore) {
+            log.warn("Failed to exchange telemetry request, {}.", ignore.getMessage());
         }
 
         if (response != null && response.getStatusCode() != HttpStatus.OK) {
-            log.warn("Failed to exchange telemetry request, response code {}.", response.getStatusCode().toString());
+            log.warn("Unexpected telemetry response, status code {}.", response.getStatusCode().toString());
         }
     }
 

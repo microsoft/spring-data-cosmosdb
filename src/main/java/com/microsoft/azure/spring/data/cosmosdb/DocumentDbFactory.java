@@ -15,6 +15,8 @@ import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import lombok.NonNull;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
+
 public class DocumentDbFactory {
 
     private final DocumentDBConfig config;
@@ -35,7 +37,6 @@ public class DocumentDbFactory {
 
     public DocumentDbFactory(@NonNull DocumentDBConfig config) {
         validateConfig(config);
-        sendTelemetry();
 
         this.config = config;
     }
@@ -56,6 +57,7 @@ public class DocumentDbFactory {
         Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
     }
 
+    @PostConstruct
     private void sendTelemetry() {
         if (IS_TELEMETRY_ALLOWED) {
             final TelemetrySender sender = new TelemetrySender();
