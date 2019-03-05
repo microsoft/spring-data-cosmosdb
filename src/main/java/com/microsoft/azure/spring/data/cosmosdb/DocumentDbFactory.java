@@ -10,16 +10,16 @@ import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
+import com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import lombok.NonNull;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
+
 public class DocumentDbFactory {
 
     private final DocumentDBConfig config;
-
-    private final TelemetryEventTracker telemetryEventTracker;
 
     private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
 
@@ -39,8 +39,6 @@ public class DocumentDbFactory {
         validateConfig(config);
 
         this.config = config;
-        this.telemetryEventTracker = new TelemetryEventTracker(IS_TELEMETRY_ALLOWED);
-        this.telemetryEventTracker.trackEvent(this.getClass().getSimpleName());
     }
 
     public DocumentClient getDocumentClient() {
@@ -57,5 +55,14 @@ public class DocumentDbFactory {
         Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
         Assert.hasText(config.getDatabase(), "cosmosdb database should have text!");
         Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
+    }
+
+    @PostConstruct
+    private void sendTelemetry() {
+        if (IS_TELEMETRY_ALLOWED) {
+            final TelemetrySender sender = new TelemetrySender();
+
+            sender.send(this.getClass().getSimpleName());
+        }
     }
 }
