@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
@@ -29,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -216,6 +216,7 @@ public class PerformanceCompare {
 
     /**
      * Check whether two time cost fall into the acceptable range.
+     *
      * @param timeCostSpring
      * @param timeCostSdk
      * @param acceptanceDiff The acceptable diff between two time cost.
@@ -238,7 +239,7 @@ public class PerformanceCompare {
     }
 
     private List<Sort> buildSortList(Sort sort, int times) {
-        final List<Sort> sorts = Lists.newArrayList();
+        final List<Sort> sorts = new ArrayList<>();
         for (int i = 0; i < times; i++) {
             sorts.add(sort);
         }
@@ -274,7 +275,7 @@ public class PerformanceCompare {
     private List<Iterable<String>> listBatchIds(int times, int batchSize) {
         return prepareListBatchData(times, batchSize).stream()
                 .map(iterable -> {
-                    final List<String> batchIds = Lists.newArrayList();
+                    final List<String> batchIds = new ArrayList<>();
                     iterable.forEach(person -> batchIds.add(person.getId()));
                     return batchIds;
                 }).collect(Collectors.toList());

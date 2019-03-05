@@ -5,15 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance;
 
-import com.google.common.collect.Lists;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PerformanceReport {
     private static final String NEW_LINE = System.lineSeparator();
 
-    private final List<PerfItem> perfItems = Lists.newArrayList();
+    private final List<PerfItem> perfItems = new ArrayList<>();
 
     public void addItem(PerfItem item) {
         perfItems.add(item);
