@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -26,7 +25,6 @@ public class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
         return parse(jsonParser);
     }
 
-    @VisibleForTesting
     public ZonedDateTime parse(final JsonParser jsonParser) throws IOException {
         if (jsonParser.getValueAsString() == null) {
             return null;
@@ -34,7 +32,7 @@ public class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
 
         try {
             return ZonedDateTime.parse(jsonParser.getValueAsString(),
-                            DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));
+                    DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));
         } catch (DateTimeParseException e) {
             throw new JsonParseException(jsonParser, jsonParser.getValueAsString(), e);
         }

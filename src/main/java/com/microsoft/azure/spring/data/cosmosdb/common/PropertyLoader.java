@@ -17,11 +17,19 @@ import java.util.Properties;
 public class PropertyLoader {
 
     private static final String PROJECT_PROPERTY_FILE = "/META-INF/project.properties";
+
     private static final String APPLICATION_PROPERTY_FILE = "/application.properties";
+
     private static final String APPLICATION_YML_FILE = "/application.yml";
+
+    private static final String TELEMETRY_CONFIG_FILE = "/telemetry.config";
 
     public static String getProjectVersion() {
         return getPropertyByName("project.version", PROJECT_PROPERTY_FILE);
+    }
+
+    public static String getTelemetryInstrumentationKey() {
+        return getPropertyByName("telemetry.instrumentationKey", TELEMETRY_CONFIG_FILE);
     }
 
     public static boolean isApplicationTelemetryAllowed() {

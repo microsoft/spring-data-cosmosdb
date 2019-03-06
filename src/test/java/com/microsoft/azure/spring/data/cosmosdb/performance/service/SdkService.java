@@ -5,11 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance.service;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.spring.data.cosmosdb.performance.domain.PerfPerson;
 import com.microsoft.azure.spring.data.cosmosdb.performance.utils.DatabaseUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class SdkService {
     }
 
     public List<PerfPerson> saveAll(Iterable<PerfPerson> personIterable) {
-        final List<PerfPerson> result = Lists.newArrayList();
+        final List<PerfPerson> result = new ArrayList<>();
         personIterable.forEach(person -> result.add(save(person)));
 
         return result;
@@ -78,7 +78,7 @@ public class SdkService {
 
     public List<PerfPerson> findAllById(Iterable<String> ids) {
         final String idsInList = String.join(",",
-                Arrays.asList(ids).stream().map(id -> "'" + id +  "'").collect(Collectors.toList()));
+                Arrays.asList(ids).stream().map(id -> "'" + id + "'").collect(Collectors.toList()));
         final String sql = "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".id IN ("
                 + idsInList + ")";
 
