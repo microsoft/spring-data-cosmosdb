@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.Assert;
@@ -33,9 +34,10 @@ public class TelemetrySender {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private void executeRequest(final TelemetryEventData eventData) {
+    private static final int RETRY_LIMIT = 3; // Align the retry times with sdk
+
+    private ResponseEntity<String> executeRequest(final TelemetryEventData eventData) {
         final HttpHeaders headers = new HttpHeaders();
-        ResponseEntity<String> response = null;
 
         headers.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON.toString());
 
@@ -43,20 +45,34 @@ public class TelemetrySender {
             final RestTemplate restTemplate = new RestTemplate();
             final HttpEntity<String> body = new HttpEntity<>(MAPPER.writeValueAsString(eventData), headers);
 
-            response = restTemplate.exchange(TELEMETRY_TARGET_URL, HttpMethod.POST, body, String.class);
+            return restTemplate.exchange(TELEMETRY_TARGET_URL, HttpMethod.POST, body, String.class);
         } catch (JsonProcessingException | HttpClientErrorException ignore) {
             log.warn("Failed to exchange telemetry request, {}.", ignore.getMessage());
         }
 
+        return null;
+    }
+
+    private void sendTelemetryData(@NonNull TelemetryEventData eventData) {
+        ResponseEntity<String> response = null;
+
+        for (int i = 0; i < RETRY_LIMIT; i++) {
+            response = executeRequest(eventData);
+
+            if (response != null && response.getStatusCode() == HttpStatus.OK) {
+                return;
+            }
+        }
+
         if (response != null && response.getStatusCode() != HttpStatus.OK) {
-            log.warn("Unexpected telemetry response, status code {}.", response.getStatusCode().toString());
+            log.warn("Failed to send telemetry data, response status code {}.", response.getStatusCode().toString());
         }
     }
 
     public void send(String name) {
         Assert.hasText(name, "Event name should contain text.");
 
-        executeRequest(new TelemetryEventData(name, getProperties()));
+        sendTelemetryData(new TelemetryEventData(name, getProperties()));
     }
 
     private Map<String, String> getProperties() {
