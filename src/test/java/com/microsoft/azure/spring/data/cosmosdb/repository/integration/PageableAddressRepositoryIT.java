@@ -7,10 +7,12 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableAddressRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +44,12 @@ public class PageableAddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
 
+    private final DocumentDbEntityInformation<Address, String> entityInformation =
+            new DocumentDbEntityInformation<>(Address.class);
+
+    @Autowired
+    private DocumentDbTemplate template;
+
     @Autowired
     private PageableAddressRepository repository;
 
@@ -50,6 +59,11 @@ public class PageableAddressRepositoryIT {
         repository.save(TEST_ADDRESS1_PARTITION2);
         repository.save(TEST_ADDRESS2_PARTITION1);
         repository.save(TEST_ADDRESS4_PARTITION3);
+    }
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
     }
 
     @After
