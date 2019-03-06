@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
-import com.microsoft.azure.spring.data.cosmosdb.common.TelemetryEventTracker;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -24,9 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 
-
 public abstract class DocumentDbConfigurationSupport {
-    protected TelemetryEventTracker telemetryEventTracker;
 
     @Bean
     public DocumentDbMappingContext documentDbMappingContext() throws ClassNotFoundException {
@@ -49,7 +46,7 @@ public abstract class DocumentDbConfigurationSupport {
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
-        final Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
+        final Set<Class<?>> initialEntitySet = new HashSet<>();
 
         for (final String basePackage : getMappingBasePackages()) {
             initialEntitySet.addAll(scanForEntities(basePackage));
@@ -63,7 +60,7 @@ public abstract class DocumentDbConfigurationSupport {
             return Collections.emptySet();
         }
 
-        final Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
+        final Set<Class<?>> initialEntitySet = new HashSet<>();
 
         if (StringUtils.hasText(basePackage)) {
             final ClassPathScanningCandidateComponentProvider componentProvider =

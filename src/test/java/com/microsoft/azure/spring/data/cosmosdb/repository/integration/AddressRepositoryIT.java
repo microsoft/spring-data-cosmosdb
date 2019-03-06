@@ -5,19 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.exception.IllegalQueryException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
