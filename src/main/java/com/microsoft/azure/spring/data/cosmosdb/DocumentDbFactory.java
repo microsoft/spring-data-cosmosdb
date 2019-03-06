@@ -12,6 +12,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.util.Assert;
 
@@ -19,6 +20,7 @@ import javax.annotation.PostConstruct;
 
 public class DocumentDbFactory {
 
+    @Getter
     private final DocumentDBConfig config;
 
     private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
