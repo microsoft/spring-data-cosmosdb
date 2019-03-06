@@ -9,6 +9,8 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.microsoft.azure.documentdb.*;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils;
+import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
@@ -33,7 +35,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -118,11 +123,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         assertValidId(id);
 
         try {
-            final RequestOptions options = new RequestOptions();
-
-            if (isIdFieldAsPartitionKey(domainClass)) {
-                options.setPartitionKey(new PartitionKey(id));
-            }
+            final PartitionKey partitionKey = isIdFieldAsPartitionKey(domainClass) ? new PartitionKey(id) : null;
+            final RequestOptions options = getRequestOptions(partitionKey, null);
 
             final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
             final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
@@ -314,8 +316,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
 
         try {
-            getDocumentClient().deleteDocument(getDocumentLink(this.databaseName, collectionName, id.toString()),
-                    getRequestOptions(partitionKey, null));
+            final RequestOptions options = getRequestOptions(partitionKey, null);
+            getDocumentClient().deleteDocument(getDocumentLink(databaseName, collectionName, id.toString()), options);
         } catch (DocumentClientException ex) {
             throw new DocumentDBAccessException("deleteById exception", ex);
         }
@@ -337,20 +339,23 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return "/" + partitionKey;
     }
 
+    @NonNull
+    private DocumentDBConfig getDocumentDbConfig() {
+        return documentDbFactory.getConfig();
+    }
+
     private RequestOptions getRequestOptions(PartitionKey key, Integer requestUnit) {
-        if (key == null && requestUnit == null) {
-            return null;
-        }
+        final RequestOptions options = CosmosdbUtils.getCopyFrom(getDocumentDbConfig().getRequestOptions());
 
-        final RequestOptions requestOptions = new RequestOptions();
         if (key != null) {
-            requestOptions.setPartitionKey(key);
-        }
-        if (requestUnit != null) {
-            requestOptions.setOfferThroughput(requestUnit);
+            options.setPartitionKey(key);
         }
 
-        return requestOptions;
+        if (requestUnit != null) {
+            options.setOfferThroughput(requestUnit);
+        }
+
+        return options;
     }
 
     private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
@@ -419,13 +424,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
         try {
-            final RequestOptions options = new RequestOptions();
-
             Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
+            PartitionKey partitionKey = null;
+
             if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
-                options.setPartitionKey(new PartitionKey(document.get(partitionKeyNames.get(0))));
+                partitionKey = new PartitionKey(document.get(partitionKeyNames.get(0)));
             }
+
+            final RequestOptions options = getRequestOptions(partitionKey, null);
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
         } catch (DocumentClientException e) {
