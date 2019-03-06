@@ -6,9 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.inheritance.Square;
-import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SquareRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SquareRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,11 +28,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class SquareRepositoryIT {
-    @Autowired
-    SquareRepository repository;
-
     private Square square1 = new Square("id_1", 1, 1);
     private Square square2 = new Square("id_2", 2, 4);
+
+    private final DocumentDbEntityInformation<Square, String> entityInformation =
+            new DocumentDbEntityInformation<>(Square.class);
+
+    @Autowired
+    private DocumentDbTemplate template;
+
+    @Autowired
+    private SquareRepository repository;
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteCollection(entityInformation.getCollectionName());
+    }
 
     @Before
     public void setup() {
@@ -43,7 +57,7 @@ public class SquareRepositoryIT {
     }
 
     @Test
-    public void  testFindAll() {
+    public void testFindAll() {
         final List<Square> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(2);
