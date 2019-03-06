@@ -10,4 +10,7 @@
 
     <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
 
+    <Class name="com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender"/>
+    <Bug pattern="REC_CATCH_EXCEPTION"/>
+
 </FindBugsFilter>

@@ -5,13 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.Assert;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -46,7 +44,7 @@ public class TelemetrySender {
             final HttpEntity<String> body = new HttpEntity<>(MAPPER.writeValueAsString(eventData), headers);
 
             return restTemplate.exchange(TELEMETRY_TARGET_URL, HttpMethod.POST, body, String.class);
-        } catch (JsonProcessingException | HttpClientErrorException ignore) {
+        } catch (Exception ignore) {
             log.warn("Failed to exchange telemetry request, {}.", ignore.getMessage());
         }
 
