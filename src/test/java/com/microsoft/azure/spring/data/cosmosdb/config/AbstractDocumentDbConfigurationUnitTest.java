@@ -7,7 +7,9 @@
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -53,6 +55,21 @@ public class AbstractDocumentDbConfigurationUnitTest {
         Assertions.assertThat(context.getBean(OBJECTMAPPER_BEAN_NAME)).isNotNull();
     }
 
+    @Test
+    public void testRequestOptionsConfigurable() {
+        final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
+                RequestOptionsConfiguration.class);
+        final DocumentDbFactory factory = context.getBean(DocumentDbFactory.class);
+
+        Assertions.assertThat(factory).isNotNull();
+
+        final RequestOptions options = factory.getConfig().getRequestOptions();
+
+        Assertions.assertThat(options).isNotNull();
+        Assertions.assertThat(options.getConsistencyLevel()).isEqualTo(ConsistencyLevel.ConsistentPrefix);
+        Assertions.assertThat(options.getDisableRUPerMinuteUsage()).isTrue();
+        Assertions.assertThat(options.isScriptLoggingEnabled()).isTrue();
+    }
 
     @Configuration
     static class TestDocumentDbConfiguration extends AbstractDocumentDbConfiguration {
@@ -76,5 +93,28 @@ public class AbstractDocumentDbConfigurationUnitTest {
         public ObjectMapper objectMapper() {
             return new ObjectMapper();
         }
+    }
+
+    @Configuration
+    static class RequestOptionsConfiguration extends AbstractDocumentDbConfiguration {
+
+        private RequestOptions getRequestOptions() {
+            final RequestOptions options = new RequestOptions();
+
+            options.setConsistencyLevel(ConsistencyLevel.ConsistentPrefix);
+            options.setDisableRUPerMinuteUsage(true);
+            options.setScriptLoggingEnabled(true);
+
+            return options;
+        }
+
+        @Override
+        public DocumentDBConfig getConfig() {
+            final RequestOptions options = getRequestOptions();
+            return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME)
+                    .requestOptions(options)
+                    .build();
+        }
+
     }
 }

@@ -5,6 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
+import com.microsoft.azure.documentdb.ConsistencyLevel;
+import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -30,13 +32,25 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.database:}")
     private String database;
 
+    private RequestOptions getRequestOptions() {
+        final RequestOptions options = new RequestOptions();
+
+        options.setConsistencyLevel(ConsistencyLevel.ConsistentPrefix);
+        options.setDisableRUPerMinuteUsage(true);
+        options.setScriptLoggingEnabled(true);
+
+        return options;
+    }
+
     @Override
     public DocumentDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
+        final RequestOptions options = getRequestOptions();
 
         if (StringUtils.hasText(this.documentDbUri) && StringUtils.hasText(this.documentDbKey)) {
-            return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).build();
+            return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).requestOptions(options).build();
         }
-        return DocumentDBConfig.builder(connectionString, dbName).build();
+
+        return DocumentDBConfig.builder(connectionString, dbName).requestOptions(options).build();
     }
 }
