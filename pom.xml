@@ -57,7 +57,7 @@
         <slf4j.version>1.7.25</slf4j.version>
 
         <azure.documentdb.version>1.16.2</azure.documentdb.version>
-        <azure.test.resourcegroup>cosmosdb-test-5-28</azure.test.resourcegroup>
+        <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <azure.applicationinsights.version>2.0.1</azure.applicationinsights.version>
         <skip.integration.tests>true</skip.integration.tests>
@@ -399,7 +399,7 @@
             <properties>
                 <build.profile.id>travis-ci-test</build.profile.id>
                 <skip.integration.tests>false</skip.integration.tests>
-                <test.on.emulator>false</test.on.emulator>
+                <test.on.azure>true</test.on.azure>
                 <test.on.emulator>false</test.on.emulator>
             </properties>
         </profile>

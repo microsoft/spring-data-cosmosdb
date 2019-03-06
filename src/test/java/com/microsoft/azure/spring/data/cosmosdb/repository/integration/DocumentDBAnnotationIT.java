@@ -20,6 +20,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEnt
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,7 @@ public class DocumentDBAnnotationIT {
     }
 
     @Test
+    @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
     public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = collectionRole.getIndexingPolicy();
 
