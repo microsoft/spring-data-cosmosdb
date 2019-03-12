@@ -29,7 +29,7 @@ We recommend users to leverage latest version for bug fix and new features.
 
 Name | Version for Spring Boot 2.1.x | Version for Spring Boot 2.0.x
 :---:|:---:|:---:|
-spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Link] | [![Maven Central][Branch 2.0.x Badge]][Branch 2.0.x Link] | [![Maven Central][Branch 0.1.x Badge]][Branch 0.1.x Link]
+spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Link] | [![Maven Central][Branch 2.0.x Badge]][Branch 2.0.x Link]
 
 ## Feature List
 - Spring Data CRUDRepository basic CRUD functionality
