@@ -76,13 +76,13 @@ public class AbstractDocumentDbConfigurationUnitTest {
         @Mock
         private DocumentClient mockClient;
 
-        @Override
+        @Bean
         public DocumentDBConfig getConfig() {
             return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME).build();
         }
 
         @Override
-        public DocumentClient documentClient() {
+        public DocumentClient documentClient(DocumentDBConfig config) {
             return mockClient;
         }
     }
@@ -108,7 +108,7 @@ public class AbstractDocumentDbConfigurationUnitTest {
             return options;
         }
 
-        @Override
+        @Bean
         public DocumentDBConfig getConfig() {
             final RequestOptions options = getRequestOptions();
             return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME)
