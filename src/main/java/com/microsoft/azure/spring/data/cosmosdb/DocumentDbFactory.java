@@ -44,8 +44,8 @@ public class DocumentDbFactory {
     }
 
     public DocumentClient getDocumentClient() {
-        final ConnectionPolicy policy = config.getConnectionPolicy();
-        final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
+        ConnectionPolicy policy = config.getConnectionPolicy();
+        String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
         policy.setUserAgentSuffix(userAgent);
 
