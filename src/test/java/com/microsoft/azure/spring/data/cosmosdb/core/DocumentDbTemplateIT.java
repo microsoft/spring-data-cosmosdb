@@ -271,10 +271,10 @@ public class DocumentDbTemplateIT {
         final Page<Person> secondPage = dbTemplate.findAll(firstPage.getPageable(), Person.class, collectionName);
 
         assertThat(secondPage.getContent().size()).isEqualTo(2);
+        validateLastPage(secondPage, PAGE_SIZE_3);
 
         final List<Person> secondPageResults = secondPage.getContent();
         assertThat(secondPageResults.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(secondPageResults.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
-
     }
 }
