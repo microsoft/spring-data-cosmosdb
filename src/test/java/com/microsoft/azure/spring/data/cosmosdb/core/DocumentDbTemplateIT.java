@@ -244,4 +244,37 @@ public class DocumentDbTemplateIT {
         assertThat(result.get(2).getFirstName()).isEqualTo(FIRST_NAME);
 
     }
+
+    @Test
+    public void testFindAllWithTwoPagesAndVerifySortOrder() {
+        final Person testPerson4 = new Person("id_4", "barney", NEW_LAST_NAME, HOBBIES, ADDRESSES);
+        final Person testPerson5 = new Person("id_5", "fred", NEW_LAST_NAME, HOBBIES, ADDRESSES);
+
+        dbTemplate.insert(TEST_PERSON_2, null);
+        dbTemplate.insert(TEST_PERSON_3, null);
+        dbTemplate.insert(testPerson4, null);
+        dbTemplate.insert(testPerson5, null);
+
+        final Sort sort = new Sort(Sort.Direction.ASC, "firstName");
+        final PageRequest pageRequest = DocumentDbPageRequest.of(0, PAGE_SIZE_3, null, sort);
+
+        final Page<Person> firstPage = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+
+        assertThat(firstPage.getContent().size()).isEqualTo(3);
+        validateNonLastPage(firstPage, PAGE_SIZE_3);
+
+        final List<Person> firstPageResults = firstPage.getContent();
+        assertThat(firstPageResults.get(0).getFirstName()).isEqualTo(testPerson4.getFirstName());
+        assertThat(firstPageResults.get(1).getFirstName()).isEqualTo(FIRST_NAME);
+        assertThat(firstPageResults.get(2).getFirstName()).isEqualTo(testPerson5.getFirstName());
+
+        final Page<Person> secondPage = dbTemplate.findAll(firstPage.getPageable(), Person.class, collectionName);
+
+        assertThat(secondPage.getContent().size()).isEqualTo(2);
+
+        final List<Person> secondPageResults = secondPage.getContent();
+        assertThat(secondPageResults.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);
+        assertThat(secondPageResults.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
+
+    }
 }
