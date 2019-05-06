@@ -58,9 +58,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Constructor
-     * @param cosmosDbFactory the cosmosdbfactory
+     *
+     * @param cosmosDbFactory            the cosmosdbfactory
      * @param mappingDocumentDbConverter the mappingDocumentDbConverter
-     * @param dbName database name
+     * @param dbName                     database name
      */
     public ReactiveCosmosTemplate(CosmosDbFactory cosmosDbFactory,
                                   MappingDocumentDbConverter mappingDocumentDbConverter,
@@ -77,7 +78,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
-     *
      * @param applicationContext
      * @throws BeansException
      */
@@ -86,6 +86,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Creates a collection if it doesnt already exist
+     *
      * @param information the DocumentDbEntityInformation
      * @return Mono containing CosmosContainerResponse
      */
@@ -102,8 +103,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Find all items in a given container
+     *
      * @param containerName the containerName
-     * @param entityClass the entityClass
+     * @param entityClass   the entityClass
      * @return Flux with all the found items or error
      */
     @Override
@@ -115,6 +117,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Find all items in a given container
+     *
      * @param entityClass the entityClass
      * @return Flux with all the found items or error
      */
@@ -127,7 +130,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Find by id
-     * @param id the id 
+     *
+     * @param id          the id
      * @param entityClass the entityclass
      * @return Mono with the item or error
      */
@@ -139,9 +143,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Find by id
+     *
      * @param containerName the containername
-     * @param id the id
-     * @param entityClass the entity class
+     * @param id            the id
+     * @param entityClass   the entity class
      * @return Mono with the item or error
      */
     @Override
@@ -149,7 +154,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.hasText(containerName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(entityClass, "entityClass should not be null");
         assertValidId(id);
-        
+
         //TODO: Refactor this after np->p is completed upstream
         final String query = String.format("select * from root where root.id = '%s'", id.toString());
         final FeedOptions options = new FeedOptions();
@@ -160,13 +165,14 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .flatMap(cosmosItemFeedResponse -> Mono.just(cosmosItemFeedResponse
                         .getResults()
                         .stream()
-                        .map(cosmosItem ->cosmosItem.toObject(entityClass))
+                        .map(cosmosItem -> cosmosItem.toObject(entityClass))
                         .collect(Collectors.toList()).get(0)))
                 .next();
     }
 
     /**
-     * Insert 
+     * Insert
+     *
      * @param objectToSave the object to save
      * @param partitionKey the partitoin key
      * @return Mono with the item or error
@@ -179,6 +185,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Insert
+     *
      * @param objectToSave the object to save
      * @return Mono with the item or error
      */
@@ -194,10 +201,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
-     * Insert 
+     * Insert
+     *
      * @param containerName the container name
-     * @param objectToSave the object to save
-     * @param partitionKey the partition key
+     * @param objectToSave  the object to save
+     * @param partitionKey  the partition key
      * @return Mono with the item or error
      */
     public <T> Mono<T> insert(String containerName, Object objectToSave, PartitionKey partitionKey) {
@@ -206,7 +214,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        if(partitionKey != null) {
+        if (partitionKey != null) {
             options.setPartitionKey(partitionKey);
         }
 
@@ -220,7 +228,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Upsert
-     * @param object the object to upsert
+     *
+     * @param object       the object to upsert
      * @param partitionKey the partition key
      * @return Mono with the item or error
      */
@@ -231,16 +240,17 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Upsert
+     *
      * @param containerName the container name
-     * @param object the object to save
-     * @param partitionKey the partition key
+     * @param object        the object to save
+     * @param partitionKey  the partition key
      * @return Mono with the item or error
      */
     @Override
     public <T> Mono<T> upsert(String containerName, T object, PartitionKey partitionKey) {
         final Class<T> domainClass = (Class<T>) object.getClass();
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        if (partitionKey != null){
+        if (partitionKey != null) {
             options.setPartitionKey(partitionKey);
         }
 
@@ -252,9 +262,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Delete an item by id
+     *
      * @param containerName the container name
-     * @param id the id 
-     * @param partitionKey the partition key
+     * @param id            the id
+     * @param partitionKey  the partition key
      * @return void Mono
      */
     @Override
@@ -262,11 +273,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.hasText(containerName, "container name should not be null, empty or only whitespaces");
         assertValidId(id);
         Assert.notNull(partitionKey, "partitionKey should not be null");
-        
+
         final JSONObject jo = new JSONObject();
         jo.put("id", id.toString());
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        if(partitionKey != null) {
+        if (partitionKey != null) {
             options.setPartitionKey(partitionKey);
         }
         return getCosmosClient().getDatabase(this.databaseName)
@@ -279,7 +290,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Delete all items in a container
-     * @param containerName the container name
+     *
+     * @param containerName    the container name
      * @param partitionKeyName the partition key path
      * @return void Mono
      */
@@ -287,7 +299,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public Mono<Void> deleteAll(String containerName, String partitionKeyName) {
         Assert.hasText(containerName, "container name should not be null, empty or only whitespaces");
         Assert.notNull(partitionKeyName, "partitionKeyName should not be null");
-        
+
         final Criteria criteria = Criteria.getInstance(CriteriaType.ALL);
         final DocumentQuery query = new DocumentQuery(criteria);
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
@@ -303,13 +315,12 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                         .map(cosmosItem -> cosmosItem.delete(new CosmosItemRequestOptions())))
                 .then();
     }
-    
-    
 
     /**
      * Delete items matching query
-     * @param query the document query
-     * @param entityClass the entity class
+     *
+     * @param query         the document query
+     * @param entityClass   the entity class
      * @param containerName the container name
      * @return Mono
      */
@@ -329,8 +340,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Find items
-     * @param query the document query
-     * @param entityClass the entity class
+     *
+     * @param query         the document query
+     * @param entityClass   the entity class
      * @param containerName the container name
      * @return Flux with found items or error
      */
@@ -340,21 +352,22 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .map(cosmosItem -> cosmosItem.toObject(entityClass));
     }
 
-
     /**
      * Exists
-     * @param query the document query
-     * @param entityClass the entity class
+     *
+     * @param query         the document query
+     * @param entityClass   the entity class
      * @param containerName the container name
      * @return Mono with a boolean or error
      */
     @Override
     public Mono<Boolean> exists(DocumentQuery query, Class<?> entityClass, String containerName) {
-        return getCountValue(query, true, containerName).flatMap(count -> Mono.just(count>0));
+        return getCountValue(query, true, containerName).flatMap(count -> Mono.just(count > 0));
     }
 
     /**
      * Count
+     *
      * @param containerName the container name
      * @return Mono with the count or error
      */
@@ -366,7 +379,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     /**
      * Count
-     * @param query the document query
+     *
+     * @param query         the document query
      * @param containerName the container name
      * @return Mono with count or error
      */
@@ -388,7 +402,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     private Flux<FeedResponse<CosmosItem>> executeQuery(SqlQuerySpec sqlQuerySpec, String collectionName,
-                                                            FeedOptions options) {
+                                                        FeedOptions options) {
 
         return getCosmosClient().getDatabase(this.databaseName)
                 .getContainer(collectionName)
@@ -398,9 +412,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private <T> Mono<T> databaseAccessExceptionHandler(Throwable e) {
         throw new DocumentDBAccessException("failed to access cosmosdb database", e);
     }
-    
+
     /**
      * Delete container with container name
+     *
      * @param containerName the container name
      */
     @Override
@@ -415,7 +430,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
-     *
      * @param domainClass the domain class
      * @return the container name
      */
@@ -455,7 +469,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
-    private  Mono<Void> deleteDocument(@NonNull CosmosItem cosmosItem, @NonNull List<String> partitionKeyNames) {
+    private Mono<Void> deleteDocument(@NonNull CosmosItem cosmosItem, @NonNull List<String> partitionKeyNames) {
         Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
         PartitionKey partitionKey = null;
