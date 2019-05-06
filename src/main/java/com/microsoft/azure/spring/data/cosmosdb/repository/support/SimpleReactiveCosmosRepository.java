@@ -87,12 +87,16 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     public Mono<Boolean> existsById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
 
-        return null;
+        return cosmosOperations.existsById(id, entityInformation.getJavaType(),
+                entityInformation.getCollectionName());
     }
 
     @Override
-    public Mono<Boolean> existsById(Publisher id) {
-        return null;
+    public Mono<Boolean> existsById(Publisher<ID> publisher) {
+        Assert.notNull(publisher, "The given id must not be null!");
+
+        return Mono.from(publisher).flatMap(id -> cosmosOperations.existsById(id, entityInformation.getJavaType(),
+                entityInformation.getCollectionName()));
     }
 
     @Override

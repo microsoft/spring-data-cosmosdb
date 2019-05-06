@@ -45,6 +45,8 @@ public interface ReactiveCosmosOperations {
 
     Mono<Boolean> exists(DocumentQuery query, Class<?> entityClass, String collectionName);
 
+    Mono<Boolean> existsById(Object id, Class<?> entityClass, String containerName);
+
     Mono<Long> count(String collectionName);
 
     Mono<Long> count(DocumentQuery query, String containerName);

@@ -19,12 +19,12 @@ import java.util.Optional;
 
 public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySupport {
 
-    private final ReactiveCosmosOperations cosmosOperations;
+//    private final ReactiveCosmosOperations cosmosOperations;
     private final ApplicationContext applicationContext;
 
     public ReactiveCosmosRepositoryFactory(ReactiveCosmosOperations cosmosOperations,
                                            ApplicationContext applicationContext) {
-        this.cosmosOperations = cosmosOperations;
+//        this.cosmosOperations = cosmosOperations;
         this.applicationContext = applicationContext;
     }
 

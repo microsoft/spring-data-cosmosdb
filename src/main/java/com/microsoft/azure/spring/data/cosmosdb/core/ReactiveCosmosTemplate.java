@@ -212,7 +212,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         if (partitionKey != null) {
             options.setPartitionKey(partitionKey);
@@ -366,6 +365,18 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
+     * Exists
+     * @param id the id
+     * @param entityClass the entity class
+     * @param containerName the containercontainer nam,e
+     * @return
+     */
+    public Mono<Boolean> existsById(Object id, Class<?> entityClass, String containerName) {
+        return findById(containerName, id, entityClass)
+                .flatMap(o -> Mono.just(o !=  null));
+    }
+
+    /**
      * Count
      *
      * @param containerName the container name
@@ -425,7 +436,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
             getCosmosClient().getDatabase(this.databaseName).getContainer(containerName).delete().block();
             this.collectionCache.remove(containerName);
         } catch (Exception e) {
-
+            throw new DocumentDBAccessException("failed to delete collection: " + containerName, e);
         }
     }
 
@@ -481,15 +492,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions(partitionKey);
 
         return cosmosItem.delete(options).then();
-    }
-
-    private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
-        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
-                = new DocumentDbEntityInformation(domainClass);
-        final String partitionKeyName = information.getPartitionKeyFieldName();
-        final String idName = information.getIdField().getName();
-
-        return partitionKeyName != null && partitionKeyName.equals(idName);
     }
 
 }
