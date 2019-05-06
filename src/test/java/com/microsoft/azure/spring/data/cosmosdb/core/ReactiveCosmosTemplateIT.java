@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,8 +102,8 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testInsertDuplicateId() {
-        Mono<Person> insertMono = dbTemplate.insert(TEST_PERSON);
-        TestSubscriber testSubscriber = new TestSubscriber();
+        final Mono<Person> insertMono = dbTemplate.insert(TEST_PERSON);
+        final TestSubscriber testSubscriber = new TestSubscriber();
         insertMono.subscribe(testSubscriber);
         testSubscriber.awaitTerminalEvent();
         testSubscriber.assertNotComplete();
@@ -109,7 +114,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testFindByID() {
-        final Mono<Person> findById = dbTemplate.findById(Person.class.getSimpleName(),TEST_PERSON.getId(),
+        final Mono<Person> findById = dbTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(), 
                 Person.class);
         StepVerifier.create(findById).consumeNextWith(actual -> {
             Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
@@ -119,7 +124,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testFindAll() {
-        Flux<Person> flux = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        final Flux<Person> flux = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
         StepVerifier.create(flux).expectNextCount(1).verifyComplete();
     }
 
@@ -146,39 +151,38 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testUpsert() {
-        Person p = TEST_PERSON_2;
-        ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
+        final Person p = TEST_PERSON_2;
+        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
-        Mono<Person> upsert = dbTemplate.upsert(p, null);
+        final Mono<Person> upsert = dbTemplate.upsert(p, null);
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testUpsertWithCollectionName() {
-        Person p = TEST_PERSON_2;
-        ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
+        final Person p = TEST_PERSON_2;
+        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
-        Mono<Person> upsert = dbTemplate.upsert(Person.class.getSimpleName(), p, null);
+        final Mono<Person> upsert = dbTemplate.upsert(Person.class.getSimpleName(), p, null);
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testDeleteById() {
         dbTemplate.insert(TEST_PERSON_4).block();
-        Mono<Void> voidMono = dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
+        final Mono<Void> voidMono = dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
                 new PartitionKey(TEST_PERSON_4.getId()));
         StepVerifier.create(voidMono).verifyComplete();
     }
-
 
     @Test
     public void testFind() {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
-        Flux<Person> personFlux = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
+        final Flux<Person> personFlux = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
         StepVerifier.create(personFlux).expectNextCount(1).verifyComplete();
     }
 
@@ -187,13 +191,13 @@ public class ReactiveCosmosTemplateIT {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
-        Mono<Boolean> exists = dbTemplate.exists(query, Person.class, containerName);
+        final Mono<Boolean> exists = dbTemplate.exists(query, Person.class, containerName);
         StepVerifier.create(exists).expectNext(true).verifyComplete();
     }
 
     @Test
     public void testCount() {
-        Mono<Long> count = dbTemplate.count(containerName);
+        final Mono<Long> count = dbTemplate.count(containerName);
         StepVerifier.create(count).expectNext((long) 1).verifyComplete();
     }
 

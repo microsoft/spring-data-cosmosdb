@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;

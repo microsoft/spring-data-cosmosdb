@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.cosmosdb.PartitionKey;
@@ -20,9 +25,8 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implements ReactiveCosmosRepository<T, ID> {
 
-    public final @NonNull DocumentDbEntityInformation<T, ID> entityInformation;
-    public final @NonNull ReactiveCosmosOperations cosmosOperations;
-    
+    public final DocumentDbEntityInformation<T, ID> entityInformation;
+    public final ReactiveCosmosOperations cosmosOperations;
 
     @Override
     public Flux<T> findAll(Sort sort) {
@@ -67,7 +71,7 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     @Override
     public Mono<T> findById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
-        return cosmosOperations.findById( entityInformation.getCollectionName(), id, entityInformation.getJavaType());
+        return cosmosOperations.findById(entityInformation.getCollectionName(), id, entityInformation.getJavaType());
     }
 
     @Override
@@ -75,7 +79,8 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
         Assert.notNull(publisher, "The given id must not be null!");
 
         return Mono.from(publisher).flatMap(
-                id -> cosmosOperations.findById(entityInformation.getCollectionName() ,id, entityInformation.getJavaType()));
+                id -> cosmosOperations.findById(entityInformation.getCollectionName(),
+                        id, entityInformation.getJavaType()));
     }
 
     @Override
@@ -157,7 +162,8 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
 
     @Override
     public Mono<Void> deleteAll() {
-        return cosmosOperations.deleteAll(entityInformation.getCollectionName(), entityInformation.getPartitionKeyFieldName());
+        return cosmosOperations.deleteAll(entityInformation.getCollectionName(),
+                entityInformation.getPartitionKeyFieldName());
     }
 
     private PartitionKey createKey(String partitionKeyValue) {

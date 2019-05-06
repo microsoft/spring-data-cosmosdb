@@ -52,7 +52,8 @@ public class ReactiveCosmosTemplateIllegalTest {
 
     @Before
     public void setUp() {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME).build();
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME)
+                .build();
         this.dbTemplate = new ReactiveCosmosTemplate(new CosmosDbFactory(dbConfig), dbConverter, TestConstants.DB_NAME);
         dbTemplateClass = dbTemplate.getClass();
     }

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,9 +103,9 @@ public class ReactiveCosmosTemplatePartitionIT {
 
     @Test
     public void testFindWithPartition() {
-        Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
-        DocumentQuery query = new DocumentQuery(criteria);
-        Flux<PartitionPerson> partitionPersonFlux = dbTemplate.find(query, PartitionPerson.class,
+        final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
+        final DocumentQuery query = new DocumentQuery(criteria);
+        final Flux<PartitionPerson> partitionPersonFlux = dbTemplate.find(query, PartitionPerson.class,
                 PartitionPerson.class.getSimpleName());
         StepVerifier.create(partitionPersonFlux).consumeNextWith(actual -> {
             Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
@@ -110,7 +115,7 @@ public class ReactiveCosmosTemplatePartitionIT {
 
     @Test
     public void testFindByNonExistIdWithPartition() {
-        
+
     }
 
     @Test
@@ -119,7 +124,7 @@ public class ReactiveCosmosTemplatePartitionIT {
         final PartitionPerson newPerson = new PartitionPerson(UUID.randomUUID().toString(), firstName, NEW_LAST_NAME,
                 null, null);
         final String partitionKeyValue = newPerson.getLastName();
-        Mono<PartitionPerson> upsert = dbTemplate.upsert(newPerson, new PartitionKey(partitionKeyValue));
+        final Mono<PartitionPerson> upsert = dbTemplate.upsert(newPerson, new PartitionKey(partitionKeyValue));
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
@@ -162,7 +167,7 @@ public class ReactiveCosmosTemplatePartitionIT {
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
         StepVerifier.create(dbTemplate.count(query, containerName)).expectNext((long) 1).verifyComplete();
-        
+
     }
-    
+
 }

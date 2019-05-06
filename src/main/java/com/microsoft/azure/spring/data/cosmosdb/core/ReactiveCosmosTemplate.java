@@ -151,8 +151,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         assertValidId(id);
         
         //TODO: Refactor this after np->p is completed upstream
-        String query = String.format("select * from root where root.id = '%s'", id.toString());
-        FeedOptions options = new FeedOptions();
+        final String query = String.format("select * from root where root.id = '%s'", id.toString());
+        final FeedOptions options = new FeedOptions();
         options.setEnableCrossPartitionQuery(true);
         return getCosmosClient().getDatabase(databaseName)
                 .getContainer(containerName)
@@ -205,8 +205,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
         final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.setPartitionKey(partitionKey);
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+        if(partitionKey != null) {
+            options.setPartitionKey(partitionKey);
+        }
 
         final Class<T> domainClass = (Class<T>) objectToSave.getClass();
         return getCosmosClient().getDatabase(this.databaseName)
@@ -237,8 +239,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public <T> Mono<T> upsert(String containerName, T object, PartitionKey partitionKey) {
         final Class<T> domainClass = (Class<T>) object.getClass();
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        if(partitionKey != null){
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+        if (partitionKey != null){
             options.setPartitionKey(partitionKey);
         }
 
@@ -261,10 +263,12 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         assertValidId(id);
         Assert.notNull(partitionKey, "partitionKey should not be null");
         
-        JSONObject jo = new JSONObject();
+        final JSONObject jo = new JSONObject();
         jo.put("id", id.toString());
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.setPartitionKey(partitionKey);
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+        if(partitionKey != null) {
+            options.setPartitionKey(partitionKey);
+        }
         return getCosmosClient().getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .getItem(jo.toString())
@@ -425,7 +429,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                                            @NonNull String containerName) {
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        FeedOptions feedOptions = new FeedOptions();
+        final FeedOptions feedOptions = new FeedOptions();
         feedOptions.setEnableCrossPartitionQuery(isCrossPartitionQuery);
         return getCosmosClient()
                 .getDatabase(this.databaseName)

@@ -51,7 +51,7 @@ public class CosmosDbFactory {
 
         policy.setUserAgentSuffix(userAgent);
 
-        CosmosConfiguration configuration = new CosmosConfiguration.Builder()
+        final CosmosConfiguration configuration = new CosmosConfiguration.Builder()
                 .withServiceEndpoint(config.getUri())
                 .withKeyOrResourceToken(config.getKey())
 //                .withConnectionPolicy(policy) //TODO: Fix while removing the other sdk

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
@@ -13,11 +18,12 @@ import java.io.Serializable;
 import java.util.Optional;
 
 public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySupport {
-    
+
     private final ReactiveCosmosOperations cosmosOperations;
     private final ApplicationContext applicationContext;
 
-    public ReactiveCosmosRepositoryFactory(ReactiveCosmosOperations cosmosOperations, ApplicationContext applicationContext) {
+    public ReactiveCosmosRepositoryFactory(ReactiveCosmosOperations cosmosOperations,
+                                           ApplicationContext applicationContext) {
         this.cosmosOperations = cosmosOperations;
         this.applicationContext = applicationContext;
     }
@@ -40,7 +46,8 @@ public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySu
     }
 
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
+            QueryLookupStrategy.Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
         // TODO: CosmosQueryLookupStrategy
         return super.getQueryLookupStrategy(key, evaluationContextProvider);
     }
