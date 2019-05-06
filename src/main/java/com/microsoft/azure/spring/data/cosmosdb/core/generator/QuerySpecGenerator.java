@@ -17,4 +17,11 @@ public interface QuerySpecGenerator {
      * @return SqlQuerySpec executed by documentDb client.
      */
     SqlQuerySpec generate(DocumentQuery query);
+
+    /**
+     * Generate the SqlQuerySpec for cosmosDB client.
+     * @param query tree structured query condition.
+     * @return SqlQuerySpec executed by documentDb client.
+     */
+    com.microsoft.azure.cosmosdb.SqlQuerySpec generateCosmos(DocumentQuery query);
 }
