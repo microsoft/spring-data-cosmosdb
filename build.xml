@@ -19,9 +19,6 @@
             <entry key="cosmosdb.key" value="${cosmosdb.key}"/>
             <entry key="cosmosdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
         </propertyfile>
-        <exec osfamily="unix" executable="cat">
-            <arg value="./src/test/resources/application.properties" />
-        </exec>
     </target>
     <target name="cleanup">
         <echo message="cleanup test resource"/>
