@@ -39,10 +39,8 @@ public class ReactiveCosmosTemplateIllegalTest {
     private static final String WHITESPACES_STR = "  ";
     private static final String CHECK_FAILURE_MSG = "Illegal argument is not checked";
 
-    @Value("${cosmosdb.uri}")
-    private String documentDbUri;
-    @Value("${cosmosdb.key}")
-    private String documentDbKey;
+    private String documentDbUri = "http://uri";
+    private String documentDbKey = "key";
 
     private ReactiveCosmosTemplate dbTemplate;
     private Class dbTemplateClass;
