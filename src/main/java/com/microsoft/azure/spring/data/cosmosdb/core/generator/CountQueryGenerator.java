@@ -14,4 +14,9 @@ public class CountQueryGenerator extends AbstractQueryGenerator implements Query
     public SqlQuerySpec generate(DocumentQuery query) {
         return super.generateQuery(query, "SELECT VALUE COUNT(1) FROM r");
     }
+
+    @Override
+    public com.microsoft.azure.cosmosdb.SqlQuerySpec generateCosmos(DocumentQuery query) {
+        return super.generateCosmosQuery(query, "SELECT VALUE COUNT(1) FROM r");
+    }
 }

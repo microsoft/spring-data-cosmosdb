@@ -17,4 +17,9 @@ public class FindQuerySpecGenerator extends AbstractQueryGenerator implements Qu
     public SqlQuerySpec generate(@NonNull DocumentQuery query) {
         return super.generateQuery(query, "SELECT * FROM ROOT r");
     }
+
+    @Override
+    public com.microsoft.azure.cosmosdb.SqlQuerySpec generateCosmos(DocumentQuery query) {
+        return super.generateCosmosQuery(query, "SELECT * FROM ROOT r");
+    }
 }
