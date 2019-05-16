@@ -48,6 +48,7 @@ public class CosmosDbFactory {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
+        System.out.println("config.getUri() = " + config.getUri());
 
         policy.setUserAgentSuffix(userAgent);
 

@@ -90,7 +90,6 @@ public class ReactiveCosmosTemplateIT {
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
-
         cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
         dbTemplate.insert(TEST_PERSON).block();
     }
