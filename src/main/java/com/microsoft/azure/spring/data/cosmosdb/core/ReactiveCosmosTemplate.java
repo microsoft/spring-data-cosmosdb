@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
@@ -14,7 +14,6 @@ import com.microsoft.azure.cosmosdb.FeedOptions;
 import com.microsoft.azure.cosmosdb.FeedResponse;
 import com.microsoft.azure.cosmosdb.PartitionKey;
 import com.microsoft.azure.cosmosdb.SqlQuerySpec;
-import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
