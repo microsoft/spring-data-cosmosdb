@@ -114,6 +114,7 @@ public class DocumentDbTemplateIT {
     @Test
     public void testFindAll() {
         final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        System.out.println("result.get(0) = " + result.get(0));
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
     }
