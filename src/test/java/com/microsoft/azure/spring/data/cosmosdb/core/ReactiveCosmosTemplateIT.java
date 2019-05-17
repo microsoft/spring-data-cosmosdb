@@ -91,11 +91,9 @@ public class ReactiveCosmosTemplateIT {
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         
-        Base64.Decoder decoder = Base64.getDecoder();
-        
-        try{
-            decoder.decode(documentDbKey);
-        }catch (IllegalArgumentException e){
+        try {
+            Base64.getDecoder().decode(documentDbKey);
+        } catch (IllegalArgumentException e) {
             System.out.println("Invalid dbkey!! ");
         }
         
