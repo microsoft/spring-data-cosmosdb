@@ -93,6 +93,7 @@ public class ReactiveCosmosTemplateIT {
         
         try {
             Base64.getDecoder().decode(documentDbKey);
+            System.out.println("valid dbkey");
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid dbkey!! ");
         }

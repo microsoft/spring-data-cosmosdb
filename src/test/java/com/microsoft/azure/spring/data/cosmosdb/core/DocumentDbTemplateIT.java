@@ -37,6 +37,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,6 +86,13 @@ public class DocumentDbTemplateIT {
         collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+
+        try {
+            Base64.getDecoder().decode(documentDbKey);
+            System.out.println("valid dbkey");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid dbkey!! ");
+        }
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
