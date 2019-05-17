@@ -48,17 +48,9 @@ public class CosmosDbFactory {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
-        System.out.println("config.getUri() = " + config.getUri());
-
+        System.out.println("dconfig.getKey().substring(1, 6) = " + config.getKey().substring(5, 25));
         policy.setUserAgentSuffix(userAgent);
-
-        final CosmosConfiguration configuration = new CosmosConfiguration.Builder()
-                .withServiceEndpoint(config.getUri())
-                .withKeyOrResourceToken(config.getKey())
-                // .withConnectionPolicy(policy) //TODO: Fix while removing the other sdk
-                // .withConsistencyLevel(config.getConsistencyLevel()) //TODO: Fix while removing the other sdk
-                .build();
-        return CosmosClient.create(configuration);
+        return CosmosClient.create(config.getUri(), config.getKey());
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {
