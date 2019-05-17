@@ -48,7 +48,6 @@ public class DocumentDbFactory {
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
         policy.setUserAgentSuffix(userAgent);
-        System.out.println("cconfig.getKey().substring(1, 6) = " + config.getKey().substring(5, 25));
         return new DocumentClient(config.getUri(), config.getKey(), policy, config.getConsistencyLevel());
     }
 

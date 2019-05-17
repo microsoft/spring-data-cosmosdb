@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 import com.microsoft.azure.cosmos.CosmosContainer;
 import com.microsoft.azure.cosmosdb.DocumentClientException;
 import com.microsoft.azure.cosmosdb.PartitionKey;
@@ -92,12 +93,29 @@ public class ReactiveCosmosTemplateIT {
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         
         try {
-            Base64.getDecoder().decode(documentDbKey);
+            Base64.getDecoder().decode(documentDbKey.getBytes());
             System.out.println("valid dbkey");
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid dbkey!! ");
         }
-        System.out.println("cosmos: documentDbKey.substring(1, 6) = " + documentDbKey.substring(5, 25));
+
+        try {
+            org.apache.commons.codec.binary.Base64.decodeBase64(documentDbKey.getBytes());
+            System.out.println("apache base64: Valid dbkey");
+        } catch (IllegalArgumentException e) {
+            System.out.println("apache base64: Invalid dbkey!");
+        }
+
+        try {
+            Base64.getDecoder().decode(documentDbKey.getBytes(Charsets.UTF_8));
+            System.out.println("utf8: Valid dbkey!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("utf8: Invalid dbkey!");
+        }
+
+        System.out.println("docdb: .substring(40) = " + documentDbKey.substring(40));
+        
+        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(25));
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
         dbTemplate.insert(TEST_PERSON).block();

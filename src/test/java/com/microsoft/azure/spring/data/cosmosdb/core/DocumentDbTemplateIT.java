@@ -93,7 +93,7 @@ public class DocumentDbTemplateIT {
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid dbkey!! ");
         }
-        System.out.println("docdb: documentDbKey.substring(1, 6) = " + documentDbKey.substring(5, 25));
+        
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
