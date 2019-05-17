@@ -96,7 +96,7 @@ public class ReactiveCosmosTemplateIT {
             Base64.getDecoder().decode(documentDbKey.getBytes());
             System.out.println("valid dbkey");
         } catch (IllegalArgumentException e) {
-            System.out.println("Invalid dbkey!! ");
+            System.out.println("Invalid dbkey!! " + e.getCause() + e.getMessage());
         }
 
         try {
@@ -107,15 +107,14 @@ public class ReactiveCosmosTemplateIT {
         }
 
         try {
-            Base64.getDecoder().decode(documentDbKey.getBytes(Charsets.UTF_8));
+            Base64.getDecoder().decode(documentDbKey.getBytes(Charsets.ISO_8859_1));
             System.out.println("utf8: Valid dbkey!");
         } catch (IllegalArgumentException e) {
-            System.out.println("utf8: Invalid dbkey!");
+            System.out.println("iso: Invalid dbkey!" + e.getMessage());
         }
 
-        System.out.println("docdb: .substring(40) = " + documentDbKey.substring(40));
+        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(0, 30));
         
-        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(25));
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
         dbTemplate.insert(TEST_PERSON).block();
