@@ -91,6 +91,8 @@ public class ReactiveCosmosTemplateIT {
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+
+        System.out.println("documentDbKey.length() = " + documentDbKey.length());
         
         try {
             Base64.getDecoder().decode(documentDbKey.getBytes());
@@ -113,7 +115,7 @@ public class ReactiveCosmosTemplateIT {
             System.out.println("iso: Invalid dbkey!" + e.getMessage());
         }
 
-        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(0, 30));
+        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(10, 50));
         
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
