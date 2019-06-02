@@ -26,6 +26,8 @@ import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 
@@ -151,12 +153,16 @@ public class ProjectRepositorySortIT {
         this.repository.findAll(sort);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
-    @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
+    @Test
     public void testFindAllSortWithIdName() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+        final List<Project> projectListSortedById = Lists.newArrayList(PROJECTS);
+        projectListSortedById.sort(Comparator.comparing(Project::getId));
 
-        this.repository.findAll(sort);
+        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+        final List<Project> results = StreamSupport.stream(this.repository.findAll(sort).spliterator(), false)
+                .collect(Collectors.toList());
+
+        assert projectListSortedById.equals(results);
     }
 
     @Test

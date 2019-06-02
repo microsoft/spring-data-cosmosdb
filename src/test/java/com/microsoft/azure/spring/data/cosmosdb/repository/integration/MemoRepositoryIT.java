@@ -236,9 +236,10 @@ public class MemoRepositoryIT {
         Assert.assertEquals(reference, memos);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
-    @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
+    @Test
     public void testFindByStartsWithWithException() {
-        repository.findByMessageStartsWith(testMemo1.getMessage());
+        final List<Memo> result = repository.findByMessageStartsWith(testMemo1.getMessage().substring(0, 10));
+        assert result.get(0).equals(testMemo1);
+        assert result.size() == 1;
     }
 }
