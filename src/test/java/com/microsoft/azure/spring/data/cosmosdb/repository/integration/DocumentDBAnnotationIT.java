@@ -6,7 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
@@ -16,6 +17,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbCo
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import lombok.SneakyThrows;
 import org.junit.After;
@@ -24,32 +26,26 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
 import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = {"classpath:application.properties"})
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class DocumentDBAnnotationIT {
     private static final Role TEST_ROLE = new Role(TestConstants.ID_1, TestConstants.LEVEL,
             TestConstants.ROLE_NAME);
 
-    @Value("${cosmosdb.uri}")
-    private String dbUri;
-
-    @Value("${cosmosdb.key}")
-    private String dbKey;
-
+    @Autowired
+    private DocumentDBConfig dbConfig;
     @Autowired
     private ApplicationContext applicationContext;
 
-    private DocumentClient dbClient;
     private DocumentDbTemplate dbTemplate;
     private DocumentCollection collectionRole;
     private DocumentCollection collectionExample;
@@ -61,7 +57,6 @@ public class DocumentDBAnnotationIT {
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
         final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
 
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
@@ -72,8 +67,7 @@ public class DocumentDBAnnotationIT {
         dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
-        dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-        dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, dbConfig.getDatabase());
 
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo);
         collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo);

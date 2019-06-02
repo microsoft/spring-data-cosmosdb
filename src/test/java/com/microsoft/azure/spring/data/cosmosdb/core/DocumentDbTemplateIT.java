@@ -19,6 +19,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -34,6 +35,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -47,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = {"classpath:application.properties"})
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class DocumentDbTemplateIT {
     private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
@@ -58,11 +60,6 @@ public class DocumentDbTemplateIT {
     private static final Person TEST_PERSON_3 = new Person(TestConstants.ID_3, TestConstants.NEW_FIRST_NAME,
             TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    @Value("${cosmosdb.uri}")
-    private String documentDbUri;
-    @Value("${cosmosdb.key}")
-    private String documentDbKey;
-
     private DocumentDbTemplate dbTemplate;
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
@@ -72,11 +69,12 @@ public class DocumentDbTemplateIT {
     private String collectionName;
 
     @Autowired
+    private DocumentDBConfig dbConfig;
+    @Autowired
     private ApplicationContext applicationContext;
 
     @Before
     public void setup() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();
@@ -87,7 +85,7 @@ public class DocumentDbTemplateIT {
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
+        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, dbConfig.getDatabase());
 
         collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
         dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
