@@ -12,15 +12,23 @@ import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessExcept
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.PreDestroy;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -37,6 +45,11 @@ public class RoleRepositoryCollectionIT {
     @Autowired
     private DocumentDbTemplate template;
 
+    @Before
+    public void setup() {
+        repository.deleteAll();
+    }
+
     @PreDestroy
     public void cleanUpCollection() {
         template.deleteCollection(entityInformation.getCollectionName());
@@ -48,13 +61,25 @@ public class RoleRepositoryCollectionIT {
     }
 
     @Test
-    public void testSaveAll() {
-        this.repository.saveAll(Collections.singleton(DOMAIN));
+    public void testSaveAndFindById() {
+        assert this.repository.save(DOMAIN) != null;
+
+        final Optional<IntegerIdDomain> savedEntity = this.repository.findById(DOMAIN.getNumber());
+        assert savedEntity.isPresent();
+        assert DOMAIN.equals(savedEntity.get());
     }
 
     @Test
-    public void testFindAll() {
-        this.repository.findAll();
+    public void testSaveAllAndFindAll() {
+        assert !this.repository.findAll().iterator().hasNext();
+
+        final Set<IntegerIdDomain> entitiesToSave = Collections.singleton(DOMAIN);
+        this.repository.saveAll(entitiesToSave);
+
+        final Set<IntegerIdDomain> savedEntities = StreamSupport.stream(this.repository.findAll().spliterator(), false)
+                .collect(Collectors.toSet());
+
+        assert entitiesToSave.containsAll(savedEntities);
     }
 
     @Test
@@ -63,43 +88,87 @@ public class RoleRepositoryCollectionIT {
     }
 
     @Test
-    public void testFindById() {
-        this.repository.findById(DOMAIN.getNumber());
+    public void testCount() {
+        assert repository.count() == 0;
+        this.repository.save(DOMAIN);
+        assert repository.count() == 1;
     }
 
     @Test
-    public void testCount() {
-        this.repository.count();
+    public void testDeleteById() {
+        this.repository.save(DOMAIN);
+        this.repository.deleteById(DOMAIN.getNumber());
+        assert this.repository.count() == 0;
     }
 
     @Test(expected = DocumentDBAccessException.class)
-    public void testDeleteById() {
+    public void testDeleteByIdShouldFailIfNothingToDelete() {
         this.repository.deleteById(DOMAIN.getNumber());
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test
     public void testDelete() {
+        this.repository.save(DOMAIN);
+        this.repository.delete(DOMAIN);
+        assert this.repository.count() == 0;
+    }
+
+    @Test(expected = DocumentDBAccessException.class)
+    public void testDeleteShouldFailIfNothingToDelete() {
         this.repository.delete(DOMAIN);
     }
 
     @Test
     public void testDeleteAll() {
+        this.repository.save(DOMAIN);
         this.repository.deleteAll(Collections.singleton(DOMAIN));
+        assert this.repository.count() == 0;
     }
 
     @Test
     public void testExistsById() {
-        this.repository.existsById(DOMAIN.getNumber());
+        this.repository.save(DOMAIN);
+        assert this.repository.existsById(DOMAIN.getNumber());
     }
 
     @Test
     public void testFindAllSort() {
-        this.repository.findAll(Sort.unsorted());
+        final IntegerIdDomain other = new IntegerIdDomain(DOMAIN.getNumber() + 1, "other-name");
+        this.repository.save(other);
+        this.repository.save(DOMAIN);
+
+        final Sort ascSort = Sort.by(Sort.Direction.ASC, "number");
+        final List<IntegerIdDomain> ascending = StreamSupport
+                .stream(this.repository.findAll(ascSort).spliterator(), false)
+                .collect(Collectors.toList());
+        assert ascending.size() == 2;
+        assert DOMAIN.equals(ascending.get(0));
+        assert other.equals(ascending.get(1));
+
+        final Sort descSort = Sort.by(Sort.Direction.DESC, "number");
+        final List<IntegerIdDomain> descending = StreamSupport
+                .stream(this.repository.findAll(descSort).spliterator(), false)
+                .collect(Collectors.toList());
+        assert descending.size() == 2;
+        assert other.equals(descending.get(0));
+        assert DOMAIN.equals(descending.get(1));
+
     }
 
     @Test
     public void testFindAllPageable() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, 3, null);
-        this.repository.findAll(pageRequest);
+        final IntegerIdDomain other = new IntegerIdDomain(DOMAIN.getNumber() + 1, "other-name");
+        this.repository.save(DOMAIN);
+        this.repository.save(other);
+
+        final Page<IntegerIdDomain> page1 = this.repository.findAll(new DocumentDbPageRequest(0, 1, null));
+        final Iterator<IntegerIdDomain> page1Iterator = page1.iterator();
+        assert page1Iterator.hasNext();
+        assert DOMAIN.equals(page1Iterator.next());
+
+        final Page<IntegerIdDomain> page2 = this.repository.findAll(new DocumentDbPageRequest(1, 1, null));
+        final Iterator<IntegerIdDomain> page2Iterator = page2.iterator();
+        assert page2Iterator.hasNext();
+        assert DOMAIN.equals(page2Iterator.next());
     }
 }
