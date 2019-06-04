@@ -73,7 +73,7 @@ If you are using Maven, add the following dependency.
 <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.0.3</version>
+    <version>2.1.2</version>
 </dependency>
 ```
 
@@ -158,7 +158,7 @@ public class User {
 Extends DocumentDbRepository interface, which provides Spring Data repository support.
 
 ```java
-import DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
