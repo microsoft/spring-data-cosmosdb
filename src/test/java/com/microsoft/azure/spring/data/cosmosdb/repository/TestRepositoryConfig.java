@@ -12,6 +12,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfigu
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.StringUtils;
@@ -42,7 +43,7 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
         return options;
     }
 
-    @Override
+    @Bean
     public DocumentDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
         final RequestOptions options = getRequestOptions();
