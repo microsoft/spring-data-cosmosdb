@@ -24,6 +24,7 @@ goto :noSetup
 )
 
 call az login --service-principal -u %clientId% -p %clientKey% --tenant %tenantId% >> null
+call az group create -l westus -n %resourcegroup% >> null
 set createcmd='az cosmosdb create --name %dbname% --resource-group %resourcegroup% --kind GlobalDocumentDB --query documentEndpoint'
 
 for /f "tokens=*" %%a in (%createcmd%) do (set cosmosdburi=%%a)

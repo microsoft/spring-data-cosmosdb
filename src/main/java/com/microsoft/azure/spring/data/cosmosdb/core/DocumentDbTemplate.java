@@ -509,7 +509,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
                 pageable.getPageSize(),
-                response.getResponseContinuation());
+                response.getResponseContinuation(),
+                query.getSort());
 
         return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
     }

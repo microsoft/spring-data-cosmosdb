@@ -31,5 +31,5 @@ then
 fi
 
 chmod 775 $install_script
-yes | python3 ./$install_script > /dev/null
+yes | /usr/bin/python3.5 ./$install_script > /dev/null
 sudo ln -sfv /home/travis/build/Microsoft/spring-data-cosmosdb/y/az /bin/az 

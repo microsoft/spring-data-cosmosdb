@@ -16,6 +16,7 @@
 * [Feature List](#feature-list)
 * [Quick Start](#quick-start)
 * [Query Partitioned Collection](QueryPartitionedCollection.md)
+* [Snapshots](#snapshots)
 * [Filing Issues](#filing-issues)
 * [How to Contribute](#how-to-contribute)
 * [Code of Conduct](#code-of-conduct)
@@ -201,6 +202,23 @@ public class SampleApplication implements CommandLineRunner {
 }
 ```
 Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
+
+## Snapshots
+[![Nexus OSS](https://img.shields.io/nexus/snapshots/https/oss.sonatype.org/com.microsoft.azure/spring-data-cosmosdb.svg)](https://oss.sonatype.org/content/repositories/snapshots/com/microsoft/azure/spring-data-cosmosdb/)
+
+Snapshots built from `master` branch are available, add [maven repositories](https://maven.apache.org/settings.html#Repositories) configuration to your pom file as below. 
+```xml
+<repositories>
+  <repository>
+    <id>nexus-snapshots</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    <snapshots>
+      <enabled>true</enabled>
+      <updatePolicy>always</updatePolicy>
+    </snapshots>
+  </repository>
+</repositories>
+```
 
 ## Filing Issues
 
