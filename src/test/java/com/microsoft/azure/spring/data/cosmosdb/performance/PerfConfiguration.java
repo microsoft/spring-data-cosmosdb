@@ -10,6 +10,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.performance.utils.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
@@ -23,7 +24,7 @@ public class PerfConfiguration extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.key:}")
     private String documentDbKey;
 
-    @Override
+    @Bean
     public DocumentDBConfig getConfig() {
         return DocumentDBConfig.builder(documentDbUri, documentDbKey, Constants.PERF_DATABASE_NAME).build();
     }
