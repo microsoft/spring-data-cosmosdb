@@ -237,7 +237,7 @@ public class MemoRepositoryIT {
     }
 
     @Test
-    public void testFindByStartsWithWithException() {
+    public void testFindByStartsWith() {
         final List<Memo> result = repository.findByMessageStartsWith(testMemo1.getMessage().substring(0, 10));
         assert result.get(0).equals(testMemo1);
         assert result.size() == 1;
