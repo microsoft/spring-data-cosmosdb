@@ -19,11 +19,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigurationSupport {
-    public abstract DocumentDBConfig getConfig();
-
     @Bean
-    public DocumentClient documentClient() {
-        return this.documentDbFactory().getDocumentClient();
+    public DocumentClient documentClient(DocumentDBConfig config) {
+        return this.documentDbFactory(config).getDocumentClient();
     }
 
     @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
@@ -31,14 +29,13 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     private ObjectMapper objectMapper;
 
     @Bean
-    public DocumentDbFactory documentDbFactory() {
-        return new DocumentDbFactory(this.getConfig());
+    public DocumentDbFactory documentDbFactory(DocumentDBConfig config) {
+        return new DocumentDbFactory(config);
     }
 
     @Bean
-    public DocumentDbTemplate documentDbTemplate() throws ClassNotFoundException {
-        final DocumentDBConfig config = getConfig();
-        return new DocumentDbTemplate(this.documentDbFactory(), this.mappingDocumentDbConverter(),
+    public DocumentDbTemplate documentDbTemplate(DocumentDBConfig config) throws ClassNotFoundException {
+        return new DocumentDbTemplate(this.documentDbFactory(config), this.mappingDocumentDbConverter(),
                 config.getDatabase());
     }
 

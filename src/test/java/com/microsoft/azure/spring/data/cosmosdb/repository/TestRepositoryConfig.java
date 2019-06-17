@@ -44,7 +44,6 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     }
 
     @Bean
-    @Override
     public DocumentDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
         final RequestOptions options = getRequestOptions();
