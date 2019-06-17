@@ -11,8 +11,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 
-import java.util.List;
-
 public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
 
     private final DocumentDbQueryMethod method;
@@ -42,12 +40,10 @@ public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
             return new DocumentDbQueryExecution.PagedExecution(operations, accessor.getPageable());
         } else if (isExistsQuery()) {
             return new DocumentDbQueryExecution.ExistsExecution(operations);
+        } else if (method.isCollectionQuery()) {
+            return new DocumentDbQueryExecution.MultiEntityExecution(operations);
         } else {
-            if (method.isCollectionQuery()) {
-                return new DocumentDbQueryExecution.MultiEntityExecution(operations);
-            } else {
-                return new DocumentDbQueryExecution.SingleEntityExecution(operations, returnedType);
-            }
+            return new DocumentDbQueryExecution.SingleEntityExecution(operations, returnedType);
         }
     }
 
