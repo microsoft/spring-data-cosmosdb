@@ -29,7 +29,7 @@ public class SingleResponseRepositoryIT {
     private static final Contact TEST_CONTACT = new Contact("testId", "faketitle");
 
     @Autowired
-    ContactRepository repository;
+    private ContactRepository repository;
 
     @Before
     public void setup() {

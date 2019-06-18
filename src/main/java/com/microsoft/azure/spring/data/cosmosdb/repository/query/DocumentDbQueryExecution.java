@@ -59,7 +59,7 @@ public interface DocumentDbQueryExecution {
         @Override
         public Object execute(DocumentQuery query, Class<?> type, String collection) {
             final List results = operations.find(query, type, collection);
-            Object result;
+            final Object result;
             if (results == null || results.isEmpty()) {
                 result = null;
             } else if (results.size() == 1) {
