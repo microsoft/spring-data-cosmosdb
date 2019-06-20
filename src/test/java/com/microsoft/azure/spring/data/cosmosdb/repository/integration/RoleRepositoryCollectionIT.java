@@ -46,7 +46,7 @@ public class RoleRepositoryCollectionIT {
     private DocumentDbTemplate template;
 
     @Before
-    public void setup() {
+    public void setUp() {
         repository.deleteAll();
     }
 

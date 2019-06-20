@@ -32,7 +32,7 @@ public class SingleResponseRepositoryIT {
     private ContactRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         repository.save(TEST_CONTACT);
     }
 
