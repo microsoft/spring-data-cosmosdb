@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import org.junit.Test;
@@ -60,9 +61,50 @@ public class DocumentDbEntityInformationUnitTest {
         assertThat(collectionName).isEqualTo("testCollection");
     }
 
+    @Test
+    public void testGetPartitionKeyName() {
+        final DocumentDbEntityInformation<VolunteerWithPartitionKey, String> entityInformation =
+                new DocumentDbEntityInformation<>(VolunteerWithPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("name");
+    }
+
+    @Test
+    public void testNullPartitionKeyName() {
+        final DocumentDbEntityInformation<Volunteer, String> entityInformation =
+                new DocumentDbEntityInformation<>(Volunteer.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo(null);
+    }
+
+    @Test
+    public void testCustomPartitionKeyName() {
+        final DocumentDbEntityInformation<VolunteerWithCustomPartitionKey, String> entityInformation =
+                new DocumentDbEntityInformation<>(VolunteerWithCustomPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("vol_name");
+    }
+
     @Document(collection = "testCollection")
     class Volunteer {
         String id;
+        String name;
+    }
+
+    @Document
+    class VolunteerWithCustomPartitionKey {
+        String id;
+        @PartitionKey("vol_name")
+        String name;
+    }
+
+    @Document
+    class VolunteerWithPartitionKey {
+        String id;
+        @PartitionKey
         String name;
     }
 }

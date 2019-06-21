@@ -84,7 +84,12 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     }
 
     public String getPartitionKeyFieldName() {
-        return partitionKeyField == null ? null : partitionKeyField.getName();
+        if (partitionKeyField == null) {
+            return null;
+        } else {
+            PartitionKey partitionKey = partitionKeyField.getAnnotation(PartitionKey.class);
+            return partitionKey.value().equals("") ? partitionKeyField.getName() : partitionKey.value();
+        }
     }
 
     public String getPartitionKeyFieldValue(T entity) {

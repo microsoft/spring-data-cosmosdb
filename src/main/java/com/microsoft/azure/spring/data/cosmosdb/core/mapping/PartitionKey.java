@@ -11,4 +11,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface PartitionKey {
+
+	/**
+	 * The name of the partition key if the serialized attribute name differs from the field name
+	 *
+	 * @return
+	 */
+	String value() default "";
 }
