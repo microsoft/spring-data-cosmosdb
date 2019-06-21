@@ -12,10 +12,10 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD})
 public @interface PartitionKey {
 
-	/**
-	 * The name of the partition key if the serialized attribute name differs from the field name
-	 *
-	 * @return
-	 */
-	String value() default "";
+    /**
+     * The name of the partition key if the serialized attribute name differs from the field name
+     *
+     * @return
+     */
+    String value() default "";
 }

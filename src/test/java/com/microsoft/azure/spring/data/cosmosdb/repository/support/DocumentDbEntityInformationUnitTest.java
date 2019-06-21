@@ -95,16 +95,16 @@ public class DocumentDbEntityInformationUnitTest {
     }
 
     @Document
-    class VolunteerWithCustomPartitionKey {
-        String id;
+    private class VolunteerWithCustomPartitionKey {
+        private String id;
         @PartitionKey("vol_name")
-        String name;
+        private String name;
     }
 
     @Document
-    class VolunteerWithPartitionKey {
-        String id;
+    private class VolunteerWithPartitionKey {
+        private String id;
         @PartitionKey
-        String name;
+        private String name;
     }
 }

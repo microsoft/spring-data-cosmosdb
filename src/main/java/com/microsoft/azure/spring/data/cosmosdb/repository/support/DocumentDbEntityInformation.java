@@ -87,7 +87,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         if (partitionKeyField == null) {
             return null;
         } else {
-            PartitionKey partitionKey = partitionKeyField.getAnnotation(PartitionKey.class);
+            final PartitionKey partitionKey = partitionKeyField.getAnnotation(PartitionKey.class);
             return partitionKey.value().equals("") ? partitionKeyField.getName() : partitionKey.value();
         }
     }
