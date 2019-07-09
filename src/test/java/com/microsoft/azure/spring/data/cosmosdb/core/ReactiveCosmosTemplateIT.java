@@ -7,9 +7,9 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
-import com.microsoft.azure.cosmos.CosmosContainer;
-import com.microsoft.azure.cosmosdb.DocumentClientException;
-import com.microsoft.azure.cosmosdb.PartitionKey;
+import com.azure.data.cosmos.CosmosContainer;
+import com.azure.data.cosmos.CosmosClientException;
+import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -92,8 +92,7 @@ public class ReactiveCosmosTemplateIT {
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
 
-        System.out.println("documentDbKey.length() = " + documentDbKey.length());
-        
+        //#TODO : Just for debugging. Delete this code
         try {
             Base64.getDecoder().decode(documentDbKey.getBytes());
             System.out.println("valid dbkey");
@@ -105,7 +104,7 @@ public class ReactiveCosmosTemplateIT {
             org.apache.commons.codec.binary.Base64.decodeBase64(documentDbKey.getBytes());
             System.out.println("apache base64: Valid dbkey");
         } catch (IllegalArgumentException e) {
-            System.out.println("apache base64: Invalid dbkey!");
+            System.out.println("apache base64: Invalid dbkey!" + e.getMessage());
         }
 
         try {
@@ -114,11 +113,11 @@ public class ReactiveCosmosTemplateIT {
         } catch (IllegalArgumentException e) {
             System.out.println("iso: Invalid dbkey!" + e.getMessage());
         }
-
-        System.out.println("cosmos: .substring(40) = " + documentDbKey.substring(10, 50));
         
+        //////
+
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
-        cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
+        cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
         dbTemplate.insert(TEST_PERSON).block();
     }
 
@@ -127,17 +126,17 @@ public class ReactiveCosmosTemplateIT {
         dbTemplate.deleteContainer(Person.class.getSimpleName());
     }
 
-//    @Test
-//    public void testInsertDuplicateId() {
-//        final Mono<Person> insertMono = dbTemplate.insert(TEST_PERSON);
-//        final TestSubscriber testSubscriber = new TestSubscriber();
-//        insertMono.subscribe(testSubscriber);
-//        testSubscriber.awaitTerminalEvent();
-//        testSubscriber.assertNotComplete();
-//        testSubscriber.assertTerminated();
-//        assertThat(testSubscriber.errors()).hasSize(1);
-//        assertThat(((List) testSubscriber.getEvents().get(1)).get(0)).isInstanceOf(DocumentClientException.class);
-//    }
+    @Test
+    public void testInsertDuplicateId() {
+        final Mono<Person> insertMono = dbTemplate.insert(TEST_PERSON);
+        final TestSubscriber testSubscriber = new TestSubscriber();
+        insertMono.subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertNotComplete();
+        testSubscriber.assertTerminated();
+        assertThat(testSubscriber.errors()).hasSize(1);
+        assertThat(((List) testSubscriber.getEvents().get(1)).get(0)).isInstanceOf(CosmosClientException.class);
+    }
 
     @Test
     public void testFindByID() {
@@ -149,83 +148,83 @@ public class ReactiveCosmosTemplateIT {
         }).verifyComplete();
     }
 
-//    @Test
-//    public void testFindAll() {
-//        final Flux<Person> flux = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
-//        StepVerifier.create(flux).expectNextCount(1).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testFindByIdWithContainerName() {
-//        StepVerifier.create(dbTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class))
-//                .consumeNextWith(actual -> {
-//                    Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
-//                    Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
-//                }).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testInsert() {
-//        StepVerifier.create(dbTemplate.insert(TEST_PERSON_3))
-//                .expectNext(TEST_PERSON_3).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testInsertWithCollectionName() {
-//        StepVerifier.create(dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_2, null))
-//                .expectNext(TEST_PERSON_2).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testUpsert() {
-//        final Person p = TEST_PERSON_2;
-//        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
-//        hobbies.add("more code");
-//        p.setHobbies(hobbies);
-//        final Mono<Person> upsert = dbTemplate.upsert(p, null);
-//        StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testUpsertWithCollectionName() {
-//        final Person p = TEST_PERSON_2;
-//        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
-//        hobbies.add("more code");
-//        p.setHobbies(hobbies);
-//        final Mono<Person> upsert = dbTemplate.upsert(Person.class.getSimpleName(), p, null);
-//        StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testDeleteById() {
-//        dbTemplate.insert(TEST_PERSON_4).block();
-//        final Mono<Void> voidMono = dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
-//                new PartitionKey(TEST_PERSON_4.getId()));
-//        StepVerifier.create(voidMono).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testFind() {
-//        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-//                Arrays.asList(TEST_PERSON.getFirstName()));
-//        final DocumentQuery query = new DocumentQuery(criteria);
-//        final Flux<Person> personFlux = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
-//        StepVerifier.create(personFlux).expectNextCount(1).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testExists() {
-//        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-//                Arrays.asList(TEST_PERSON.getFirstName()));
-//        final DocumentQuery query = new DocumentQuery(criteria);
-//        final Mono<Boolean> exists = dbTemplate.exists(query, Person.class, containerName);
-//        StepVerifier.create(exists).expectNext(true).verifyComplete();
-//    }
-//
-//    @Test
-//    public void testCount() {
-//        final Mono<Long> count = dbTemplate.count(containerName);
-//        StepVerifier.create(count).expectNext((long) 1).verifyComplete();
-//    }
+    @Test
+    public void testFindAll() {
+        final Flux<Person> flux = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        StepVerifier.create(flux).expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    public void testFindByIdWithContainerName() {
+        StepVerifier.create(dbTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class))
+                .consumeNextWith(actual -> {
+                    Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
+                    Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
+                }).verifyComplete();
+    }
+
+    @Test
+    public void testInsert() {
+        StepVerifier.create(dbTemplate.insert(TEST_PERSON_3))
+                .expectNext(TEST_PERSON_3).verifyComplete();
+    }
+
+    @Test
+    public void testInsertWithCollectionName() {
+        StepVerifier.create(dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_2, null))
+                .expectNext(TEST_PERSON_2).verifyComplete();
+    }
+
+    @Test
+    public void testUpsert() {
+        final Person p = TEST_PERSON_2;
+        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
+        hobbies.add("more code");
+        p.setHobbies(hobbies);
+        final Mono<Person> upsert = dbTemplate.upsert(p, null);
+        StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    public void testUpsertWithCollectionName() {
+        final Person p = TEST_PERSON_2;
+        final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
+        hobbies.add("more code");
+        p.setHobbies(hobbies);
+        final Mono<Person> upsert = dbTemplate.upsert(Person.class.getSimpleName(), p, null);
+        StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    public void testDeleteById() {
+        dbTemplate.insert(TEST_PERSON_4).block();
+        final Mono<Void> voidMono = dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
+                new PartitionKey(TEST_PERSON_4.getId()));
+        StepVerifier.create(voidMono).verifyComplete();
+    }
+
+    @Test
+    public void testFind() {
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+        final Flux<Person> personFlux = dbTemplate.find(query, Person.class, Person.class.getSimpleName());
+        StepVerifier.create(personFlux).expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    public void testExists() {
+        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
+                Arrays.asList(TEST_PERSON.getFirstName()));
+        final DocumentQuery query = new DocumentQuery(criteria);
+        final Mono<Boolean> exists = dbTemplate.exists(query, Person.class, containerName);
+        StepVerifier.create(exists).expectNext(true).verifyComplete();
+    }
+
+    @Test
+    public void testCount() {
+        final Mono<Long> count = dbTemplate.count(containerName);
+        StepVerifier.create(count).expectNext((long) 1).verifyComplete();
+    }
 
 }

@@ -225,21 +225,21 @@ public abstract class AbstractQueryGenerator {
     }
 
 
-    protected com.microsoft.azure.cosmosdb.SqlQuerySpec generateCosmosQuery(@NonNull DocumentQuery query,
+    protected com.azure.data.cosmos.SqlQuerySpec generateCosmosQuery(@NonNull DocumentQuery query,
                                                                             @NonNull String queryHead) {
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
         final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
         final List<Pair<String, Object>> parameters = queryBody.getValue1();
-        final com.microsoft.azure.cosmosdb.SqlParameterCollection sqlParameters =
-                new com.microsoft.azure.cosmosdb.SqlParameterCollection();
+        final com.azure.data.cosmos.SqlParameterList sqlParameters =
+                new com.azure.data.cosmos.SqlParameterList();
 
         sqlParameters.addAll(
                 parameters.stream()
-                        .map(p -> new com.microsoft.azure.cosmosdb.SqlParameter("@" + p.getValue0(),
+                        .map(p -> new com.azure.data.cosmos.SqlParameter("@" + p.getValue0(),
                                 toDocumentDBValue(p.getValue1())))
                         .collect(Collectors.toList())
         );
 
-        return new com.microsoft.azure.cosmosdb.SqlQuerySpec(queryString, sqlParameters);
+        return new com.azure.data.cosmos.SqlQuerySpec(queryString, sqlParameters);
     }
 }

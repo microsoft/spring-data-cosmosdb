@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.cosmos.CosmosContainerResponse;
-import com.microsoft.azure.cosmosdb.PartitionKey;
+import com.azure.data.cosmos.CosmosContainerResponse;
+import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import reactor.core.publisher.Flux;

@@ -6,8 +6,8 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.cosmos.CosmosContainer;
-import com.microsoft.azure.cosmosdb.PartitionKey;
+import com.azure.data.cosmos.CosmosContainer;
+import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -92,7 +92,7 @@ public class ReactiveCosmosTemplatePartitionIT {
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
 
-        cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().getContainer();
+        cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
         dbTemplate.insert(TEST_PERSON).block();
     }
 

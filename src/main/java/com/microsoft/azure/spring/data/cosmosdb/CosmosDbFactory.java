@@ -6,8 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb;
 
-import com.microsoft.azure.cosmos.CosmosClient;
-import com.microsoft.azure.cosmos.CosmosConfiguration;
+import com.azure.data.cosmos.CosmosClient;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
@@ -48,9 +47,11 @@ public class CosmosDbFactory {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
-        System.out.println("dconfig.getKey().substring(1, 6) = " + config.getKey().substring(5, 25));
         policy.setUserAgentSuffix(userAgent);
-        return CosmosClient.create(config.getUri(), config.getKey());
+        return CosmosClient.builder()
+                .endpoint(config.getUri())
+                .key(config.getKey())
+                .build();
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {

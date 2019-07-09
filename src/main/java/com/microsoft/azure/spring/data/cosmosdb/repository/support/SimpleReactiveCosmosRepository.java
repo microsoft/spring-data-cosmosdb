@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.microsoft.azure.cosmosdb.PartitionKey;
+import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
