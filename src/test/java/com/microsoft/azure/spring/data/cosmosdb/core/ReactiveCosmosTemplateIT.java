@@ -92,30 +92,6 @@ public class ReactiveCosmosTemplateIT {
 
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
 
-        //#TODO : Just for debugging. Delete this code
-        try {
-            Base64.getDecoder().decode(documentDbKey.getBytes());
-            System.out.println("valid dbkey");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid dbkey!! " + e.getCause() + e.getMessage());
-        }
-
-        try {
-            org.apache.commons.codec.binary.Base64.decodeBase64(documentDbKey.getBytes());
-            System.out.println("apache base64: Valid dbkey");
-        } catch (IllegalArgumentException e) {
-            System.out.println("apache base64: Invalid dbkey!" + e.getMessage());
-        }
-
-        try {
-            Base64.getDecoder().decode(documentDbKey.getBytes(Charsets.ISO_8859_1));
-            System.out.println("utf8: Valid dbkey!");
-        } catch (IllegalArgumentException e) {
-            System.out.println("iso: Invalid dbkey!" + e.getMessage());
-        }
-        
-        //////
-
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
         dbTemplate.insert(TEST_PERSON).block();
