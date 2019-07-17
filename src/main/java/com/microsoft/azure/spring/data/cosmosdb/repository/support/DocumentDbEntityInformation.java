@@ -15,6 +15,10 @@ import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import org.apache.commons.lang3.reflect.FieldUtils;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.lang.NonNull;
@@ -34,10 +38,19 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Integer requestUnit;
     private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
+    private EmbeddedValueResolver embeddedValueResolver;
 
     public DocumentDbEntityInformation(Class<T> domainClass) {
+        this(domainClass, null);
+    }
+    
+    public DocumentDbEntityInformation(Class<T> domainClass, BeanFactory beanFactory) {
         super(domainClass);
 
+        if (beanFactory != null) {
+            this.embeddedValueResolver = getEmbeddedValueResolver(beanFactory);
+        }
+        
         this.id = getIdField(domainClass);
         ReflectionUtils.makeAccessible(this.id);
 
@@ -50,6 +63,14 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         this.requestUnit = getRequestUnit(domainClass);
         this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
+    }
+
+    private EmbeddedValueResolver getEmbeddedValueResolver(BeanFactory beanFactory) {
+        if (beanFactory instanceof ConfigurableBeanFactory) {
+            return new EmbeddedValueResolver((ConfigurableBeanFactory) beanFactory);
+        }
+        
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -130,12 +151,14 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         final Document annotation = domainClass.getAnnotation(Document.class);
 
         if (annotation != null && annotation.collection() != null && !annotation.collection().isEmpty()) {
-            customCollectionName = annotation.collection();
+            customCollectionName = embeddedValueResolver != null
+                    ? embeddedValueResolver.resolveStringValue(annotation.collection())
+                    : annotation.collection();
         }
 
         return customCollectionName;
     }
-
+    
     private Field getPartitionKeyField(Class<?> domainClass) {
         Field partitionKey = null;
 

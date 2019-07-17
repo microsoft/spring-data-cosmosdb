@@ -25,6 +25,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.domain.Page;
@@ -42,7 +44,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
+public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware, BeanFactoryAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
     @Getter(AccessLevel.PRIVATE)
@@ -53,6 +55,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private Database databaseCache;
     private List<String> collectionCache;
+    private BeanFactory beanFactory;
 
     public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
                               MappingDocumentDbConverter mappingDocumentDbConverter,
@@ -110,7 +113,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
         @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
-                = new DocumentDbEntityInformation(domainClass);
+                = new DocumentDbEntityInformation(domainClass, beanFactory);
         final String partitionKeyName = information.getPartitionKeyFieldName();
         final String idName = information.getIdField().getName();
 
@@ -154,7 +157,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(object, "Upsert object should not be null");
 
         try {
-            Document originalDoc;
+            final Document originalDoc;
 
             if (object instanceof Document) {
                 originalDoc = (Document) object;
@@ -212,7 +215,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public String getCollectionName(Class<?> domainClass) {
         Assert.notNull(domainClass, "domainClass should not be null");
 
-        return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
+        return new DocumentDbEntityInformation<>(domainClass, beanFactory).getCollectionName();
     }
 
     private Database createDatabaseIfNotExists(String dbName) {
@@ -560,7 +563,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     @SuppressWarnings("unchecked")
     private List<String> getPartitionKeyNames(Class<?> domainClass) {
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
+        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass, beanFactory);
 
         if (entityInfo.getPartitionKeyFieldName() == null) {
             return new ArrayList<>();
@@ -574,5 +577,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (id instanceof String) {
             Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
         }
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 }
