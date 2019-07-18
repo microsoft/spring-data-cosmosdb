@@ -40,7 +40,7 @@ mvnw clean install
         ```
    - on Emulator
    
-     Setup Azure Comos DB Emulator by following [this instruction](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), then run test with:
+     Setup Azure Cosmos DB Emulator by following [this instruction](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), then run test with:
      ```bash
      mvnw -P integration-test-emulator install
      ```
