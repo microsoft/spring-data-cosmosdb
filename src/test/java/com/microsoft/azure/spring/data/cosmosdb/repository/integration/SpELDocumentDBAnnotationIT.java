@@ -6,7 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -92,7 +91,7 @@ public class SpELDocumentDBAnnotationIT {
       final MappingDocumentDbConverter mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
       dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
       
-      final DocumentCollection collection = dbTemplate.createCollectionIfNotExists(documentDbEntityInfo);
+      dbTemplate.createCollectionIfNotExists(documentDbEntityInfo);
 
       final SpELPropertyStudent insertedRecord = 
               dbTemplate.insert(documentDbEntityInfo.getCollectionName(), TEST_PROPERTY_STUDENT, null);
