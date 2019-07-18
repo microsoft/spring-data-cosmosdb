@@ -9,9 +9,11 @@ package com.microsoft.azure.spring.data.cosmosdb.domain;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "#{@dynamicCollectionContainer.getCollectionName()}")
 public class SpELBeanStudent {
     private String id;
