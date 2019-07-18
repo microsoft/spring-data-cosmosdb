@@ -10,6 +10,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 
+/**
+ * 
+ * @author Domenico Sibilio
+ *
+ */
 public class ExpressionResolver {
 
     private static EmbeddedValueResolver embeddedValueResolver;
