@@ -19,18 +19,17 @@ import java.util.Optional;
 
 public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySupport {
 
-//    private final ReactiveCosmosOperations cosmosOperations;
+    private final ReactiveCosmosOperations cosmosOperations;
     private final ApplicationContext applicationContext;
 
     public ReactiveCosmosRepositoryFactory(ReactiveCosmosOperations cosmosOperations,
                                            ApplicationContext applicationContext) {
-//        this.cosmosOperations = cosmosOperations;
+        this.cosmosOperations = cosmosOperations;
         this.applicationContext = applicationContext;
     }
 
     @Override
     public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-        // TODO: Move to CosmosDBEntityInformation
         return new DocumentDbEntityInformation<>(domainClass);
     }
 
@@ -48,7 +47,6 @@ public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySu
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
             QueryLookupStrategy.Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
-        // TODO: CosmosQueryLookupStrategy
         return super.getQueryLookupStrategy(key, evaluationContextProvider);
     }
 

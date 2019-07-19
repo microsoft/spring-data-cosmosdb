@@ -37,7 +37,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,13 +85,6 @@ public class DocumentDbTemplateIT {
         collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
-
-        try {
-            Base64.getDecoder().decode(documentDbKey);
-            System.out.println("valid dbkey");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid dbkey!! ");
-        }
         
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
@@ -114,7 +106,6 @@ public class DocumentDbTemplateIT {
     @Test
     public void testFindAll() {
         final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
-        System.out.println("result.get(0) = " + result.get(0));
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
     }

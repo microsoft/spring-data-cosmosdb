@@ -7,6 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosContainerRequestOptions;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
@@ -47,6 +48,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public static final int DEFAULT_THROUGHPUT = 400;
 
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
+    private ApplicationContext applicationContext;
     private final String databaseName;
 
     @Getter(AccessLevel.PRIVATE)
@@ -80,7 +82,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @param applicationContext the application context
      * @throws BeansException the bean exception
      */
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 
     /**
@@ -92,11 +95,17 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public Mono<CosmosContainerResponse> createCollectionIfNotExists(DocumentDbEntityInformation information) {
 
+        //  Note: Once Cosmos DB publishes new build, we shouldn't pass DEFAULT_THROUGHPUT.
+        //  There is a NPE if we call the other overloaded method which automatically passes options as null.
         return cosmosClient.createDatabaseIfNotExists(this.databaseName)
                 .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse.database()
                         .createContainerIfNotExists(information.getCollectionName(),
                                                     "/" +
-                                        information.getPartitionKeyFieldName(), DEFAULT_THROUGHPUT));
+                                        information.getPartitionKeyFieldName(), DEFAULT_THROUGHPUT)
+                                                                         .map(cosmosContainerResponse -> {
+                                                                             collectionCache.add(information.getCollectionName());
+                                                                             return cosmosContainerResponse;
+                                                                         }));
 
     }
 
@@ -152,7 +161,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(entityClass, "entityClass should not be null");
         assertValidId(id);
 
-        //TODO: Refactor this after np->p is completed upstream
         final String query = String.format("select * from root where root.id = '%s'", id.toString());
         final FeedOptions options = new FeedOptions();
         options.enableCrossPartitionQuery(true);
