@@ -5,11 +5,10 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.CosmosClientException;
+import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.PartitionKey;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -39,7 +38,6 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;

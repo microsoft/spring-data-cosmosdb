@@ -37,7 +37,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,7 +84,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
-     * Creates a collection if it doesnt already exist
+     * Creates a collection if it doesn't already exist
      *
      * @param information the DocumentDbEntityInformation
      * @return Mono containing CosmosContainerResponse
@@ -123,9 +122,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      */
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-
-        return find(query, entityClass, entityClass.getSimpleName());
+        return findAll(entityClass.getSimpleName(), entityClass);
     }
 
     /**
@@ -138,7 +135,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public <T> Mono<T> findById(Object id, Class<T> entityClass) {
         Assert.notNull(entityClass, "entityClass should not be null");
-        return findById(getcontainerName(entityClass), id, entityClass);
+        return findById(getContainerName(entityClass), id, entityClass);
     }
 
     /**
@@ -163,10 +160,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(containerName)
                 .queryItems(query, options)
                 .flatMap(cosmosItemFeedResponse -> Mono.just(cosmosItemFeedResponse
-                        .results()
-                        .stream()
-                        .map(cosmosItem -> cosmosItem.toObject(entityClass))
-                        .collect(Collectors.toList()).get(0)))
+                    .results()
+                    .stream()
+                    .map(cosmosItem -> cosmosItem.toObject(entityClass))
+                    .collect(Collectors.toList()).get(0)))
                 .next();
     }
 
@@ -174,13 +171,13 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * Insert
      *
      * @param objectToSave the object to save
-     * @param partitionKey the partitoin key
+     * @param partitionKey the partition key
      * @return Mono with the item or error
      */
     public <T> Mono<T> insert(T objectToSave, PartitionKey partitionKey) {
         Assert.notNull(objectToSave, "entityClass should not be null");
 
-        return insert(getcontainerName(objectToSave.getClass()), objectToSave, partitionKey);
+        return insert(getContainerName(objectToSave.getClass()), objectToSave, partitionKey);
     }
 
     /**
@@ -194,9 +191,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         final Class<T> domainClass = (Class<T>) objectToSave.getClass();
         return getCosmosClient().getDatabase(this.databaseName)
-                .getContainer(getcontainerName(objectToSave.getClass()))
+                .getContainer(getContainerName(objectToSave.getClass()))
                 .createItem(objectToSave, new CosmosItemRequestOptions())
-                .doOnError(throwable -> Mono.error(throwable))
+                .doOnError(Mono::error)
                 .flatMap(cosmosItemResponse -> Mono.just(cosmosItemResponse.properties().toObject(domainClass)));
     }
 
@@ -234,7 +231,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      */
     @Override
     public <T> Mono<T> upsert(T object, PartitionKey partitionKey) {
-        return upsert(getcontainerName(object.getClass()), object, partitionKey);
+        return upsert(getContainerName(object.getClass()), object, partitionKey);
     }
 
     /**
@@ -276,9 +273,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final JSONObject jo = new JSONObject();
         jo.put("id", id.toString());
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        if (partitionKey != null) {
-            options.partitionKey(partitionKey);
-        }
+        options.partitionKey(partitionKey);
         return getCosmosClient().getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .getItem(id.toString(), partitionKey)
@@ -303,7 +298,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final DocumentQuery query = new DocumentQuery(criteria);
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final FeedOptions options = new FeedOptions();
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Arrays.asList(partitionKeyName));
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
         return getCosmosClient().getDatabase(this.databaseName)
                 .getContainer(containerName)
@@ -373,7 +368,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @param id the id
      * @param entityClass the entity class
      * @param containerName the containercontainer nam,e
-     * @return
+     * @return Mono with a boolean or error
      */
     public Mono<Boolean> existsById(Object id, Class<?> entityClass, String containerName) {
         return findById(containerName, id, entityClass)
@@ -448,7 +443,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @param domainClass the domain class
      * @return the container name
      */
-    public String getcontainerName(Class<?> domainClass) {
+    public String getContainerName(Class<?> domainClass) {
         Assert.notNull(domainClass, "domainClass should not be null");
 
         return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
@@ -484,8 +479,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
-    private Mono<Void> deleteDocument(@NonNull CosmosItemProperties cosmosItemProperties, 
-                                    @NonNull List<String> partitionKeyNames, 
+    private Mono<Void> deleteDocument(@NonNull CosmosItemProperties cosmosItemProperties,
+                                    @NonNull List<String> partitionKeyNames,
                                     String containerName) {
         Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
