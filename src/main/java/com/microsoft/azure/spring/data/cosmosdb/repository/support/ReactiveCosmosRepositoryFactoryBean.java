@@ -23,7 +23,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, ID>, S,
 
     private ApplicationContext applicationContext;
     private ReactiveCosmosOperations operations;
-    private boolean mappingContextConfigured = false;
+//    private boolean mappingContextConfigured = false;
 
     public ReactiveCosmosRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
         super(repositoryInterface);
@@ -51,7 +51,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, ID>, S,
     @Override
     protected void setMappingContext(MappingContext<?, ?> mappingContext) {
         super.setMappingContext(mappingContext);
-        this.mappingContextConfigured = true;
+//        this.mappingContextConfigured = true;
     }
 
 }

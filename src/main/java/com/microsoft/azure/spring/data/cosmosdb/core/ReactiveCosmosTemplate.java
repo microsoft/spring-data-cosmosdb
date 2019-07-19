@@ -97,15 +97,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         //  Note: Once Cosmos DB publishes new build, we shouldn't pass DEFAULT_THROUGHPUT.
         //  There is a NPE if we call the other overloaded method which automatically passes options as null.
-        return cosmosClient.createDatabaseIfNotExists(this.databaseName)
-           .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse.database()
+        return cosmosClient
+            .createDatabaseIfNotExists(this.databaseName)
+            .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
+                .database()
                 .createContainerIfNotExists(information.getCollectionName(),
-                    "/" +
-                        information.getPartitionKeyFieldName(), DEFAULT_THROUGHPUT)
-                        .map(cosmosContainerResponse -> {
-                            collectionCache.add(information.getCollectionName());
-                            return cosmosContainerResponse;
-                        }));
+                    "/" + information.getPartitionKeyFieldName(), DEFAULT_THROUGHPUT)
+                .map(cosmosContainerResponse -> {
+                    collectionCache.add(information.getCollectionName());
+                    return cosmosContainerResponse;
+                }));
 
     }
 
