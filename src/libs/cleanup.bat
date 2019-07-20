@@ -26,6 +26,6 @@ goto :end
 )
 
 call az login --service-principal -u %clientId% -p %clientKey% --tenant %tenantId% >> tmp.txt
-call az cosmosdb delete --name %dbname% --resource-group %resourcegroup% --debug
+call az cosmosdb delete --name %dbname% --resource-group %resourcegroup%
 
 :end

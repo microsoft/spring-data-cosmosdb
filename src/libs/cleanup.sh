@@ -14,4 +14,4 @@ if [ "$TENANT_ID" == "" ]; then
 fi
 
 az login --service-principal -u $CLIENT_ID -p $CLIENT_KEY --tenant $TENANT_ID >> tmp.txt
-az cosmosdb delete --name $dbname --resource-group $resourcegroup --debug
+az cosmosdb delete --name $dbname --resource-group $resourcegroup
