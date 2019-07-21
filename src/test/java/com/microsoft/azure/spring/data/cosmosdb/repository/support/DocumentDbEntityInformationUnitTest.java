@@ -9,6 +9,8 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
+import lombok.Data;
 import org.junit.Test;
 
 import org.springframework.data.annotation.Version;
@@ -91,33 +93,36 @@ public class DocumentDbEntityInformationUnitTest {
     
     @Test
     public void testNonVersionedEntity() {
-        final DocumentDbEntityInformation<Person, String> entityInformation =
-                new DocumentDbEntityInformation<Person, String>(Person.class);
+        final DocumentDbEntityInformation<Student, String> entityInformation =
+                new DocumentDbEntityInformation<Student, String>(Student.class);
 
         final boolean isVersioned = entityInformation.isVersioned();
         assertThat(isVersioned).isFalse();
     }
 
+    @Data
     @Document(collection = "testCollection")
     class VersionedVolunteer {
-        String id;
-        String name;
+        private String id;
+        private String name;
         @Version
-        String _etag;
+        private String _etag;
     }
     
+    @Data
     @Document
     class WrongVersionType {
-        String id;
-        String name;
-        long _etag;
-    }
+        private String id;
+        private String name;
+        private long _etag;
+    } 
     
+    @Data
     @Document
     class VersionOnWrongField {
-        String id;
+        private String id;
         @Version
-        String name;
-        String _etag;
+        private String name;
+        private String _etag;
     }
 }
