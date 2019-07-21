@@ -11,9 +11,11 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import org.junit.Test;
 
-import java.util.List;
+import org.springframework.data.annotation.Version;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 
 public class DocumentDbEntityInformationUnitTest {
     private static final String ID = "entity_info_test_id";
@@ -53,16 +55,69 @@ public class DocumentDbEntityInformationUnitTest {
 
     @Test
     public void testCustomCollectionName() {
-        final DocumentDbEntityInformation<Volunteer, String> entityInformation =
-                new DocumentDbEntityInformation<Volunteer, String>(Volunteer.class);
+        final DocumentDbEntityInformation<VersionedVolunteer, String> entityInformation =
+                new DocumentDbEntityInformation<VersionedVolunteer, String>(VersionedVolunteer.class);
 
         final String collectionName = entityInformation.getCollectionName();
         assertThat(collectionName).isEqualTo("testCollection");
     }
+    
+    @Test
+    public void testVersionedEntity() {
+        final DocumentDbEntityInformation<VersionedVolunteer, String> entityInformation =
+                new DocumentDbEntityInformation<VersionedVolunteer, String>(VersionedVolunteer.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isTrue();
+    }
+    
+    @Test
+    public void testEntityShouldNotBeVersionedWithWrongType() {
+        final DocumentDbEntityInformation<WrongVersionType, String> entityInformation =
+                new DocumentDbEntityInformation<WrongVersionType, String>(WrongVersionType.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
+    
+    @Test
+    public void testEntityShouldNotBeVersionedWithoutAnnotationOnEtag() {
+        final DocumentDbEntityInformation<VersionOnWrongField, String> entityInformation =
+                new DocumentDbEntityInformation<VersionOnWrongField, String>(VersionOnWrongField.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
+    
+    @Test
+    public void testNonVersionedEntity() {
+        final DocumentDbEntityInformation<Person, String> entityInformation =
+                new DocumentDbEntityInformation<Person, String>(Person.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
 
     @Document(collection = "testCollection")
-    class Volunteer {
+    class VersionedVolunteer {
         String id;
         String name;
+        @Version
+        String _etag;
+    }
+    
+    @Document
+    class WrongVersionType {
+        String id;
+        String name;
+        long _etag;
+    }
+    
+    @Document
+    class VersionOnWrongField {
+        String id;
+        @Version
+        String name;
+        String _etag;
     }
 }

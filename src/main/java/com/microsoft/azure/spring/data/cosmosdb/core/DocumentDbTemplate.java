@@ -6,10 +6,27 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.*;
+import com.microsoft.azure.documentdb.AccessCondition;
+import com.microsoft.azure.documentdb.AccessConditionType;
+import com.microsoft.azure.documentdb.Database;
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.FeedOptions;
+import com.microsoft.azure.documentdb.FeedResponse;
+import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.documentdb.PartitionKeyDefinition;
+import com.microsoft.azure.documentdb.RequestOptions;
+import com.microsoft.azure.documentdb.Resource;
+import com.microsoft.azure.documentdb.SqlParameter;
+import com.microsoft.azure.documentdb.SqlParameterCollection;
+import com.microsoft.azure.documentdb.SqlQuerySpec;
 import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils;
+import com.microsoft.azure.spring.data.cosmosdb.common.Memoizer;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -24,6 +41,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEnt
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -39,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,6 +72,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private Database databaseCache;
     private List<String> collectionCache;
+    private Function<Class<?>, DocumentDbEntityInformation<?, ?>> entityInfoCreator =
+            Memoizer.memoize(this::getDocumentDbEntityInformation);
 
     public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
                               MappingDocumentDbConverter mappingDocumentDbConverter,
@@ -109,8 +130,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
-        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
-                = new DocumentDbEntityInformation(domainClass);
+        final DocumentDbEntityInformation<?, ?> information = entityInfoCreator.apply(domainClass);
         final String partitionKeyName = information.getPartitionKeyFieldName();
         final String idName = information.getIdField().getName();
 
@@ -154,7 +174,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(object, "Upsert object should not be null");
 
         try {
-            Document originalDoc;
+            final Document originalDoc;
 
             if (object instanceof Document) {
                 originalDoc = (Document) object;
@@ -166,10 +186,20 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             final String collectionLink = getCollectionSelfLink(collectionName);
             final RequestOptions options = getRequestOptions(partitionKey, null);
-
+            applyVersioning(object.getClass(), originalDoc, options);
+            
             getDocumentClient().upsertDocument(collectionLink, originalDoc, options, false);
         } catch (DocumentClientException ex) {
             throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
+        }
+    }
+
+    private void applyVersioning(Class<?> domainClass, Document document, RequestOptions options) {
+        if (entityInfoCreator.apply(domainClass).isVersioned()) {
+            final AccessCondition accessCondition = new AccessCondition();
+            accessCondition.setType(AccessConditionType.IfMatch);
+            accessCondition.setCondition(document.getETag());
+            options.setAccessCondition(accessCondition);
         }
     }
 
@@ -212,7 +242,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public String getCollectionName(Class<?> domainClass) {
         Assert.notNull(domainClass, "domainClass should not be null");
 
-        return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
+        return entityInfoCreator.apply(domainClass).getCollectionName();
     }
 
     private Database createDatabaseIfNotExists(String dbName) {
@@ -249,7 +279,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     private DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
-                                                @NonNull DocumentDbEntityInformation information) {
+                                                @NonNull DocumentDbEntityInformation<?, ?> information) {
         DocumentCollection collection = new DocumentCollection();
         final String collectionName = information.getCollectionName();
         final IndexingPolicy policy = information.getIndexingPolicy();
@@ -288,7 +318,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     @Override
-    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information) {
+    public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation<?, ?> information) {
         if (this.databaseCache == null) {
             this.databaseCache = createDatabaseIfNotExists(this.databaseName);
         }
@@ -422,7 +452,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return response.getQueryIterable().toList();
     }
 
-    private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
+    private void deleteDocument(@NonNull Document document, 
+            @NonNull List<String> partitionKeyNames, 
+            @NonNull Class<?> domainClass) {
         try {
             Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
@@ -433,6 +465,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             }
 
             final RequestOptions options = getRequestOptions(partitionKey, null);
+            applyVersioning(domainClass, document, options);
 
             getDocumentClient().deleteDocument(document.getSelfLink(), options);
         } catch (DocumentClientException e) {
@@ -461,7 +494,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final List<Document> results = findDocuments(query, domainClass, collectionName);
         final List<String> partitionKeyName = getPartitionKeyNames(domainClass);
 
-        results.forEach(d -> deleteDocument(d, partitionKeyName));
+        results.forEach(d -> deleteDocument(d, partitionKeyName, domainClass));
 
         return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
     }
@@ -558,9 +591,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return this.mappingDocumentDbConverter;
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> getPartitionKeyNames(Class<?> domainClass) {
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
+        final DocumentDbEntityInformation<?, ?> entityInfo = entityInfoCreator.apply(domainClass);
 
         if (entityInfo.getPartitionKeyFieldName() == null) {
             return new ArrayList<>();
@@ -574,5 +606,9 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         if (id instanceof String) {
             Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
         }
+    }
+    
+    private DocumentDbEntityInformation<?, ?> getDocumentDbEntityInformation(Class<?> domainClass) {
+        return new DocumentDbEntityInformation<>(domainClass);
     }
 }

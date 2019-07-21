@@ -7,7 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
@@ -36,19 +37,33 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ADDRESSES;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.FIRST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.HOBBIES;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_3;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.NEW_FIRST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.NEW_LAST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
-import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
+    private static final String WRONG_ETAG = "WRONG_ETAG";
+
     private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
@@ -67,12 +82,13 @@ public class DocumentDbTemplateIT {
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
     private ObjectMapper objectMapper;
-    private DocumentCollection collectionPerson;
     private DocumentDbEntityInformation<Person, String> personInfo;
     private String collectionName;
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    private Person insertedPerson;
 
     @Before
     public void setup() throws ClassNotFoundException {
@@ -89,8 +105,8 @@ public class DocumentDbTemplateIT {
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
-        collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
-        dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
+        dbTemplate.createCollectionIfNotExists(this.personInfo);
+        insertedPerson = dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
     }
 
     @After
@@ -148,18 +164,6 @@ public class DocumentDbTemplateIT {
 
         assertThat(result.size()).isEqualTo(1);
         assertTrue(result.get(0).getFirstName().equals(firstName));
-    }
-
-    @Test
-    public void testUpdate() {
-        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
-                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
-
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class);
-
-        assertTrue(result.equals(updated));
     }
 
     @Test
@@ -277,4 +281,39 @@ public class DocumentDbTemplateIT {
         assertThat(secondPageResults.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(secondPageResults.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
     }
+    
+    @Test
+    public void testUpdate() {
+        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
+                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+        updated.set_etag(insertedPerson.get_etag());
+        
+        dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
+
+        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
+                updated.getId(), Person.class);
+
+        assertTrue(result.equals(updated));
+    }
+    
+    @Test
+    public void testOptimisticLockWhenUpdatingWithWrongEtag() {
+        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
+                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+        updated.set_etag(WRONG_ETAG);
+        
+        try {
+            dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
+        } catch (DocumentDBAccessException e) {
+            assertThat(e.getCause()).isInstanceOf(DocumentClientException.class);
+            
+            final Person unmodifiedPerson = dbTemplate.findById(Person.class.getSimpleName(),
+                    TEST_PERSON.getId(), Person.class);
+            assertThat(unmodifiedPerson.getFirstName()).isEqualTo(insertedPerson.getFirstName());
+            return;
+        }
+        
+        fail();
+    }
+    
 }
