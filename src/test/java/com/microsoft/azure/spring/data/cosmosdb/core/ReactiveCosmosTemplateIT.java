@@ -6,7 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosClientException;
-import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.PartitionKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
@@ -68,8 +67,6 @@ public class ReactiveCosmosTemplateIT {
     private ReactiveCosmosTemplate dbTemplate;
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
-    private ObjectMapper objectMapper;
-    private CosmosContainer cosmosContainer;
     private DocumentDbEntityInformation<Person, String> personInfo;
     private String containerName;
 
@@ -82,7 +79,7 @@ public class ReactiveCosmosTemplateIT {
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();
-        objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
         containerName = personInfo.getCollectionName();
 
@@ -91,7 +88,7 @@ public class ReactiveCosmosTemplateIT {
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
 
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
-        cosmosContainer = dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
+        dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
         dbTemplate.insert(TEST_PERSON).block();
     }
 

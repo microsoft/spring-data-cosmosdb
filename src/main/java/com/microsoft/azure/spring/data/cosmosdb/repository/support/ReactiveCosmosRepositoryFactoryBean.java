@@ -17,8 +17,8 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 
 import java.io.Serializable;
 
-public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
-        extends RepositoryFactoryBeanSupport<T, S, ID>
+public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, K extends Serializable>
+        extends RepositoryFactoryBeanSupport<T, S, K>
         implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;

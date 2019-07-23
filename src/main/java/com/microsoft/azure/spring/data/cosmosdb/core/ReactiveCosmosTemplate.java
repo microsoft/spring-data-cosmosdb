@@ -7,7 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.CosmosContainerRequestOptions;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
@@ -47,13 +46,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private static final String COUNT_VALUE_KEY = "_aggregate";
     public static final int DEFAULT_THROUGHPUT = 400;
 
-    private final MappingDocumentDbConverter mappingDocumentDbConverter;
-    private ApplicationContext applicationContext;
     private final String databaseName;
 
     @Getter(AccessLevel.PRIVATE)
     private final CosmosClient cosmosClient;
-    private final CosmosDbFactory cosmosDbFactory;
 
     private List<String> collectionCache;
 
@@ -71,11 +67,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
 
         this.databaseName = dbName;
-        this.mappingDocumentDbConverter = mappingDocumentDbConverter;
         this.collectionCache = new ArrayList<>();
 
-        this.cosmosDbFactory = cosmosDbFactory;
-        this.cosmosClient = this.cosmosDbFactory.getCosmosClient();
+        this.cosmosClient = cosmosDbFactory.getCosmosClient();
     }
 
     /**
@@ -83,7 +77,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @throws BeansException the bean exception
      */
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     /**
