@@ -65,7 +65,6 @@ public class ReactiveCosmosTemplateIT {
     private String documentDbKey;
 
     private ReactiveCosmosTemplate dbTemplate;
-    private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
     private DocumentDbEntityInformation<Person, String> personInfo;
     private String containerName;
@@ -74,18 +73,18 @@ public class ReactiveCosmosTemplateIT {
     private ApplicationContext applicationContext;
 
     @Before
-    public void setup() throws ClassNotFoundException {
+    public void setUp() throws ClassNotFoundException {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();
-        ObjectMapper objectMapper = new ObjectMapper();
+        final ObjectMapper objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
 
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();

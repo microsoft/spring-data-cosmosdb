@@ -66,10 +66,6 @@ public class ReactiveCosmosTemplatePartitionIT {
     private String documentDbKey;
 
     private ReactiveCosmosTemplate dbTemplate;
-    private MappingDocumentDbConverter dbConverter;
-    private DocumentDbMappingContext mappingContext;
-    private ObjectMapper objectMapper;
-    private DocumentDbEntityInformation<PartitionPerson, String> personInfo;
     private String containerName;
 
     @Autowired
@@ -80,17 +76,18 @@ public class ReactiveCosmosTemplatePartitionIT {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        mappingContext = new DocumentDbMappingContext();
-        objectMapper = new ObjectMapper();
-        personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
+        DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        ObjectMapper objectMapper = new ObjectMapper();
+        final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
+            new DocumentDbEntityInformation<>(PartitionPerson.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
 
-        dbTemplate.createCollectionIfNotExists(this.personInfo).block().container();
+        dbTemplate.createCollectionIfNotExists(personInfo).block().container();
         dbTemplate.insert(TEST_PERSON).block();
     }
 
@@ -111,10 +108,10 @@ public class ReactiveCosmosTemplatePartitionIT {
         }).verifyComplete();
     }
 
-    @Test
-    public void testFindByNonExistIdWithPartition() {
-
-    }
+//    @Test
+//    public void testFindByNonExistIdWithPartition() {
+//
+//    }
 
     @Test
     public void testUpsertNewDocumentPartition() {
@@ -161,7 +158,7 @@ public class ReactiveCosmosTemplatePartitionIT {
     @Test
     public void testCountForPartitionedCollectionByQuery() {
         dbTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
-        final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
+        final Criteria criteria = Criteria.getInstance(IS_EQUAL, "firstName",
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
         StepVerifier.create(dbTemplate.count(query, containerName)).expectNext((long) 1).verifyComplete();

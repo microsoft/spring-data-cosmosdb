@@ -9,5 +9,5 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 
 @NoRepositoryBean
-public interface ReactiveCosmosRepository<T, ID> extends ReactiveSortingRepository<T, ID> {
+public interface ReactiveCosmosRepository<T, K> extends ReactiveSortingRepository<T, K> {
 }

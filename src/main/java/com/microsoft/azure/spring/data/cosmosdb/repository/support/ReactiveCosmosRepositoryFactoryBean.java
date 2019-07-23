@@ -45,7 +45,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, 
     }
 
     protected RepositoryFactorySupport getFactoryInstance(ApplicationContext applicationContext) {
-        return new ReactiveCosmosRepositoryFactory(operations, applicationContext);
+        return new ReactiveCosmosRepositoryFactory(applicationContext);
     }
 
     @Override

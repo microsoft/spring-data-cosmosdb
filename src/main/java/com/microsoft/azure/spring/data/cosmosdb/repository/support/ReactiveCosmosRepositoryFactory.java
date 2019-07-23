@@ -22,8 +22,7 @@ public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySu
 //    private final ReactiveCosmosOperations cosmosOperations;
     private final ApplicationContext applicationContext;
 
-    public ReactiveCosmosRepositoryFactory(ReactiveCosmosOperations cosmosOperations,
-                                           ApplicationContext applicationContext) {
+    public ReactiveCosmosRepositoryFactory(ApplicationContext applicationContext) {
 //        this.cosmosOperations = cosmosOperations;
         this.applicationContext = applicationContext;
     }
