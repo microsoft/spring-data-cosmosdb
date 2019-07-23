@@ -22,8 +22,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, 
         implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
-    private ReactiveCosmosOperations operations;
-//    private boolean mappingContextConfigured = false;
+    //    private boolean mappingContextConfigured = false;
 
     public ReactiveCosmosRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
         super(repositoryInterface);
@@ -31,7 +30,6 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, 
 
     @Autowired
     public void setDocumentDbOperations(ReactiveCosmosOperations operations) {
-        this.operations = operations;
     }
 
     @Override

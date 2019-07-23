@@ -12,7 +12,6 @@ import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
@@ -76,15 +75,15 @@ public class ReactiveCosmosTemplatePartitionIT {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
-        ObjectMapper objectMapper = new ObjectMapper();
+        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        final ObjectMapper objectMapper = new ObjectMapper();
         final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
             new DocumentDbEntityInformation<>(PartitionPerson.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
 
         dbTemplate.createCollectionIfNotExists(personInfo).block().container();

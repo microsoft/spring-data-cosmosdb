@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
