@@ -23,9 +23,9 @@ import reactor.core.publisher.Mono;
 import java.io.Serializable;
 
 @RequiredArgsConstructor
-public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implements ReactiveCosmosRepository<T, ID> {
+public class SimpleReactiveCosmosRepository<T, K extends Serializable> implements ReactiveCosmosRepository<T, K> {
 
-    public final DocumentDbEntityInformation<T, ID> entityInformation;
+    public final DocumentDbEntityInformation<T, K> entityInformation;
     public final ReactiveCosmosOperations cosmosOperations;
 
     @Override
@@ -69,13 +69,13 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     }
 
     @Override
-    public Mono<T> findById(ID id) {
+    public Mono<T> findById(K id) {
         Assert.notNull(id, "The given id must not be null!");
         return cosmosOperations.findById(entityInformation.getCollectionName(), id, entityInformation.getJavaType());
     }
 
     @Override
-    public Mono<T> findById(Publisher<ID> publisher) {
+    public Mono<T> findById(Publisher<K> publisher) {
         Assert.notNull(publisher, "The given id must not be null!");
 
         return Mono.from(publisher).flatMap(
@@ -84,7 +84,7 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     }
 
     @Override
-    public Mono<Boolean> existsById(ID id) {
+    public Mono<Boolean> existsById(K id) {
         Assert.notNull(id, "The given id must not be null!");
 
         return cosmosOperations.existsById(id, entityInformation.getJavaType(),
@@ -92,7 +92,7 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     }
 
     @Override
-    public Mono<Boolean> existsById(Publisher<ID> publisher) {
+    public Mono<Boolean> existsById(Publisher<K> publisher) {
         Assert.notNull(publisher, "The given id must not be null!");
 
         return Mono.from(publisher).flatMap(id -> cosmosOperations.existsById(id, entityInformation.getJavaType(),
@@ -105,13 +105,13 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     }
 
     @Override
-    public Flux<T> findAllById(Iterable<ID> ids) {
+    public Flux<T> findAllById(Iterable<K> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Flux<T> findAllById(Publisher<ID> ids) {
+    public Flux<T> findAllById(Publisher<K> ids) {
         Assert.notNull(ids, "The given Publisher of Id's must not be null!");
         throw new UnsupportedOperationException();
     }
@@ -122,14 +122,14 @@ public class SimpleReactiveCosmosRepository<T, ID extends Serializable> implemen
     }
 
     @Override
-    public Mono<Void> deleteById(ID id) {
+    public Mono<Void> deleteById(K id) {
         Assert.notNull(id, "The given id must not be null!");
 
         return cosmosOperations.deleteById(entityInformation.getCollectionName(), id, null);
     }
 
     @Override
-    public Mono<Void> deleteById(Publisher<ID> publisher) {
+    public Mono<Void> deleteById(Publisher<K> publisher) {
         Assert.notNull(publisher, "Id must not be null!");
 
         return Mono.from(publisher).flatMap(id -> cosmosOperations.deleteById(entityInformation.getCollectionName(),

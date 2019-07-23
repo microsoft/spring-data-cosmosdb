@@ -46,7 +46,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private static final String COUNT_VALUE_KEY = "_aggregate";
     public static final int DEFAULT_THROUGHPUT = 400;
 
-    private ApplicationContext applicationContext;
     private final String databaseName;
 
     @Getter(AccessLevel.PRIVATE)
@@ -78,7 +77,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @throws BeansException the bean exception
      */
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     /**

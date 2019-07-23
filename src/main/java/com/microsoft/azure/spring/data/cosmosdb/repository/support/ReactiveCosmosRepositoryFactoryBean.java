@@ -28,6 +28,10 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, 
         super(repositoryInterface);
     }
 
+    /**
+     * Sets the document db operations.
+     * @param operations
+     */
     @Autowired
     public void setDocumentDbOperations(ReactiveCosmosOperations operations) {
     }

@@ -75,9 +75,9 @@ public class ReactiveCosmosTemplateIT {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
         final ObjectMapper objectMapper = new ObjectMapper();
-        DocumentDbEntityInformation<Person, String> personInfo = new DocumentDbEntityInformation<>(Person.class);
+        final DocumentDbEntityInformation<Person, String> personInfo = new DocumentDbEntityInformation<>(Person.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
