@@ -72,11 +72,12 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
     }
 
-    /** Sets the application context
+    /**
      * @param applicationContext the application context
      * @throws BeansException the bean exception
      */
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        //  NOTE: When application context instance variable gets introduced, assign it here.
     }
 
     /**

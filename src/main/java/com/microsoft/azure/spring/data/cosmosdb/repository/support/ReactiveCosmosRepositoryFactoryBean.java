@@ -34,6 +34,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S, 
      */
     @Autowired
     public void setDocumentDbOperations(ReactiveCosmosOperations operations) {
+        //  NOTE: Sets the Document Db operations
     }
 
     @Override
