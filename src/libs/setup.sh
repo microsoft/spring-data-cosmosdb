@@ -18,4 +18,4 @@ az group create -l westus -n $resourcegroup 2>1 > /dev/null
 cosmosDbUri=$(az cosmosdb create --name $dbname --resource-group $resourcegroup --kind GlobalDocumentDB --query documentEndpoint)
 cosmosDbKey=$(az cosmosdb keys list --name $dbname --resource-group $resourcegroup --query primaryMasterKey)
 
-echo $cosmosDbKey
+echo $cosmosDbKey | sed -e 's/^"//' -e 's/"$//'
