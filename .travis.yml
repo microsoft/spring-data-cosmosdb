@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk8
+  - openjdk8
 
 sudo: required
 install: true
@@ -19,7 +19,7 @@ jobs:
         - sudo apt-get install azure-cli
         # - az --help
         # - chmod +x install.sh && ./install.sh
-        - set -o pipefail && mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+        - travis_wait 30 set -o pipefail && mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
         - bash <(curl -s https://codecov.io/bash)
     - stage: performance-test
       script:
