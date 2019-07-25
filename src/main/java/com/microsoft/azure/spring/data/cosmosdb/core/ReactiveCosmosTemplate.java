@@ -51,7 +51,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Getter(AccessLevel.PRIVATE)
     private final CosmosClient cosmosClient;
 
-    private List<String> collectionCache;
+    private final List<String> collectionCache;
 
     /**
      * Constructor
@@ -98,7 +98,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .createContainerIfNotExists(information.getCollectionName(),
                     "/" + information.getPartitionKeyFieldName(), DEFAULT_THROUGHPUT)
                 .map(cosmosContainerResponse -> {
-                    collectionCache.add(information.getCollectionName());
+                    this.collectionCache.add(information.getCollectionName());
                     return cosmosContainerResponse;
                 }));
 
