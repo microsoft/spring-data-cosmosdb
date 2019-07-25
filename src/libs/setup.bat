@@ -31,6 +31,7 @@ for /f "tokens=*" %%a in (%createcmd%) do (set cosmosdburi=%%a)
 
 set listcmd='az cosmosdb keys list --name %dbname% --resource-group %resourcegroup% --query primaryMasterKey'
 for /f "tokens=*" %%a in (%listcmd%) do (set cosmosdbkey=%%a)
+set cosmosdbkey=%cosmosdbkey:"=%
 echo %cosmosdbkey%
 
 goto :end
