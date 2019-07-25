@@ -29,8 +29,9 @@ set createcmd='az cosmosdb create --name %dbname% --resource-group %resourcegrou
 
 for /f "tokens=*" %%a in (%createcmd%) do (set cosmosdburi=%%a)
 
-set listcmd='az cosmosdb list-keys --name %dbname% --resource-group %resourcegroup% --query primaryMasterKey'
+set listcmd='az cosmosdb keys list --name %dbname% --resource-group %resourcegroup% --query primaryMasterKey'
 for /f "tokens=*" %%a in (%listcmd%) do (set cosmosdbkey=%%a)
+set cosmosdbkey=%cosmosdbkey:"=%
 echo %cosmosdbkey%
 
 goto :end
