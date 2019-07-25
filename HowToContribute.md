@@ -15,7 +15,7 @@ mvnw clean install
 ```
 
 ## Test
-There're 3 profiles: `dev`, `integration-test-azure` and `integration-test-emulator`. Default profile is `dev`. Profile `integration-test-azure` will trigger integration test execution against Azure Cosmos DB. Profile `integration-test-emulator` will trigger integration test execution against [Azure Cosmos DB Emualator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), you need to follow the link to setup emualator before test execution.
+There're 3 profiles: `dev`, `integration-test-azure` and `integration-test-emulator`. Default profile is `dev`. Profile `integration-test-azure` will trigger integration test execution against Azure Cosmos DB. Profile `integration-test-emulator` will trigger integration test execution against [Azure Cosmos DB Emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), you need to follow the link to setup emualator before test execution.
 
 - Run unit tests
 ```bash
@@ -40,7 +40,7 @@ mvnw clean install
         ```
    - on Emulator
    
-     Setup Azure Comos DB Emualator by following [this instruction](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), then run test with:
+     Setup Azure Cosmos DB Emulator by following [this instruction](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator), then run test with:
      ```bash
      mvnw -P integration-test-emulator install
      ```
