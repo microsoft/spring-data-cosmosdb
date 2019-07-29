@@ -62,7 +62,7 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
       return new ObjectMapper(); // Do configuration to the ObjectMapper if required
    }
 ```
-  
+
 ## Quick Start
 
 ### Add the dependency
@@ -97,6 +97,15 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     public DocumentDBConfig getConfig() {
         return DocumentDBConfig.builder(uri, key, dbName).build();
     }
+}
+```
+Or if you want to customize your config:
+```java
+public DocumentDBConfig getConfig() {
+    DocumentDBConfig dbConfig = DocumentDBConfig.builder(uri, key, dbName).build();
+    dbConfig.getConnectionPolicy().setConnectionMode(ConnectionMode.DirectHttps);
+    dbConfig.getConnectionPolicy().setMaxPoolSize(1000);
+    return dbConfig;
 }
 ```
 By default, `@EnableDocumentDbRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
