@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.azure.data.cosmos.internal.BaseAuthorizationTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
@@ -35,8 +36,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +65,8 @@ public class DocumentDbTemplateIT {
     private String documentDbUri;
     @Value("${cosmosdb.key}")
     private String documentDbKey;
+    @Value("${cosmosdb.tokenResolverClassPath}")
+    private String tokenResolverClassPath;
 
     private DocumentDbTemplate dbTemplate;
     private MappingDocumentDbConverter dbConverter;
@@ -76,7 +81,17 @@ public class DocumentDbTemplateIT {
 
     @Before
     public void setup() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+        final DocumentDBConfig dbConfig;
+        if (StringUtils.isEmpty(tokenResolverClassPath)) {
+            dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey, DB_NAME,
+                (requestVerb, resourceIdOrFullName, resourceType, properties) ->
+                    new BaseAuthorizationTokenProvider(documentDbKey).generateKeyAuthorizationSignature(requestVerb,
+                        resourceIdOrFullName,
+                    resourceType.name(), new HashMap<>())).build();
+        } else {
+         dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey,
+                DB_NAME, tokenResolverClassPath).build();
+        }
         final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();

@@ -33,6 +33,9 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.database:}")
     private String database;
 
+    @Value("${cosmosdb.tokenResolverClassPath:}")
+    private String tokenResolverClassPath;
+
     private RequestOptions getRequestOptions() {
         final RequestOptions options = new RequestOptions();
 
@@ -49,9 +52,11 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
         final RequestOptions options = getRequestOptions();
 
         if (StringUtils.hasText(this.documentDbUri) && StringUtils.hasText(this.documentDbKey)) {
-            return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).requestOptions(options).build();
+            return DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey, dbName,
+                tokenResolverClassPath).requestOptions(options).build();
         }
 
-        return DocumentDBConfig.builder(connectionString, dbName).requestOptions(options).build();
+        return DocumentDBConfig.builderWithTokenResolver(connectionString, dbName,
+            tokenResolverClassPath).requestOptions(options).build();
     }
 }

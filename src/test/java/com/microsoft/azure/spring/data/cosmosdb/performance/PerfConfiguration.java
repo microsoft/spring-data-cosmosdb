@@ -24,8 +24,12 @@ public class PerfConfiguration extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.key:}")
     private String documentDbKey;
 
+    @Value("${cosmosdb.tokenResolverClassPath:}")
+    private String tokenResolverClassPath;
+
     @Bean
     public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(documentDbUri, documentDbKey, Constants.PERF_DATABASE_NAME).build();
+        return DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey, Constants.PERF_DATABASE_NAME,
+            tokenResolverClassPath).build();
     }
 }

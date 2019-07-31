@@ -18,6 +18,7 @@
         <propertyfile file="./src/test/resources/application.properties">
             <entry key="cosmosdb.key" value="${cosmosdb.key}"/>
             <entry key="cosmosdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
+            <entry key="cosmosdb.tokenResolverClassPath" value="${cosmosdb.tokenResolverClassPath}"/>
         </propertyfile>
     </target>
     <target name="cleanup">

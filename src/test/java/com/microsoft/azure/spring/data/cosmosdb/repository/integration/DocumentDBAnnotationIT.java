@@ -46,6 +46,9 @@ public class DocumentDBAnnotationIT {
     @Value("${cosmosdb.key}")
     private String dbKey;
 
+    @Value("${cosmosdb.tokenResolverClassPath}")
+    private String tokenResolverClassPath;
+
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -61,7 +64,8 @@ public class DocumentDBAnnotationIT {
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver(dbUri, dbKey, TestConstants.DB_NAME,
+            tokenResolverClassPath).build();
         final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
 
         roleInfo = new DocumentDbEntityInformation<>(Role.class);

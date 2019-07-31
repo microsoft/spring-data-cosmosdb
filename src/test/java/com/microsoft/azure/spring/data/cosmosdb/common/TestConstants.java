@@ -135,6 +135,7 @@ public class TestConstants {
     public static final String DOCUMENTDB_FAKE_CONNECTION_STRING =
             "AccountEndpoint=https://fakeuri/;AccountKey=fakekey;";
     public static final String DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING = "invalid connection string";
+    public static final String INVALID_TOKEN_RESOLVER_CLASS_PATH = "Invalid token resolver class path";
 
     public static final String PROPERTY_ID = "id";
     public static final String PROPERTY_FIRST_NAME = "firstName";

@@ -56,4 +56,56 @@ public class DocumentDbFactoryUnitTest {
         final String uaSuffix = factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix();
         assertThat(uaSuffix).contains("spring-data");
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidTokenResolverClassPathWithConnectionString() {
+        final DocumentDBConfig dbConfig =
+            DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_CONNECTION_STRING, DB_NAME,
+                INVALID_TOKEN_RESOLVER_CLASS_PATH).build();
+    }
+
+    @Test
+    public void testEmptyTokenResolverClassPathWithConnectionString() {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_CONNECTION_STRING,
+            DB_NAME, "").build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
+
+        assertThat(factory).isNotNull();
+    }
+
+    @Test
+    public void testEmptyTokenResolverImplementationWithConnectionString() {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_CONNECTION_STRING,
+            DB_NAME,
+            (requestVerb, resourceIdOrFullName, resourceType, properties) -> null).build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
+
+        assertThat(factory).isNotNull();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidTokenResolverClassPath() {
+        final DocumentDBConfig dbConfig =
+            DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_HOST, DOCUMENTDB_FAKE_KEY, DB_NAME,
+                INVALID_TOKEN_RESOLVER_CLASS_PATH).build();
+    }
+
+    @Test
+    public void testEmptyTokenResolverClassPath() {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_HOST,
+            DOCUMENTDB_FAKE_KEY, DB_NAME, "").build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
+
+        assertThat(factory).isNotNull();
+    }
+
+    @Test
+    public void testEmptyTokenResolverImplementation() {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver(DOCUMENTDB_FAKE_HOST,
+            DOCUMENTDB_FAKE_KEY, DB_NAME, (requestVerb, resourceIdOrFullName, resourceType, properties) -> null)
+                                                          .build();
+        final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
+
+        assertThat(factory).isNotNull();
+    }
 }

@@ -31,7 +31,9 @@ public class UserAgentTest {
 
         assertThat(PropertyLoader.getProjectVersion()).isEqualTo(TEST_VERSION);
 
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder("https://uri", "key", TestConstants.DB_NAME).build();
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builderWithTokenResolver("https://uri", "key",
+            TestConstants.DB_NAME,
+            (requestVerb, resourceIdOrFullName, resourceType, properties) -> null).build();
         final DocumentDbFactory factory = new DocumentDbFactory(dbConfig);
         assertThat(factory.getDocumentClient().getConnectionPolicy().getUserAgentSuffix()).contains(TEST_VERSION);
     }

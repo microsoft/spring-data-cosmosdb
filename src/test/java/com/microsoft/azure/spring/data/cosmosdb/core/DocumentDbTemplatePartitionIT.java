@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.azure.data.cosmos.internal.BaseAuthorizationTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
@@ -18,6 +19,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +35,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +60,8 @@ public class DocumentDbTemplatePartitionIT {
     private String documentDbUri;
     @Value("${cosmosdb.key}")
     private String documentDbKey;
+    @Value("${cosmosdb.tokenResolverClassPath}")
+    private String tokenResolverClassPath;
 
     private DocumentDbTemplate dbTemplate;
     private String collectionName;
@@ -67,7 +72,17 @@ public class DocumentDbTemplatePartitionIT {
 
     @Before
     public void setup() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+        final DocumentDBConfig dbConfig;
+        if (StringUtils.isEmpty(tokenResolverClassPath)) {
+            dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey, DB_NAME,
+                (requestVerb, resourceIdOrFullName, resourceType, properties) ->
+                    new BaseAuthorizationTokenProvider(documentDbKey).generateKeyAuthorizationSignature(requestVerb,
+                        resourceIdOrFullName,
+                        resourceType.name(), new HashMap<>())).build();
+        } else {
+            dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey,
+                DB_NAME, tokenResolverClassPath).build();
+        }
         final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
         final ObjectMapper objectMapper = new ObjectMapper();
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();

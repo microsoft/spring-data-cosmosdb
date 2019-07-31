@@ -78,7 +78,8 @@ public class AbstractDocumentDbConfigurationUnitTest {
 
         @Bean
         public DocumentDBConfig getConfig() {
-            return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME).build();
+            return DocumentDBConfig.builderWithTokenResolver("http://fake-uri", "fake-key", TestConstants.DB_NAME,
+                (requestVerb, resourceIdOrFullName, resourceType, properties) -> null).build();
         }
 
         @Override
@@ -111,7 +112,8 @@ public class AbstractDocumentDbConfigurationUnitTest {
         @Bean
         public DocumentDBConfig getConfig() {
             final RequestOptions options = getRequestOptions();
-            return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME)
+            return DocumentDBConfig.builderWithTokenResolver("http://fake-uri", "fake-key", TestConstants.DB_NAME,
+                (requestVerb, resourceIdOrFullName, resourceType, properties) -> null)
                     .requestOptions(options)
                     .build();
         }
