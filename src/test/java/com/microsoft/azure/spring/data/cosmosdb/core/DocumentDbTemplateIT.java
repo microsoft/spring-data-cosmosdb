@@ -85,7 +85,7 @@ public class DocumentDbTemplateIT {
         collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
-
+        
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
         dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
 
