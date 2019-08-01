@@ -43,7 +43,6 @@ public class CosmosDbFactoryUnitTest {
 
     @Test(expected = DocumentDBAccessException.class)
     public void testInvalidConnectionString() {
-        final DocumentDBConfig dbConfig =
-            DocumentDBConfig.builder(DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
+        DocumentDBConfig.builder(DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
     }
 }

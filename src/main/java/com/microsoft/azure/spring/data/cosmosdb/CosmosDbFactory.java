@@ -7,8 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.internal.Permission;
-import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
