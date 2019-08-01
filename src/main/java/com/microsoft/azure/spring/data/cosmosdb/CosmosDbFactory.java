@@ -7,6 +7,8 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.internal.Permission;
+import com.google.common.collect.Lists;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
@@ -49,14 +51,20 @@ public class CosmosDbFactory {
 
         policy.setUserAgentSuffix(userAgent);
         return CosmosClient.builder()
-                .endpoint(config.getUri())
-                .key(config.getKey())
-                .build();
+                           .endpoint(config.getUri())
+                           .key(config.getKey())
+                           .tokenResolver(config.getTokenResolver())
+                           .build();
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
-        Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        if (config.getTokenResolver() == null) {
+            Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        }
+        if (config.getKey() == null) {
+            Assert.notNull(config.getTokenResolver(), "cosmosdb token resolver should not be null!");
+        }
         Assert.hasText(config.getDatabase(), "cosmosdb database should have text!");
         Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
     }

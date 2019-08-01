@@ -7,7 +7,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.PartitionKey;
-import com.azure.data.cosmos.internal.BaseAuthorizationTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
@@ -20,7 +19,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import io.reactivex.subscribers.TestSubscriber;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,7 +37,6 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
@@ -66,8 +63,6 @@ public class ReactiveCosmosTemplateIT {
     private String documentDbUri;
     @Value("${cosmosdb.key}")
     private String documentDbKey;
-    @Value("${cosmosdb.tokenResolverClassPath}")
-    private String tokenResolverClassPath;
 
     private ReactiveCosmosTemplate dbTemplate;
     private String containerName;
@@ -77,17 +72,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig;
-        if (StringUtils.isEmpty(tokenResolverClassPath)) {
-            dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey, DB_NAME,
-                (requestVerb, resourceIdOrFullName, resourceType, properties) ->
-                    new BaseAuthorizationTokenProvider(documentDbKey).generateKeyAuthorizationSignature(requestVerb,
-                        resourceIdOrFullName,
-                        resourceType.name(), new HashMap<>())).build();
-        } else {
-            dbConfig = DocumentDBConfig.builderWithTokenResolver(documentDbUri, documentDbKey,
-                DB_NAME, tokenResolverClassPath).build();
-        }
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
