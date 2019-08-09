@@ -23,6 +23,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -47,6 +48,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     private final String databaseName;
 
+    @Getter(AccessLevel.PRIVATE)
     private final CosmosClient cosmosClient;
 
     private final List<String> collectionCache;
