@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
@@ -49,14 +50,20 @@ public class CosmosDbFactory {
 
         policy.setUserAgentSuffix(userAgent);
         return CosmosClient.builder()
-                .endpoint(config.getUri())
-                .key(config.getKey())
-                .build();
+                           .endpoint(config.getUri())
+                           .key(config.getKey())
+                           .cosmosKeyCredential(config.getCosmosKeyCredential())
+                           .build();
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
-        Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        if (config.getCosmosKeyCredential() == null) {
+            Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        } else if (StringUtils.isEmpty(config.getKey())) {
+            Assert.hasText(config.getCosmosKeyCredential().key(),
+                "cosmosdb credential host key should have text!");
+        }
         Assert.hasText(config.getDatabase(), "cosmosdb database should have text!");
         Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
     }
