@@ -47,7 +47,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     private final String databaseName;
 
-    @Getter
     private final CosmosClient cosmosClient;
 
     private final List<String> collectionCache;
