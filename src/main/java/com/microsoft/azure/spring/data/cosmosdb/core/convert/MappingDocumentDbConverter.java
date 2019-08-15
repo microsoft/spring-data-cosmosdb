@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
+import com.azure.data.cosmos.CosmosItemProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,44 +36,46 @@ import java.util.Date;
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
 public class MappingDocumentDbConverter
-        implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty, Object, Document>,
-        ApplicationContextAware {
+    implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty,
+    Object, CosmosItemProperties>,
+    ApplicationContextAware {
 
     protected final MappingContext<? extends DocumentDbPersistentEntity<?>,
-            DocumentDbPersistentProperty> mappingContext;
+        DocumentDbPersistentProperty> mappingContext;
     protected GenericConversionService conversionService;
     private ApplicationContext applicationContext;
     private ObjectMapper objectMapper;
 
     public MappingDocumentDbConverter(
-            MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext,
-            @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME) ObjectMapper objectMapper) {
+        MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext,
+        @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME) ObjectMapper objectMapper) {
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
-        this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() : objectMapper;
+        this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() :
+            objectMapper;
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.registerModule(provideAdvancedSerializersModule());
     }
 
     @Override
-    public <R extends Object> R read(Class<R> type, Document sourceDocument) {
-        if (sourceDocument == null) {
+    public <R> R read(Class<R> type, CosmosItemProperties cosmosItemProperties) {
+        if (cosmosItemProperties == null) {
             return null;
         }
 
         final DocumentDbPersistentEntity<?> entity = mappingContext.getPersistentEntity(type);
         Assert.notNull(entity, "Entity is null.");
 
-        return readInternal(entity, type, sourceDocument);
+        return readInternal(entity, type, cosmosItemProperties);
     }
 
-    protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
-                                                final Document sourceDocument) {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(provideAdvancedSerializersModule());
+    private <R> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
+                               final CosmosItemProperties cosmosItemProperties) {
 
         try {
             final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
-            final Object idValue = sourceDocument.getId();
-            final JSONObject jsonObject = new JSONObject(sourceDocument.toJson());
+            final Object idValue = cosmosItemProperties.id();
+            final JSONObject jsonObject = new JSONObject(cosmosItemProperties.toJson());
 
             if (idProperty != null) {
                 // Replace the key id to the actual id field name in domain
@@ -82,8 +85,8 @@ public class MappingDocumentDbConverter
 
             return objectMapper.readValue(jsonObject.toString(), type);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
-                    + "  to target type " + type, e);
+            throw new IllegalStateException("Failed to read the source document " + cosmosItemProperties.toJson()
+                + "  to target type " + type, e);
         }
     }
 
@@ -95,7 +98,7 @@ public class MappingDocumentDbConverter
 
     @Override
     @Deprecated
-    public void write(Object sourceEntity, Document document) {
+    public void write(Object sourceEntity, CosmosItemProperties document) {
         throw new UnsupportedOperationException("The feature is not implemented yet");
     }
 
@@ -105,7 +108,7 @@ public class MappingDocumentDbConverter
         }
 
         final DocumentDbPersistentEntity<?> persistentEntity =
-                mappingContext.getPersistentEntity(sourceEntity.getClass());
+            mappingContext.getPersistentEntity(sourceEntity.getClass());
 
         if (persistentEntity == null) {
             throw new MappingException("no mapping metadata for entity type: " + sourceEntity.getClass().getName());
@@ -130,6 +133,38 @@ public class MappingDocumentDbConverter
         return document;
     }
 
+    public CosmosItemProperties writeCosmosItemProperties(Object sourceEntity) {
+        if (sourceEntity == null) {
+            return null;
+        }
+
+        final DocumentDbPersistentEntity<?> persistentEntity =
+            mappingContext.getPersistentEntity(sourceEntity.getClass());
+
+        if (persistentEntity == null) {
+            throw new MappingException("no mapping metadata for entity type: " + sourceEntity.getClass().getName());
+        }
+
+        final ConvertingPropertyAccessor accessor = getPropertyAccessor(sourceEntity);
+        final DocumentDbPersistentProperty idProperty = persistentEntity.getIdProperty();
+        final CosmosItemProperties cosmosItemProperties;
+
+        try {
+            cosmosItemProperties =
+                new CosmosItemProperties(objectMapper.writeValueAsString(sourceEntity));
+        } catch (JsonProcessingException e) {
+            throw new DocumentDBAccessException("Failed to map document value.", e);
+        }
+
+        if (idProperty != null) {
+            final Object value = accessor.getProperty(idProperty);
+            final String id = value == null ? null : value.toString();
+            cosmosItemProperties.id(id);
+        }
+
+        return cosmosItemProperties;
+    }
+
     public ApplicationContext getApplicationContext() {
         return this.applicationContext;
     }
@@ -150,7 +185,8 @@ public class MappingDocumentDbConverter
 
 
     private ConvertingPropertyAccessor getPropertyAccessor(Object entity) {
-        final DocumentDbPersistentEntity<?> entityInformation = mappingContext.getPersistentEntity(entity.getClass());
+        final DocumentDbPersistentEntity<?> entityInformation =
+            mappingContext.getPersistentEntity(entity.getClass());
 
         Assert.notNull(entityInformation, "EntityInformation should not be null.");
         final PersistentPropertyAccessor accessor = entityInformation.getPropertyAccessor(entity);

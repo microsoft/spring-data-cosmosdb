@@ -15,6 +15,7 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,6 +157,7 @@ public class ContactRepositoryIT {
     }
 
     @Test
+    @Ignore //  TODO(kuthapar): v3 doesn't support creation of items without id.
     public void testNullIdContact() {
         final Contact nullIdContact = new Contact(null, "testTitile");
         final Contact savedContact = this.repository.save(nullIdContact);

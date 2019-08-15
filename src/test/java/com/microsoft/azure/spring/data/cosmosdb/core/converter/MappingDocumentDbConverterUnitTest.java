@@ -5,14 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.converter;
 
+import com.azure.data.cosmos.CosmosItemProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,22 +54,23 @@ public class MappingDocumentDbConverterUnitTest {
     @Test
     public void covertAddressToDocumentCorrectly() {
         final Address testAddress = new Address(TestConstants.POSTAL_CODE, TestConstants.CITY, TestConstants.STREET);
-        final Document document = dbConverter.writeDoc(testAddress);
+        final CosmosItemProperties cosmosItemProperties = dbConverter.writeCosmosItemProperties(testAddress);
 
-        assertThat(document.getId()).isEqualTo(testAddress.getPostalCode());
-        assertThat(document.getString(TestConstants.PROPERTY_CITY)).isEqualTo(testAddress.getCity());
-        assertThat(document.getString(TestConstants.PROPERTY_STREET)).isEqualTo(testAddress.getStreet());
+        assertThat(cosmosItemProperties.id()).isEqualTo(testAddress.getPostalCode());
+        assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_CITY)).isEqualTo(testAddress.getCity());
+        assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_STREET)).isEqualTo(testAddress.getStreet());
     }
 
     @Test
     public void convertDocumentToAddressCorrectly() {
-        final Document document = new Document();
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put(TestConstants.PROPERTY_CITY, TestConstants.CITY);
+        jsonObject.put(TestConstants.PROPERTY_STREET, TestConstants.STREET);
 
-        document.setId(TestConstants.POSTAL_CODE);
-        document.set(TestConstants.PROPERTY_CITY, TestConstants.CITY);
-        document.set(TestConstants.PROPERTY_STREET, TestConstants.STREET);
+        final CosmosItemProperties cosmosItemProperties = new CosmosItemProperties(jsonObject.toString());
+        cosmosItemProperties.id(TestConstants.POSTAL_CODE);
 
-        final Address address = dbConverter.read(Address.class, document);
+        final Address address = dbConverter.read(Address.class, cosmosItemProperties);
 
         assertThat(address.getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
         assertThat(address.getCity()).isEqualTo(TestConstants.CITY);
@@ -79,26 +81,28 @@ public class MappingDocumentDbConverterUnitTest {
     public void canWritePojoWithDateToDocument() throws ParseException {
         final Memo memo = new Memo(TestConstants.ID_1, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
                 Importance.NORMAL);
-        final Document document = dbConverter.writeDoc(memo);
+        final CosmosItemProperties cosmosItemProperties = dbConverter.writeCosmosItemProperties(memo);
 
-        assertThat(document.getId()).isEqualTo(memo.getId());
-        assertThat(document.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(memo.getMessage());
-        assertThat(document.getLong(TestConstants.PROPERTY_DATE)).isEqualTo(memo.getDate().getTime());
+        assertThat(cosmosItemProperties.id()).isEqualTo(memo.getId());
+        assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(memo.getMessage());
+        assertThat(cosmosItemProperties.getLong(TestConstants.PROPERTY_DATE)).isEqualTo(memo.getDate().getTime());
     }
 
     @Test
     public void canReadPojoWithDateFromDocument() throws ParseException {
-        final Document document = new Document();
-        document.setId(TestConstants.ID_1);
-        document.set(TestConstants.PROPERTY_MESSAGE, TestConstants.MESSAGE);
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put(TestConstants.PROPERTY_MESSAGE, TestConstants.MESSAGE);
 
         final long date = DATE.parse(TestConstants.DATE_STRING).getTime();
-        document.set(TestConstants.PROPERTY_DATE, date);
+        jsonObject.put(TestConstants.PROPERTY_DATE, date);
 
-        final Memo memo = dbConverter.read(Memo.class, document);
-        assertThat(document.getId()).isEqualTo(memo.getId());
-        assertThat(document.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(TestConstants.MESSAGE);
-        assertThat(document.getLong(TestConstants.PROPERTY_DATE)).isEqualTo(date);
+        final CosmosItemProperties cosmosItemProperties = new CosmosItemProperties(jsonObject.toString());
+        cosmosItemProperties.id(TestConstants.ID_1);
+
+        final Memo memo = dbConverter.read(Memo.class, cosmosItemProperties);
+        assertThat(cosmosItemProperties.id()).isEqualTo(memo.getId());
+        assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(TestConstants.MESSAGE);
+        assertThat(cosmosItemProperties.getLong(TestConstants.PROPERTY_DATE)).isEqualTo(date);
     }
 
     @Test

@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
@@ -68,7 +68,7 @@ public class DocumentDbTemplatePartitionIT {
     @Before
     public void setup() throws ClassNotFoundException {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
-        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
         final ObjectMapper objectMapper = new ObjectMapper();
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
 
@@ -77,7 +77,7 @@ public class DocumentDbTemplatePartitionIT {
 
         final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
 
-        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
+        dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
         collectionName = personInfo.getCollectionName();
 
         dbTemplate.createCollectionIfNotExists(personInfo);
@@ -121,7 +121,9 @@ public class DocumentDbTemplatePartitionIT {
     @Test
     public void testUpsertNewDocumentPartition() {
         final String firstName = NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
-        final PartitionPerson newPerson = new PartitionPerson(null, firstName, NEW_LAST_NAME, null, null);
+        final PartitionPerson newPerson = new PartitionPerson(TEST_PERSON.getId(),
+            firstName, NEW_LAST_NAME,
+            null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
         dbTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
