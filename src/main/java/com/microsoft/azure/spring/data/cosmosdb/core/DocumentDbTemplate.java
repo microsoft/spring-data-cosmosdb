@@ -6,23 +6,25 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.documentdb.*;
-import com.microsoft.azure.documentdb.internal.HttpConstants;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosContainerResponse;
+import com.azure.data.cosmos.CosmosItemProperties;
+import com.azure.data.cosmos.CosmosItemRequestOptions;
+import com.azure.data.cosmos.CosmosItemResponse;
+import com.azure.data.cosmos.FeedOptions;
+import com.azure.data.cosmos.FeedResponse;
+import com.azure.data.cosmos.SqlQuerySpec;
+import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DatabaseCreationException;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -33,8 +35,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -43,28 +46,24 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
-    private static final String COUNT_VALUE_KEY = "_aggregate";
 
-    @Getter(AccessLevel.PRIVATE)
-    private final DocumentClient documentClient;
-    private final DocumentDbFactory documentDbFactory;
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
+    private final ReactiveCosmosTemplate reactiveCosmosTemplate;
     private final String databaseName;
 
-    private Database databaseCache;
-    private List<String> collectionCache;
+    private final CosmosClient cosmosClient;
 
-    public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
+    public DocumentDbTemplate(CosmosDbFactory cosmosDbFactory,
                               MappingDocumentDbConverter mappingDocumentDbConverter,
                               String dbName) {
-        Assert.notNull(documentDbFactory, "DocumentDbFactory must not be null!");
+        Assert.notNull(cosmosDbFactory, "CosmosDbFactory must not be null!");
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
 
-        this.databaseName = dbName;
-        this.documentDbFactory = documentDbFactory;
-        this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
-        this.collectionCache = new ArrayList<>();
+
+        this.reactiveCosmosTemplate = new ReactiveCosmosTemplate(cosmosDbFactory, mappingDocumentDbConverter, dbName);
+        this.databaseName = dbName;
+        this.cosmosClient = cosmosDbFactory.getCosmosClient();
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -80,24 +79,30 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
+        final CosmosItemProperties originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(objectToSave);
 
         log.debug("execute createDocument in database {} collection {}", this.databaseName, collectionName);
 
         try {
-            final Resource result = getDocumentClient()
-                    .createDocument(getCollectionLink(this.databaseName, collectionName), document,
-                            getRequestOptions(partitionKey, null), false).getResource();
+            final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+            options.partitionKey(toCosmosPartitionKey(partitionKey));
 
-            if (result instanceof Document) {
-                final Document documentInserted = (Document) result;
-                @SuppressWarnings("unchecked") final Class<T> domainClass = (Class<T>) objectToSave.getClass();
+            @SuppressWarnings("unchecked")
+            final Class<T> domainClass = (Class<T>) objectToSave.getClass();
 
-                return mappingDocumentDbConverter.read(domainClass, documentInserted);
-            } else {
-                return null;
+            final CosmosItemResponse response = cosmosClient.getDatabase(this.databaseName)
+                                                                 .getContainer(collectionName)
+                                                                 .createItem(originalItem, options)
+                                                                 .onErrorResume(Mono::error)
+                                                                 .block();
+
+            if (response == null) {
+                throw new DocumentDBAccessException("Failed to insert item");
             }
-        } catch (DocumentClientException e) {
+
+            return mappingDocumentDbConverter.read(domainClass, response.properties());
+
+        } catch (Exception e) {
             throw new DocumentDBAccessException("insert exception", e);
         }
     }
@@ -108,37 +113,29 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return findById(getCollectionName(entityClass), id, entityClass);
     }
 
-    private boolean isIdFieldAsPartitionKey(@NonNull Class<?> domainClass) {
-        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information
-                = new DocumentDbEntityInformation(domainClass);
-        final String partitionKeyName = information.getPartitionKeyFieldName();
-        final String idName = information.getIdField().getName();
-
-        return partitionKeyName != null && partitionKeyName.equals(idName);
-    }
-
     public <T> T findById(String collectionName, Object id, Class<T> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domainClass, "entityClass should not be null");
         assertValidId(id);
 
         try {
-            final PartitionKey partitionKey = isIdFieldAsPartitionKey(domainClass) ? new PartitionKey(id) : null;
-            final RequestOptions options = getRequestOptions(partitionKey, null);
 
-            final String documentLink = getDocumentLink(this.databaseName, collectionName, id);
-            final Resource document = getDocumentClient().readDocument(documentLink, options).getResource();
+            final String query = String.format("select * from root where root.id = '%s'", id.toString());
+            final FeedOptions options = new FeedOptions();
+            options.enableCrossPartitionQuery(true);
+            return cosmosClient
+                .getDatabase(databaseName)
+                .getContainer(collectionName)
+                .queryItems(query, options)
+                .flatMap(cosmosItemFeedResponse -> Mono.justOrEmpty(cosmosItemFeedResponse
+                    .results()
+                    .stream()
+                    .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
+                    .findFirst()))
+                .onErrorResume(Mono::error)
+                .blockFirst();
 
-            if (document instanceof Document) {
-                return mappingDocumentDbConverter.read(domainClass, (Document) document);
-            } else {
-                return null;
-            }
-        } catch (DocumentClientException e) {
-            if (e.getStatusCode() == HttpConstants.StatusCodes.NOTFOUND) {
-                return null;
-            }
-
+        } catch (Exception e) {
             throw new DocumentDBAccessException("findById exception", e);
         }
     }
@@ -154,21 +151,23 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(object, "Upsert object should not be null");
 
         try {
-            Document originalDoc;
-
-            if (object instanceof Document) {
-                originalDoc = (Document) object;
-            } else {
-                originalDoc = mappingDocumentDbConverter.writeDoc(object);
-            }
+            final CosmosItemProperties originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(object);
 
             log.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
 
-            final String collectionLink = getCollectionSelfLink(collectionName);
-            final RequestOptions options = getRequestOptions(partitionKey, null);
+            final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+            options.partitionKey(toCosmosPartitionKey(partitionKey));
 
-            getDocumentClient().upsertDocument(collectionLink, originalDoc, options, false);
-        } catch (DocumentClientException ex) {
+            final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
+                                                                           .getContainer(collectionName)
+                                                                           .upsertItem(originalItem, options)
+                                                                           .onErrorResume(Mono::error)
+                                                                           .block();
+
+            if (cosmosItemResponse == null) {
+                throw new DocumentDBAccessException("Failed to upsert item");
+            }
+        } catch (Exception ex) {
             throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
         }
     }
@@ -184,9 +183,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "entityClass should not be null");
 
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final List<Document> results = findDocuments(query, domainClass, collectionName);
 
-        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
+        final List<CosmosItemProperties> documents = findDocuments(query, domainClass, collectionName);
+        return documents.stream()
+                        .map(d -> getConverter().read(domainClass, d))
+                        .collect(Collectors.toList());
     }
 
     public void deleteAll(@NonNull String collectionName, @NonNull Class<?> domainClass) {
@@ -200,13 +201,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public void deleteCollection(@NonNull String collectionName) {
         Assert.hasText(collectionName, "collectionName should have text.");
-
-        try {
-            getDocumentClient().deleteCollection(getCollectionLink(this.databaseName, collectionName), null);
-            this.collectionCache.remove(collectionName);
-        } catch (DocumentClientException ex) {
-            throw new DocumentDBAccessException("failed to delete collection: " + collectionName, ex);
-        }
+        reactiveCosmosTemplate.deleteContainer(collectionName);
     }
 
     public String getCollectionName(Class<?> domainClass) {
@@ -215,98 +210,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
     }
 
-    private Database createDatabaseIfNotExists(String dbName) {
-        try {
-            final List<Database> dbList = getDocumentClient()
-                    .queryDatabases(new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
-                            new SqlParameterCollection(new SqlParameter("@id", dbName))), null)
-                    .getQueryIterable().toList();
-
-            if (!dbList.isEmpty()) {
-                return dbList.get(0);
-            } else {
-                // create new database
-                final Database db = new Database();
-                db.setId(dbName);
-
-                log.debug("execute createDatabase {}", dbName);
-
-                final Resource resource = getDocumentClient().createDatabase(db, null).getResource();
-
-                if (resource instanceof Database) {
-                    return (Database) resource;
-                } else {
-                    final String errorMessage = MessageFormat.format(
-                            "create database {0} and get unexpected result: {1}", dbName, resource.getSelfLink());
-
-                    log.error(errorMessage);
-                    throw new DatabaseCreationException(errorMessage);
-                }
-            }
-        } catch (DocumentClientException ex) {
-            throw new DocumentDBAccessException("createOrGetDatabase exception", ex);
-        }
-    }
-
-    private DocumentCollection createCollection(@NonNull String dbName, String partitionKeyFieldName,
-                                                @NonNull DocumentDbEntityInformation information) {
-        DocumentCollection collection = new DocumentCollection();
-        final String collectionName = information.getCollectionName();
-        final IndexingPolicy policy = information.getIndexingPolicy();
-        final Integer timeToLive = information.getTimeToLive();
-        final RequestOptions requestOptions = getRequestOptions(null, information.getRequestUnit());
-
-        collection.setId(collectionName);
-        collection.setIndexingPolicy(policy);
-
-        if (information.getIndexingPolicy().getAutomatic()) {
-            collection.setDefaultTimeToLive(timeToLive); // If not Automatic, setDefaultTimeToLive is invalid
-        }
-
-        if (partitionKeyFieldName != null && !partitionKeyFieldName.isEmpty()) {
-            final PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            final ArrayList<String> paths = new ArrayList<>();
-
-            paths.add(getPartitionKeyPath(partitionKeyFieldName));
-            partitionKeyDefinition.setPaths(paths);
-            collection.setPartitionKey(partitionKeyDefinition);
-        }
-
-        log.debug("execute createCollection in database {} collection {}", dbName, collectionName);
-
-        try {
-            final Resource resource = getDocumentClient()
-                    .createCollection(getDatabaseLink(dbName), collection, requestOptions)
-                    .getResource();
-            if (resource instanceof DocumentCollection) {
-                collection = (DocumentCollection) resource;
-            }
-            return collection;
-        } catch (DocumentClientException e) {
-            throw new DocumentDBAccessException("createCollection exception", e);
-        }
-    }
-
     @Override
     public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation information) {
-        if (this.databaseCache == null) {
-            this.databaseCache = createDatabaseIfNotExists(this.databaseName);
+        final CosmosContainerResponse response = reactiveCosmosTemplate
+            .createCollectionIfNotExists(information)
+            .block();
+        if (response == null) {
+            throw new DocumentDBAccessException("Failed to create collection");
         }
-
-        final String collectionName = information.getCollectionName();
-        final String partitionKeyFieldName = information.getPartitionKeyFieldName();
-
-        final List<DocumentCollection> collectionList = getDocumentClient()
-                .queryCollections(getDatabaseLink(this.databaseName),
-                        new SqlQuerySpec("SELECT * FROM root r WHERE r.id=@id",
-                                new SqlParameterCollection(new SqlParameter("@id", collectionName))), null)
-                .getQueryIterable().toList();
-
-        if (!collectionList.isEmpty()) {
-            return collectionList.get(0);
-        } else {
-            return createCollection(this.databaseName, partitionKeyFieldName, information);
-        }
+        return new DocumentCollection(response.properties().toJson());
     }
 
     public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
@@ -315,72 +227,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
 
+        com.azure.data.cosmos.PartitionKey pk = toCosmosPartitionKey(partitionKey);
+        if (pk == null) {
+            pk = com.azure.data.cosmos.PartitionKey.None;
+        }
         try {
-            final RequestOptions options = getRequestOptions(partitionKey, null);
-            getDocumentClient().deleteDocument(getDocumentLink(databaseName, collectionName, id.toString()), options);
-        } catch (DocumentClientException ex) {
-            throw new DocumentDBAccessException("deleteById exception", ex);
+            reactiveCosmosTemplate.deleteById(collectionName, id, pk).block();
+        } catch (Exception e) {
+            throw new DocumentDBAccessException("deleteById exception", e);
         }
-    }
-
-    private String getDatabaseLink(String databaseName) {
-        return "dbs/" + databaseName;
-    }
-
-    private String getCollectionLink(String databaseName, String collectionName) {
-        return getDatabaseLink(databaseName) + "/colls/" + collectionName;
-    }
-
-    private String getDocumentLink(String databaseName, String collectionName, Object documentId) {
-        return getCollectionLink(databaseName, collectionName) + "/docs/" + documentId;
-    }
-
-    private String getPartitionKeyPath(String partitionKey) {
-        return "/" + partitionKey;
-    }
-
-    @NonNull
-    private DocumentDBConfig getDocumentDbConfig() {
-        return documentDbFactory.getConfig();
-    }
-
-    private RequestOptions getRequestOptions(PartitionKey key, Integer requestUnit) {
-        final RequestOptions options = CosmosdbUtils.getCopyFrom(getDocumentDbConfig().getRequestOptions());
-
-        if (key != null) {
-            options.setPartitionKey(key);
-        }
-
-        if (requestUnit != null) {
-            options.setOfferThroughput(requestUnit);
-        }
-
-        return options;
-    }
-
-    private <T> List<T> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
-                                     @NonNull Class<T> domainClass, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(sqlQuerySpec, isCrossPartition, collectionName);
-        final List<Document> result = feedResponse.getQueryIterable().toList();
-
-        return result.stream().map(r -> getConverter().read(domainClass, r)).collect(Collectors.toList());
-    }
-
-    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, boolean isCrossPartition,
-                                                String collectionName) {
-        final FeedOptions feedOptions = new FeedOptions();
-        final String selfLink = getCollectionSelfLink(collectionName);
-
-        feedOptions.setEnableCrossPartitionQuery(isCrossPartition);
-
-        return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
-    }
-
-    private FeedResponse<Document> executeQuery(@NonNull SqlQuerySpec sqlQuerySpec, FeedOptions feedOptions,
-                                                String collectionName) {
-        final String selfLink = getCollectionSelfLink(collectionName);
-
-        return getDocumentClient().queryDocuments(selfLink, sqlQuerySpec, feedOptions);
     }
 
     @Override
@@ -400,44 +255,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
         try {
-            final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-            final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-
-            return this.executeQuery(sqlQuerySpec, isCrossPartitionQuery, domainClass, collectionName);
-        } catch (IllegalStateException | IllegalArgumentException e) {
+            return reactiveCosmosTemplate.find(query, domainClass, collectionName).collectList().block();
+        } catch (Exception e) {
             throw new DocumentDBAccessException("Failed to execute find operation from " + collectionName, e);
         }
     }
 
     public <T> Boolean exists(@NonNull DocumentQuery query, @NonNull Class<T> domainClass, String collectionName) {
         return this.find(query, domainClass, collectionName).size() > 0;
-    }
-
-    private List<Document> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
-                                         @NonNull String collectionName) {
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, isCrossPartitionQuery, collectionName);
-
-        return response.getQueryIterable().toList();
-    }
-
-    private void deleteDocument(@NonNull Document document, @NonNull List<String> partitionKeyNames) {
-        try {
-            Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
-
-            PartitionKey partitionKey = null;
-
-            if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
-                partitionKey = new PartitionKey(document.get(partitionKeyNames.get(0)));
-            }
-
-            final RequestOptions options = getRequestOptions(partitionKey, null);
-
-            getDocumentClient().deleteDocument(document.getSelfLink(), options);
-        } catch (DocumentClientException e) {
-            throw new DocumentDBAccessException("Failed to delete document: " + document.getSelfLink(), e);
-        }
     }
 
     /**
@@ -458,12 +283,14 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null.");
         Assert.hasText(collectionName, "collection should not be null, empty or only whitespaces");
 
-        final List<Document> results = findDocuments(query, domainClass, collectionName);
+        final List<CosmosItemProperties> results = findDocuments(query, domainClass, collectionName);
         final List<String> partitionKeyName = getPartitionKeyNames(domainClass);
 
-        results.forEach(d -> deleteDocument(d, partitionKeyName));
+        results.forEach(d -> deleteDocument(d, partitionKeyName, collectionName));
 
-        return results.stream().map(d -> getConverter().read(domainClass, d)).collect(Collectors.toList());
+        return results.stream()
+                      .map(d -> getConverter().read(domainClass, d))
+                      .collect(Collectors.toList());
     }
 
     @Override
@@ -484,33 +311,42 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final Pageable pageable = query.getPageable();
         final FeedOptions feedOptions = new FeedOptions();
         if (pageable instanceof DocumentDbPageRequest) {
-            feedOptions.setRequestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
+            feedOptions.requestContinuation(((DocumentDbPageRequest) pageable).getRequestContinuation());
         }
 
-        feedOptions.setPageSize(pageable.getPageSize());
-        feedOptions.setEnableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
+        feedOptions.maxItemCount(pageable.getPageSize());
+        feedOptions.enableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
-        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generate(query);
-        final FeedResponse<Document> response = executeQuery(sqlQuerySpec, feedOptions, collectionName);
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
+        final FeedResponse<CosmosItemProperties> feedResponse =
+            cosmosClient.getDatabase(this.databaseName)
+                        .getContainer(collectionName)
+                        .queryItems(sqlQuerySpec, feedOptions)
+                        .next()
+                        .block();
 
-        final Iterator<Document> it = response.getQueryIterator();
+        if (feedResponse == null) {
+            throw new DocumentDBAccessException("Failed to query documents");
+        }
+
+        final Iterator<CosmosItemProperties> it = feedResponse.results().iterator();
 
         final List<T> result = new ArrayList<>();
         for (int index = 0; it.hasNext() && index < pageable.getPageSize(); index++) {
-            // Limit iterator as inner iterator will automatically fetch the next page
-            final Document doc = it.next();
-            if (doc == null) {
+
+            final CosmosItemProperties cosmosItemProperties = it.next();
+            if (cosmosItemProperties == null) {
                 continue;
             }
 
-            final T entity = mappingDocumentDbConverter.read(domainClass, doc);
+            final T entity = mappingDocumentDbConverter.read(domainClass, cosmosItemProperties);
             result.add(entity);
         }
 
         final DocumentDbPageRequest pageRequest = DocumentDbPageRequest.of(pageable.getPageNumber(),
-                pageable.getPageSize(),
-                response.getResponseContinuation(),
-                query.getSort());
+            pageable.getPageSize(),
+            feedResponse.continuationToken(),
+            query.getSort());
 
         return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
     }
@@ -519,10 +355,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public long count(String collectionName) {
         Assert.hasText(collectionName, "collectionName should not be empty");
 
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL));
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
-
-        return getCountValue(querySpec, true, collectionName);
+        final Long count = reactiveCosmosTemplate.count(collectionName).block();
+        if (count == null) {
+            throw new DocumentDBAccessException("Failed to get count for collectionName: " + collectionName);
+        }
+        return count;
     }
 
     @Override
@@ -530,27 +367,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(domainClass, "domainClass should not be null");
         Assert.hasText(collectionName, "collectionName should not be empty");
 
-        final SqlQuerySpec querySpec = new CountQueryGenerator().generate(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
-
-        return getCountValue(querySpec, isCrossPartitionQuery, collectionName);
-    }
-
-    private long getCountValue(SqlQuerySpec querySpec, boolean isCrossPartitionQuery, String collectionName) {
-        final FeedResponse<Document> feedResponse = executeQuery(querySpec, isCrossPartitionQuery, collectionName);
-        final Object value = feedResponse.getQueryIterable().toList().get(0).getHashMap().get(COUNT_VALUE_KEY);
-
-        if (value instanceof Integer) {
-            return Long.valueOf((Integer) value);
-        } else if (value instanceof Long) {
-            return (Long) value;
-        } else {
-            throw new IllegalStateException("Unexpected value type " + value.getClass() + " of value: " + value);
+        final Long count = reactiveCosmosTemplate.count(query, isCrossPartitionQuery, collectionName).block();
+        if (count == null) {
+            throw new DocumentDBAccessException("Failed to get count for collectionName: " + collectionName);
         }
-    }
-
-    private String getCollectionSelfLink(@NonNull String collectionName) {
-        return String.format("dbs/%s/colls/%s", this.databaseName, collectionName);
+        return count;
     }
 
     @Override
@@ -569,10 +391,59 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
+    private com.azure.data.cosmos.PartitionKey toCosmosPartitionKey(PartitionKey partitionKey) {
+        if (partitionKey == null) {
+            return null;
+        }
+        return com.azure.data.cosmos.PartitionKey.fromJsonString(partitionKey.getInternalPartitionKey().toJson());
+    }
+
     private void assertValidId(Object id) {
         Assert.notNull(id, "id should not be null");
         if (id instanceof String) {
             Assert.hasText(id.toString(), "id should not be empty or only whitespaces.");
         }
+    }
+
+    private List<CosmosItemProperties> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
+                                                     @NonNull String containerName) {
+        final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
+        final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.enableCrossPartitionQuery(isCrossPartitionQuery);
+        return cosmosClient
+            .getDatabase(this.databaseName)
+            .getContainer(containerName)
+            .queryItems(sqlQuerySpec, feedOptions)
+            .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()))
+            .collectList()
+            .block();
+    }
+
+    private CosmosItemResponse deleteDocument(@NonNull CosmosItemProperties cosmosItemProperties,
+                                              @NonNull List<String> partitionKeyNames,
+                                              String containerName) {
+        Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
+
+        PartitionKey partitionKey = null;
+
+        if (!partitionKeyNames.isEmpty() && StringUtils.hasText(partitionKeyNames.get(0))) {
+            partitionKey = new PartitionKey(cosmosItemProperties.get(partitionKeyNames.get(0)));
+        }
+
+        com.azure.data.cosmos.PartitionKey pk = toCosmosPartitionKey(partitionKey);
+
+        if (pk == null) {
+            pk = com.azure.data.cosmos.PartitionKey.None;
+        }
+
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions(pk);
+
+        return cosmosClient
+            .getDatabase(this.databaseName)
+            .getContainer(containerName)
+            .getItem(cosmosItemProperties.id(), partitionKey)
+            .delete(options)
+            .block();
     }
 }

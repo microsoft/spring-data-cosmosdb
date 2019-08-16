@@ -117,10 +117,9 @@ public class ReactiveCosmosTemplateIT {
     public void testFindByID() {
         final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(),
                 Person.class);
-        StepVerifier.create(findById).consumeNextWith(actual -> {
-            Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
-            Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
-        }).verifyComplete();
+        StepVerifier.create(findById)
+                    .consumeNextWith(actual -> Assert.assertEquals(actual, TEST_PERSON))
+                    .verifyComplete();
     }
 
     @Test
@@ -143,10 +142,8 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testFindByIdWithContainerName() {
         StepVerifier.create(cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class))
-                .consumeNextWith(actual -> {
-                    Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
-                    Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
-                }).verifyComplete();
+                    .consumeNextWith(actual -> Assert.assertEquals(actual, TEST_PERSON))
+                    .verifyComplete();
     }
 
     @Test
@@ -202,18 +199,26 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testDeleteById() {
         cosmosTemplate.insert(TEST_PERSON_4).block();
+        Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        StepVerifier.create(flux).expectNextCount(2).verifyComplete();
         final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
-                new PartitionKey(TEST_PERSON_4.getId()));
+                PartitionKey.None);
         StepVerifier.create(voidMono).verifyComplete();
+        flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        StepVerifier.create(flux).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testDeleteByIdBySecondaryKey() {
         cosmosKeyCredential.key(documentDbSecondaryKey);
         cosmosTemplate.insert(TEST_PERSON_4).block();
+        Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        StepVerifier.create(flux).expectNextCount(2).verifyComplete();
         final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
-            new PartitionKey(TEST_PERSON_4.getId()));
+            PartitionKey.None);
         StepVerifier.create(voidMono).verifyComplete();
+        flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        StepVerifier.create(flux).expectNextCount(1).verifyComplete();
     }
 
     @Test
