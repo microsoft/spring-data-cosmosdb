@@ -163,12 +163,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.notNull(object, "Upsert object should not be null");
 
         try {
-            CosmosItemProperties originalItem;
-            if (object instanceof CosmosItemProperties) {
-                originalItem = (CosmosItemProperties) object;
-            } else {
-                originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(object);
-            }
+            final CosmosItemProperties originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(object);
 
             log.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
 
@@ -335,9 +330,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         feedOptions.enableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
-        final FeedResponse<CosmosItemProperties> feedResponse = reactiveCosmosTemplate
-            .executeQuery(sqlQuerySpec, collectionName, feedOptions)
-            .next().block();
+        final FeedResponse<CosmosItemProperties> feedResponse =
+            cosmosClient.getDatabase(this.databaseName)
+                        .getContainer(collectionName)
+                        .queryItems(sqlQuerySpec, feedOptions)
+                        .next()
+                        .block();
 
         if (feedResponse == null) {
             throw new DocumentDBAccessException("Failed to query documents");

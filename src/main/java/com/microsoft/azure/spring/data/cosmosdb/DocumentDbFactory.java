@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
@@ -48,12 +49,25 @@ public class DocumentDbFactory {
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
         policy.setUserAgentSuffix(userAgent);
+        
+        //  With introduction to com.azure.data.cosmos.CosmosKeyCredential,
+        //  we are giving preference to config.getCosmosKeyCredential()
+        if (config.getCosmosKeyCredential() != null &&
+            !StringUtils.isEmpty(config.getCosmosKeyCredential().key())) {
+            return new DocumentClient(config.getUri(), config.getCosmosKeyCredential().key(),
+                policy, config.getConsistencyLevel());
+        }
         return new DocumentClient(config.getUri(), config.getKey(), policy, config.getConsistencyLevel());
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
-        Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        if (config.getCosmosKeyCredential() == null) {
+            Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
+        } else if (StringUtils.isEmpty(config.getKey())) {
+            Assert.hasText(config.getCosmosKeyCredential().key(),
+                "cosmosdb credential host key should have text!");
+        }
         Assert.hasText(config.getDatabase(), "cosmosdb database should have text!");
         Assert.notNull(config.getConnectionPolicy(), "cosmosdb connection policy should not be null!");
     }

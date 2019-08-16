@@ -421,7 +421,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .map(r -> r.results().get(0).getLong(COUNT_VALUE_KEY));
     }
 
-    Flux<FeedResponse<CosmosItemProperties>> executeQuery(SqlQuerySpec sqlQuerySpec, String collectionName,
+    private Flux<FeedResponse<CosmosItemProperties>> executeQuery(SqlQuerySpec sqlQuerySpec, String collectionName,
                                                         FeedOptions options) {
 
         return getCosmosClient().getDatabase(this.databaseName)
