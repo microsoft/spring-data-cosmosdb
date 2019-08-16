@@ -64,7 +64,7 @@ public class UserRepositoryIntegrationTest {
     public void cleanup() {
         //  Switch back to primary key to reset the invalid key
         //  Switch to invalid key
-        UserRepositoryConfiguration bean =
+        final UserRepositoryConfiguration bean =
             applicationContext.getBean(UserRepositoryConfiguration.class);
         bean.switchToPrimaryKey();
         this.repository.deleteAll();
@@ -133,7 +133,7 @@ public class UserRepositoryIntegrationTest {
     @Test
     public void testSecondaryKeyRotation() {
         //  Switch to secondary key
-        UserRepositoryConfiguration bean =
+        final UserRepositoryConfiguration bean =
             applicationContext.getBean(UserRepositoryConfiguration.class);
         bean.switchToSecondaryKey();
 
@@ -146,12 +146,12 @@ public class UserRepositoryIntegrationTest {
         this.repository.save(user);
 
         // Test for findById
-        User result = this.repository.findById(ID).get();
+        final User result = this.repository.findById(ID).get();
         Assert.notNull(result, "should be exist in database");
         Assert.isTrue(result.getId().equals(ID), "should be the same id");
 
         // Test for findByName
-        List<User> resultList = this.repository.findByName(user.getName());
+        final List<User> resultList = this.repository.findByName(user.getName());
         Assert.isTrue(resultList.size() == 1, "should be only one user here");
         Assert.isTrue(resultList.get(0).getName().equals(user.getName()), "should be same Name");
         Assert.notNull(result.getRoleList(), "roleList should not be null");
@@ -168,12 +168,12 @@ public class UserRepositoryIntegrationTest {
         this.repository.save(user);
 
         // Test for findById
-        User result = this.repository.findById(ID).get();
+        final User result = this.repository.findById(ID).get();
         Assert.notNull(result, "should be exist in database");
         Assert.isTrue(result.getId().equals(ID), "should be the same id");
 
         //  Switch to invalid key
-        UserRepositoryConfiguration bean =
+        final UserRepositoryConfiguration bean =
             applicationContext.getBean(UserRepositoryConfiguration.class);
         bean.switchKey("Invalid key");
 

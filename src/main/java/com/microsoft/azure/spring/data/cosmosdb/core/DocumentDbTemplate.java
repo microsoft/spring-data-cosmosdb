@@ -25,8 +25,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -53,7 +51,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private final ReactiveCosmosTemplate reactiveCosmosTemplate;
     private final String databaseName;
 
-    @Getter(AccessLevel.PRIVATE)
     private final CosmosClient cosmosClient;
 
     public DocumentDbTemplate(CosmosDbFactory cosmosDbFactory,
@@ -82,12 +79,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        CosmosItemProperties originalItem;
-        if (objectToSave instanceof CosmosItemProperties) {
-            originalItem = (CosmosItemProperties) objectToSave;
-        } else {
-            originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(objectToSave);
-        }
+        final CosmosItemProperties originalItem = mappingDocumentDbConverter.writeCosmosItemProperties(objectToSave);
 
         log.debug("execute createDocument in database {} collection {}", this.databaseName, collectionName);
 
@@ -95,8 +87,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
             options.partitionKey(toCosmosPartitionKey(partitionKey));
 
+            @SuppressWarnings("unchecked")
             final Class<T> domainClass = (Class<T>) objectToSave.getClass();
-            final CosmosItemResponse response = getCosmosClient().getDatabase(this.databaseName)
+
+            final CosmosItemResponse response = cosmosClient.getDatabase(this.databaseName)
                                                                  .getContainer(collectionName)
                                                                  .createItem(originalItem, options)
                                                                  .onErrorResume(Mono::error)
@@ -129,21 +123,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final String query = String.format("select * from root where root.id = '%s'", id.toString());
             final FeedOptions options = new FeedOptions();
             options.enableCrossPartitionQuery(true);
-            return getCosmosClient()
+            return cosmosClient
                 .getDatabase(databaseName)
                 .getContainer(collectionName)
                 .queryItems(query, options)
-                .flatMap(cosmosItemFeedResponse -> {
-                    final List<T> collect = cosmosItemFeedResponse
-                        .results()
-                        .stream()
-                        .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
-                        .collect(Collectors.toList());
-                    if (!collect.isEmpty()) {
-                        return Mono.just(collect.get(0));
-                    }
-                    return Mono.empty();
-                })
+                .flatMap(cosmosItemFeedResponse -> Mono.justOrEmpty(cosmosItemFeedResponse
+                    .results()
+                    .stream()
+                    .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
+                    .findFirst()))
                 .onErrorResume(Mono::error)
                 .blockFirst();
 
@@ -170,7 +158,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
             options.partitionKey(toCosmosPartitionKey(partitionKey));
 
-            final CosmosItemResponse cosmosItemResponse = getCosmosClient().getDatabase(this.databaseName)
+            final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
                                                                            .getContainer(collectionName)
                                                                            .upsertItem(originalItem, options)
                                                                            .onErrorResume(Mono::error)
@@ -423,7 +411,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.enableCrossPartitionQuery(isCrossPartitionQuery);
-        return getCosmosClient()
+        return cosmosClient
             .getDatabase(this.databaseName)
             .getContainer(containerName)
             .queryItems(sqlQuerySpec, feedOptions)
@@ -451,7 +439,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions(pk);
 
-        return getCosmosClient()
+        return cosmosClient
             .getDatabase(this.databaseName)
             .getContainer(containerName)
             .getItem(cosmosItemProperties.id(), partitionKey)
