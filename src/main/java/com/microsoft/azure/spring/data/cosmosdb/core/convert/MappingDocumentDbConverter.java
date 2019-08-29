@@ -50,6 +50,7 @@ public class MappingDocumentDbConverter
         this.mappingContext = mappingContext;
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() : objectMapper;
+        configureObjectMapper();
     }
 
     @Override
@@ -66,9 +67,6 @@ public class MappingDocumentDbConverter
 
     protected <R extends Object> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
                                                 final Document sourceDocument) {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(provideAdvancedSerializersModule());
-
         try {
             final DocumentDbPersistentProperty idProperty = entity.getIdProperty();
             final Object idValue = sourceDocument.getId();
@@ -85,6 +83,11 @@ public class MappingDocumentDbConverter
             throw new IllegalStateException("Failed to read the source document " + sourceDocument.toJson()
                     + "  to target type " + type, e);
         }
+    }
+
+    private void configureObjectMapper() {
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.registerModule(provideAdvancedSerializersModule());
     }
 
     private SimpleModule provideAdvancedSerializersModule() {
