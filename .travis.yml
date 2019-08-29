@@ -1,11 +1,6 @@
 language: java
 jdk:
-  - oraclejdk8
-
-addons:
-  apt:
-    packages:
-      - python3
+  - openjdk8
 
 sudo: required
 install: true
@@ -14,8 +9,17 @@ jobs:
   include:
     - stage: test
       script:
-        - chmod +x install.sh && ./install.sh
-        - set -o pipefail && mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+        - sudo apt-get install python3.5 python3.5-dev
+        - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        - sudo apt-get update
+        - sudo apt-get install curl apt-transport-https lsb-release gnupg
+        - curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
+        - AZ_REPO=$(lsb_release -cs) && echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+        - sudo apt-get update
+        - sudo apt-get install azure-cli
+        # - az --help
+        # - chmod +x install.sh && ./install.sh
+        - chmod +x ./src/libs/travis-wait-mvn-build.sh && ./src/libs/travis-wait-mvn-build.sh
         - bash <(curl -s https://codecov.io/bash)
     - stage: performance-test
       script:
