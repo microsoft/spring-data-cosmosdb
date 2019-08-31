@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
@@ -81,7 +81,7 @@ public class SpELDocumentDBAnnotationIT {
     @Test
     public void testDatabaseOperationsOnDynamicallyNamedCollection() throws ClassNotFoundException {
       final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
-      final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+      final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
       documentDbEntityInfo = new DocumentDbEntityInformation<>(SpELPropertyStudent.class);
       final DocumentDbMappingContext dbContext = new DocumentDbMappingContext();
