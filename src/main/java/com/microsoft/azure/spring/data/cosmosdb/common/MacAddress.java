@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -63,7 +63,8 @@ public class MacAddress {
             String tmp;
             final ProcessBuilder builder = new ProcessBuilder(commands);
             final Process process = builder.start();
-            @Cleanup final InputStreamReader streamReader = new InputStreamReader(process.getInputStream(), "utf-8");
+            @Cleanup final InputStreamReader streamReader = new InputStreamReader(process.getInputStream(),
+                    StandardCharsets.UTF_8);
             @Cleanup final BufferedReader reader = new BufferedReader(streamReader);
 
             while ((tmp = reader.readLine()) != null) {
@@ -92,14 +93,14 @@ public class MacAddress {
         try {
             final MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 
-            messageDigest.update(mac.getBytes("UTF-8"));
+            messageDigest.update(mac.getBytes(StandardCharsets.UTF_8));
 
             final byte[] digestBytes = messageDigest.digest();
 
             for (final byte digest : digestBytes) {
                 builder.append(getHexDigest(digest));
             }
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException ex) {
             return "";
         }
 
