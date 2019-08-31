@@ -124,8 +124,7 @@ public class AddressRepositoryIT {
 
     @Test
     public void deleteWithoutPartitionedColumnShouldFail() {
-        expectedException.expect(UnsupportedOperationException.class);
-        expectedException.expectMessage("PartitionKey value must be supplied for this operation.");
+        expectedException.expect(Exception.class);
 
         repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode());
     }

@@ -16,6 +16,7 @@ fi
 az login --service-principal -u $CLIENT_ID -p $CLIENT_KEY --tenant $TENANT_ID >> tmp.txt
 az group create -l westus -n $resourcegroup 2>1 > /dev/null
 cosmosDbUri=$(az cosmosdb create --name $dbname --resource-group $resourcegroup --kind GlobalDocumentDB --query documentEndpoint)
-cosmosDbKey=$(az cosmosdb keys list --name $dbname --resource-group $resourcegroup --query primaryMasterKey)
+cosmosDbPrimaryKey=$(az cosmosdb keys list --name $dbname --resource-group $resourcegroup --query primaryMasterKey)
+cosmosDbSecondaryKey=$(az cosmosdb keys list --name $dbname --resource-group $resourcegroup --query secondaryMasterKey)
 
-echo $cosmosDbKey
+echo "$cosmosDbPrimaryKey $cosmosDbSecondaryKey" | sed -e 's/"//g'

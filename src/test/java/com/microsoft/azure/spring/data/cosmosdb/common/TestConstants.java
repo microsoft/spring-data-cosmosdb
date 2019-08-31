@@ -91,6 +91,7 @@ public class TestConstants {
     public static final String ID_1 = "id-1";
     public static final String ID_2 = "id-2";
     public static final String ID_3 = "id-3";
+    public static final String ID_4 = "id-4";
     public static final String NEW_FIRST_NAME = "new_first_name";
     public static final String NEW_LAST_NAME = "new_last_name";
     public static final String UPDATED_FIRST_NAME = "updated_first_name";
