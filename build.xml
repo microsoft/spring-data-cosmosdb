@@ -15,9 +15,6 @@
             <arg value="${azure.test.dbname}"/>
             <redirector outputproperty="cosmosdb.keys"/>
         </exec>
-        <exec osfamily="unix" executable="echo">
-            <arg value="${cosmosdb.keys}"/>
-        </exec>
         <script language="javascript">
             project.setProperty('cosmosdb.key', project.getProperty('cosmosdb.keys').split(' ')[0]);
             project.setProperty('cosmosdb.secondaryKey', project.getProperty('cosmosdb.keys').split(' ')[1]);
@@ -27,9 +24,6 @@
             <entry key="cosmosdb.secondaryKey" value="${cosmosdb.secondaryKey}"/>
             <entry key="cosmosdb.uri" value="https://${azure.test.dbname}.documents.azure.com:443"/>
         </propertyfile>
-        <exec osfamily="unix" executable="cat">
-            <arg value="./src/test/resources/application.properties"/>
-        </exec>
     </target>
     <target name="cleanup">
         <echo message="cleanup test resource"/>
