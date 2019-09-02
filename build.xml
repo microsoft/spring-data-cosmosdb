@@ -15,6 +15,9 @@
             <arg value="${azure.test.dbname}"/>
             <redirector outputproperty="cosmosdb.keys"/>
         </exec>
+        <exec osfamily="unix" executable="echo">
+            <arg value="${cosmosdb.keys}"/>
+        </exec>
         <script language="javascript">
             project.setProperty('cosmosdb.key', project.getProperty('cosmosdb.keys').split(' ')[0]);
             project.setProperty('cosmosdb.secondaryKey', project.getProperty('cosmosdb.keys').split(' ')[1]);
