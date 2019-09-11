@@ -9,8 +9,10 @@ package com.microsoft.azure.spring.data.cosmosdb.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,9 +36,20 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     }
 
     @Bean
+    public CosmosDbFactory cosmosDbFactory(DocumentDBConfig config) {
+        return new CosmosDbFactory(config);
+    }
+
+    @Bean
     public DocumentDbTemplate documentDbTemplate(DocumentDBConfig config) throws ClassNotFoundException {
-        return new DocumentDbTemplate(this.documentDbFactory(config), this.mappingDocumentDbConverter(),
+        return new DocumentDbTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
                 config.getDatabase());
+    }
+
+    @Bean
+    public ReactiveCosmosTemplate cosmosDbTemplate(DocumentDBConfig config) throws ClassNotFoundException {
+        return new ReactiveCosmosTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
+            config.getDatabase());
     }
 
     @Bean

@@ -15,11 +15,13 @@
  */
 package example.springdata.cosmosdb;
 
+import com.azure.data.cosmos.CosmosKeyCredential;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
@@ -33,8 +35,23 @@ public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration
     @Autowired
     private DocumentDbProperties properties;
 
-    @Override
-    public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(properties.getUri(), properties.getKey(), properties.getDatabase()).build();
+    private CosmosKeyCredential cosmosKeyCredential;
+
+    @Bean
+    public DocumentDBConfig documentDBConfig() {
+        this.cosmosKeyCredential = new CosmosKeyCredential(properties.getKey());
+        return DocumentDBConfig.builder(properties.getUri(), cosmosKeyCredential, properties.getDatabase()).build();
+    }
+
+    public void switchToSecondaryKey() {
+        this.cosmosKeyCredential.key(properties.getSecondaryKey());
+    }
+
+    public void switchToPrimaryKey() {
+        this.cosmosKeyCredential.key(properties.getKey());
+    }
+
+    public void switchKey(String key) {
+        this.cosmosKeyCredential.key(key);
     }
 }

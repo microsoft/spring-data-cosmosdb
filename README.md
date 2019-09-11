@@ -73,12 +73,15 @@ If you are using Maven, add the following dependency.
 <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.0.3</version>
+    <version>2.1.7</version>
 </dependency>
 ```
 
 ### Setup Configuration
 Setup configuration class.
+
+CosmosKeyCredential feature provides capability to rotate keys on the fly. You can switch keys using switchToSecondaryKey(). 
+For more information on this, see the Sample Application code.
 
 ```java
 @Configuration
@@ -91,18 +94,29 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     @Value("${azure.cosmosdb.key}")
     private String key;
 
+    @Value("${azure.cosmosdb.secondaryKey}")
+    private String secondaryKey;
+
     @Value("${azure.cosmosdb.database}")
     private String dbName;
+    
+    private CosmosKeyCredential cosmosKeyCredential;
 
     public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(uri, key, dbName).build();
+        this.cosmosKeyCredential = new CosmosKeyCredential(key);
+        return DocumentDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
+    }
+    
+    public void switchToSecondaryKey() {
+        this.cosmosKeyCredential.key(secondaryKey);
     }
 }
 ```
 Or if you want to customize your config:
 ```java
 public DocumentDBConfig getConfig() {
-    DocumentDBConfig dbConfig = DocumentDBConfig.builder(uri, key, dbName).build();
+    this.cosmosKeyCredential = new CosmosKeyCredential(key);
+    DocumentDBConfig dbConfig = DocumentDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
     dbConfig.getConnectionPolicy().setConnectionMode(ConnectionMode.DirectHttps);
     dbConfig.getConnectionPolicy().setMaxPoolSize(1000);
     return dbConfig;
@@ -187,6 +201,9 @@ public class SampleApplication implements CommandLineRunner {
 
     @Autowired
     private UserRepository repository;
+    
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public static void main(String[] args) {
         SpringApplication.run(SampleApplication.class, args);
@@ -203,6 +220,15 @@ public class SampleApplication implements CommandLineRunner {
         final User result = repository.findOne(testUser.getId(), testUser.getLastName);
         // if emailAddress is mapped to id, then 
         // final User result = respository.findOne(testUser.getEmailAddress(), testUser.getLastName());
+        
+        //  Switch to secondary key
+        UserRepositoryConfiguration bean = 
+            applicationContext.getBean(UserRepositoryConfiguration.class);
+        bean.switchToSecondaryKey();
+        
+        //  Now repository will use secondary key
+        repository.save(testUser);
+
     }
 }
 ```

@@ -16,11 +16,13 @@
 package example.springdata.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -50,6 +52,9 @@ public class UserRepositoryIntegrationTest {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     @Before
     public void setup() {
         this.repository.deleteAll();
@@ -57,6 +62,11 @@ public class UserRepositoryIntegrationTest {
 
     @After
     public void cleanup() {
+        //  Switch back to primary key to reset the invalid key
+        //  Switch to invalid key
+        final UserRepositoryConfiguration bean =
+            applicationContext.getBean(UserRepositoryConfiguration.class);
+        bean.switchToPrimaryKey();
         this.repository.deleteAll();
     }
 
@@ -119,5 +129,57 @@ public class UserRepositoryIntegrationTest {
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
     }
+
+    @Test
+    public void testSecondaryKeyRotation() {
+        //  Switch to secondary key
+        final UserRepositoryConfiguration bean =
+            applicationContext.getBean(UserRepositoryConfiguration.class);
+        bean.switchToSecondaryKey();
+
+
+        final Address address = new Address(POSTAL_CODE, STREET, CITY);
+        final Role creator = new Role(ROLE_CREATOR, COST_CREATOR);
+        final Role contributor = new Role(ROLE_CONTRIBUTOR, COST_CONTRIBUTOR);
+        final User user = new User(ID, EMAIL, NAME, COUNT, address, Arrays.asList(creator, contributor));
+
+        this.repository.save(user);
+
+        // Test for findById
+        final User result = this.repository.findById(ID).get();
+        Assert.notNull(result, "should be exist in database");
+        Assert.isTrue(result.getId().equals(ID), "should be the same id");
+
+        // Test for findByName
+        final List<User> resultList = this.repository.findByName(user.getName());
+        Assert.isTrue(resultList.size() == 1, "should be only one user here");
+        Assert.isTrue(resultList.get(0).getName().equals(user.getName()), "should be same Name");
+        Assert.notNull(result.getRoleList(), "roleList should not be null");
+        Assert.isTrue(result.getRoleList().size() == user.getRoleList().size(), "must be the same list size");
+    }
+
+    @Test(expected = DocumentDBAccessException.class)
+    public void testInvalidSecondaryKey() {
+        final Address address = new Address(POSTAL_CODE, STREET, CITY);
+        final Role creator = new Role(ROLE_CREATOR, COST_CREATOR);
+        final Role contributor = new Role(ROLE_CONTRIBUTOR, COST_CONTRIBUTOR);
+        final User user = new User(ID, EMAIL, NAME, COUNT, address, Arrays.asList(creator, contributor));
+
+        this.repository.save(user);
+
+        // Test for findById
+        final User result = this.repository.findById(ID).get();
+        Assert.notNull(result, "should be exist in database");
+        Assert.isTrue(result.getId().equals(ID), "should be the same id");
+
+        //  Switch to invalid key
+        final UserRepositoryConfiguration bean =
+            applicationContext.getBean(UserRepositoryConfiguration.class);
+        bean.switchKey("Invalid key");
+
+        // Test for findByName
+        this.repository.findByName(user.getName());
+    }
+
 }
 

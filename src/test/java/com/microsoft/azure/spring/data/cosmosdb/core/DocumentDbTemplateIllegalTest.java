@@ -6,10 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
@@ -17,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.Assert;
@@ -37,16 +34,12 @@ public class DocumentDbTemplateIllegalTest {
     private static final String WHITESPACES_STR = "  ";
     private static final String CHECK_FAILURE_MSG = "Illegal argument is not checked";
 
+    @Mock(answer = Answers.CALLS_REAL_METHODS)
     private DocumentDbTemplate dbTemplate;
     private Class dbTemplateClass;
 
-    @Mock
-    MappingDocumentDbConverter dbConverter;
-
     @Before
     public void setUp() {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder("http://uri", "key", TestConstants.DB_NAME).build();
-        this.dbTemplate = new DocumentDbTemplate(new DocumentDbFactory(dbConfig), dbConverter, TestConstants.DB_NAME);
         dbTemplateClass = dbTemplate.getClass();
     }
 
