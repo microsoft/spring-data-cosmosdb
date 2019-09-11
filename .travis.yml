@@ -9,6 +9,7 @@ jobs:
   include:
     - stage: test
       script:
+        - if [ -z "$CLIENT_ID" ]; then travis_terminate 0; fi
         - sudo apt-get install python3.5 python3.5-dev
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         - sudo apt-get update
