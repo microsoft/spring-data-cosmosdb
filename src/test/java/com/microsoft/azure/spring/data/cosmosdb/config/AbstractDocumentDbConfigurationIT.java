@@ -28,6 +28,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.AbstractApplicationContext;
 
+import static org.junit.Assert.assertNotNull;
+
 public class AbstractDocumentDbConfigurationIT {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
@@ -39,7 +41,7 @@ public class AbstractDocumentDbConfigurationIT {
         final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
                 TestDocumentDbConfiguration.class);
 
-        Assertions.assertThat(context.getBean(ExpressionResolver.class)).isNotNull();
+        assertNotNull(context.getBean(ExpressionResolver.class));
     }
 
     @Test
