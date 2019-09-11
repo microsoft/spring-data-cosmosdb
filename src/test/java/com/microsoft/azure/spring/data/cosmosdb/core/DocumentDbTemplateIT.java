@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.azure.data.cosmos.CosmosClientException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.documentdb.DocumentClientException;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
@@ -52,16 +52,18 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})
 public class DocumentDbTemplateIT {
+    private static final String PRECONDITION_IS_NOT_MET = "precondition is not met";
+
     private static final String WRONG_ETAG = "WRONG_ETAG";
 
     private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
@@ -93,7 +95,7 @@ public class DocumentDbTemplateIT {
     @Before
     public void setup() throws ClassNotFoundException {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
-        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();
         objectMapper = new ObjectMapper();
@@ -101,9 +103,9 @@ public class DocumentDbTemplateIT {
         collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
-
+        
         dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-        dbTemplate = new DocumentDbTemplate(dbFactory, dbConverter, DB_NAME);
+        dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
 
         dbTemplate.createCollectionIfNotExists(this.personInfo);
         insertedPerson = dbTemplate.insert(Person.class.getSimpleName(), TEST_PERSON, null);
@@ -130,7 +132,7 @@ public class DocumentDbTemplateIT {
     public void testFindById() {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class);
-        assertTrue(result.equals(TEST_PERSON));
+        assertEquals(TEST_PERSON, result);
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 TestConstants.NOT_EXIST_ID, Person.class);
@@ -156,14 +158,14 @@ public class DocumentDbTemplateIT {
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null);
 
         final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
-        final Person newPerson = new Person(null, firstName, TestConstants.NEW_FIRST_NAME, null, null);
+        final Person newPerson = new Person(TEST_PERSON.getId(), firstName, TestConstants.NEW_FIRST_NAME, null, null);
 
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson, null);
 
         final List<Person> result = dbTemplate.findAll(Person.class);
 
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).getFirstName().equals(firstName));
+        assertEquals(result.get(0).getFirstName(), firstName);
     }
 
     @Test
@@ -175,7 +177,7 @@ public class DocumentDbTemplateIT {
 
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
-        assertTrue(result.get(0).equals(TEST_PERSON_2));
+        assertEquals(TEST_PERSON_2, result.get(0));
     }
 
     @Test
@@ -194,7 +196,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(TEST_PERSON_2, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON_2.getFirstName()));
+            Collections.singletonList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, collectionName);
@@ -221,7 +223,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(TEST_PERSON_2, null);
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TestConstants.FIRST_NAME));
+            Collections.singletonList(FIRST_NAME));
         final PageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
@@ -287,13 +289,13 @@ public class DocumentDbTemplateIT {
         final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         updated.set_etag(insertedPerson.get_etag());
-        
+
         dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
 
-        assertTrue(result.equals(updated));
+        assertEquals(result, updated);
     }
     
     @Test
@@ -305,7 +307,10 @@ public class DocumentDbTemplateIT {
         try {
             dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
         } catch (DocumentDBAccessException e) {
-            assertThat(e.getCause()).isInstanceOf(DocumentClientException.class);
+            assertThat(e.getCause()).isNotNull();
+            final Throwable cosmosClientException = e.getCause().getCause();
+            assertThat(cosmosClientException).isInstanceOf(CosmosClientException.class);
+            assertThat(cosmosClientException.getMessage()).contains(PRECONDITION_IS_NOT_MET);
             
             final Person unmodifiedPerson = dbTemplate.findById(Person.class.getSimpleName(),
                     TEST_PERSON.getId(), Person.class);

@@ -19,12 +19,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.AbstractApplicationContext;
 
-public class AbstractDocumentDbConfigurationUnitTest {
+public class AbstractDocumentDbConfigurationIT {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
     @Rule
@@ -72,13 +74,21 @@ public class AbstractDocumentDbConfigurationUnitTest {
     }
 
     @Configuration
+    @PropertySource(value = {"classpath:application.properties"})
     static class TestDocumentDbConfiguration extends AbstractDocumentDbConfiguration {
+
+        @Value("${cosmosdb.uri:}")
+        private String documentDbUri;
+
+        @Value("${cosmosdb.key:}")
+        private String documentDbKey;
+
         @Mock
         private DocumentClient mockClient;
 
         @Bean
         public DocumentDBConfig getConfig() {
-            return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME).build();
+            return DocumentDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME).build();
         }
 
         @Override
@@ -96,7 +106,14 @@ public class AbstractDocumentDbConfigurationUnitTest {
     }
 
     @Configuration
+    @PropertySource(value = {"classpath:application.properties"})
     static class RequestOptionsConfiguration extends AbstractDocumentDbConfiguration {
+
+        @Value("${cosmosdb.uri:}")
+        private String documentDbUri;
+
+        @Value("${cosmosdb.key:}")
+        private String documentDbKey;
 
         private RequestOptions getRequestOptions() {
             final RequestOptions options = new RequestOptions();
@@ -111,7 +128,7 @@ public class AbstractDocumentDbConfigurationUnitTest {
         @Bean
         public DocumentDBConfig getConfig() {
             final RequestOptions options = getRequestOptions();
-            return DocumentDBConfig.builder("http://fake-uri", "fake-key", TestConstants.DB_NAME)
+            return DocumentDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME)
                     .requestOptions(options)
                     .build();
         }

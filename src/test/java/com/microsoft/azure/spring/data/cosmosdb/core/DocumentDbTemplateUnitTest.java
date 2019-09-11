@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import org.junit.Test;
@@ -19,8 +19,8 @@ public class DocumentDbTemplateUnitTest {
     @Test(expected = IllegalArgumentException.class)
     public void rejectNullDbFactory() {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder("", "", TestConstants.DB_NAME).build();
-        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
-        new DocumentDbTemplate(dbFactory, null, TestConstants.DB_NAME);
+        new DocumentDbTemplate(cosmosDbFactory, null, TestConstants.DB_NAME);
     }
 }

@@ -7,7 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.*;
-import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -62,7 +62,7 @@ public class DocumentDBAnnotationIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
-        final DocumentDbFactory dbFactory = new DocumentDbFactory(dbConfig);
+        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
         roleInfo = new DocumentDbEntityInformation<>(Role.class);
         sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
@@ -73,7 +73,7 @@ public class DocumentDBAnnotationIT {
 
         mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
         dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-        dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
+        dbTemplate = new DocumentDbTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
 
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo);
         collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo);
@@ -103,6 +103,7 @@ public class DocumentDBAnnotationIT {
 
     @Test
     @SneakyThrows
+    @Ignore //  TODO(kuthapar): time to live is not supported by v3 SDK.
     public void testDocumentAnnotationTimeToLive() {
         final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
         final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();

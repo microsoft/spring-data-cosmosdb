@@ -18,8 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DocumentDbFactoryUnitTest {
 
     @Test(expected = IllegalArgumentException.class)
-    public void testNullKey() {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(DOCUMENTDB_FAKE_HOST, null, DB_NAME).build();
+    public void testEmptyKey() {
+        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(DOCUMENTDB_FAKE_HOST, "", DB_NAME).build();
         new DocumentDbFactory(dbConfig);
     }
 
