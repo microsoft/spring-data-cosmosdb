@@ -10,10 +10,12 @@ import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
+import com.azure.data.cosmos.CosmosItemResponse;
 import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.PartitionKey;
 import com.azure.data.cosmos.SqlQuerySpec;
+import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
@@ -36,11 +38,17 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+
+//  TODO: To expose client side request diagnostics,
+//  Need to do this by adding a listener at cosmos client level, at the driver level.
 
 @Slf4j
 public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
+    private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
 
     private final CosmosClient cosmosClient;
@@ -60,6 +68,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(cosmosDbFactory, "CosmosDbFactory must not be null!");
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
 
+        this.mappingDocumentDbConverter = mappingDocumentDbConverter;
         this.databaseName = dbName;
         this.collectionCache = new ArrayList<>();
 
@@ -269,13 +278,24 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         options.partitionKey(partitionKey);
-        return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .getItem(id.toString(), partitionKey)
-                .delete(options)
-                .onErrorResume(Mono::error)
-                .then();
+        //  TODO: DatabaseName will be implemented inside DatabaseFactory.
+        //  get rid of getDatabase() call from template, and addd it to DatabaseFactory.
+        //  Customers can spin up multiple database factories, and multiple templates based on that.
+        //  spring-data-mongodb -> MongoDbFactory, SpringJPAFactory (routing datastores which gives routing facilities, spring-data-cassandra module)
+        Mono<Void> voidDelete = cosmosClient.getDatabase(this.databaseName)
+                                      .getContainer(containerName)
+                                      .getItem(id.toString(), partitionKey)
+                                      .delete(options)
+                                      .onErrorResume(Mono::error)
+                                      .then();
+        //  TODO: spring-data-mongodb, call-back functions - supply an in-memory function, which users can override that function.
+        //  TODO: There is a elastic search functionality, spring-data-elastic-search.
+        //  search-score injection into entities
+        return voidDelete;
     }
+
+
+    //tDODO:
 
     /**
      * Delete all items in a container
@@ -295,18 +315,18 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final FeedOptions options = new FeedOptions();
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
+        //  TODO: The problem is the partitionKey value here
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .queryItems(sqlQuerySpec, options)
-                .onErrorResume(this::databaseAccessExceptionHandler)
-                .map(cosmosItemFeedResponse -> cosmosItemFeedResponse.results()
-                        .stream()
-                        .map(cosmosItemProperties -> cosmosClient
-                                .getDatabase(this.databaseName)
-                                .getContainer(containerName)
-                                .getItem(cosmosItemProperties.id(), partitionKeyName)
-                                .delete(new CosmosItemRequestOptions())))
-                .then();
+                    .getContainer(containerName)
+                    .queryItems(sqlQuerySpec, options)
+                    .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()))
+                    .flatMap(cosmosItemProperties -> cosmosClient
+                        .getDatabase(this.databaseName)
+                        .getContainer(containerName)
+                        .getItem(cosmosItemProperties.id(), new PartitionKey(partitionKeyName))
+                        .delete())
+                    .onErrorResume(this::databaseAccessExceptionHandler)
+                    .then();
     }
 
     /**
@@ -318,7 +338,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * @return Mono
      */
     @Override
-    public <T> Mono<T> delete(DocumentQuery query, Class<T> entityClass, String containerName) {
+    public <T> Flux<T> delete(DocumentQuery query, Class<T> entityClass, String containerName) {
         Assert.notNull(query, "DocumentQuery should not be null.");
         Assert.notNull(entityClass, "domainClass should not be null.");
         Assert.hasText(containerName, "container name should not be null, empty or only whitespaces");
@@ -326,9 +346,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final Flux<CosmosItemProperties> results = findDocuments(query, entityClass, containerName);
         final List<String> partitionKeyName = getPartitionKeyNames(entityClass);
 
-        results.flatMap(d -> deleteDocument(d, partitionKeyName, containerName));
-
-        return null;
+        return results.flatMap(d -> deleteDocument(d, partitionKeyName, containerName))
+                      .flatMap(cosmosItemProperties -> Mono.just(cosmosItemProperties.toObject(entityClass)));
     }
 
     /**
@@ -392,6 +411,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public Mono<Long> count(DocumentQuery query, String containerName) {
         return count(query, true, containerName);
+    }
+
+    @Override
+    public MappingDocumentDbConverter getConverter() {
+        return mappingDocumentDbConverter;
     }
 
     public Mono<Long> count(DocumentQuery query, boolean isCrossPartitionQuery, String containerName) {

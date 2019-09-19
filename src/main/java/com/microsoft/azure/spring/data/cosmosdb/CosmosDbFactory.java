@@ -7,6 +7,8 @@
 package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosResourceType;
+import com.azure.data.cosmos.TokenResolver;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
@@ -18,7 +20,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.util.Map;
 
+//  TODO: Database Factory interface, which exposese these methods to get the databases
+//  Configure the template using database factory.
+//  Ask the database factory to give you the instance.
 public class CosmosDbFactory {
 
     @Getter
@@ -44,6 +50,10 @@ public class CosmosDbFactory {
         this.config = config;
     }
 
+    //  TODO: Stick with the driver, do not need to expose auxillary APIs.
+    //  spring-data-mongo, cassandra configuration.
+    //  Only for spring-boot -> Builder customizer pattern, which can customize the cosmos client.
+    //  spring-boot transactionManager customizer, mongo client customizer.
     public CosmosClient getCosmosClient() {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();

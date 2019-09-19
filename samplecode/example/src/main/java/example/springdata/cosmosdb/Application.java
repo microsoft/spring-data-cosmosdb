@@ -15,13 +15,11 @@
  */
 package example.springdata.cosmosdb;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
@@ -67,40 +65,32 @@ public class Application implements CommandLineRunner{
 
     @Override
     public void run(String... args) throws Exception {
-        printList(this.repository.findByEmailOrName(this.user_1.getEmail(), this.user_1.getName()));
+        System.out.println("run called");
+        System.out.println("find by email or name");
+        printList(this.repository.findByEmailOrName(this.user_1.getEmail(), this.user_1.getName()).collectList().block());
 
-        printList(this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))));
+        System.out.println("find by count");
+        printList(this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block());
 
-        printList(this.repository.findByNameIn(Arrays.asList(this.user_1.getName(), "fake-name")));
-
-        queryByPageable();
-    }
-
-    private void queryByPageable() {
-        final int pageSize = 2;
-        final Pageable pageable = new DocumentDbPageRequest(0, pageSize, null);
-        final Page<User> page = this.repository.findByAddress(address, pageable);
-        System.out.println("***** Printing Page 1 *****");
-        printList(page.getContent());
-
-        final Page<User> nextPage = this.repository.findByAddress(address, page.getPageable());
-        System.out.println("***** Printing Page 2 *****");
-        printList(nextPage.getContent());
+        System.out.println("find by name in");
+        printList(this.repository.findByNameIn(Arrays.asList(this.user_1.getName(), "fake-name")).collectList().block());
     }
 
     @PostConstruct
     public void setup() {
+        System.out.println("Setup called");
         this.repository.save(user_1);
-        this.repository.save(user_2);
-        this.repository.save(user_3);
+        this.repository.saveAll(Lists.newArrayList(user_2, user_3));
     }
 
     @PreDestroy
     public void cleanup() {
+        System.out.println("Cleanup called");
         this.repository.deleteAll();
     }
 
     private void printList(List<User> users) {
-        users.forEach(user -> System.out.println(user));
+        System.out.println("Printing users");
+        users.forEach(System.out::println);
     }
 }

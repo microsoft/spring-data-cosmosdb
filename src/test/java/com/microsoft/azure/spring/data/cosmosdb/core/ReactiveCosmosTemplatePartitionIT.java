@@ -18,6 +18,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEnt
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,6 +148,21 @@ public class ReactiveCosmosTemplatePartitionIT {
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class))
                 .expectNext(TEST_PERSON_2)
                 .verifyComplete();
+    }
+
+    //  TODO: Once deleteAll works properly, remove @Ignore
+    @Test
+    @Ignore (value = "deleteAll in cosmosTemplate is not working correctly with partitionKey")
+    public void testDeleteAll() {
+        cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
+        System.out.println("TEST_PERSON_2 = " + TEST_PERSON_2);
+        StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
+        final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
+            new DocumentDbEntityInformation<>(PartitionPerson.class);
+        cosmosTemplate.deleteAll(containerName, personInfo.getPartitionKeyFieldName()).block();
+        StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class))
+                    .expectNextCount(0)
+                    .verifyComplete();
     }
 
     @Test

@@ -18,7 +18,7 @@ package example.springdata.cosmosdb;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
+import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableReactiveCosmosRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +27,8 @@ import org.springframework.context.annotation.PropertySource;
 
 
 @Configuration
-@EnableDocumentDbRepositories
 @EnableConfigurationProperties(DocumentDbProperties.class)
+@EnableReactiveCosmosRepositories
 @PropertySource("classpath:application.properties")
 public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration {
 

@@ -5,14 +5,16 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
+import com.azure.data.cosmos.CosmosContainerProperties;
+import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
-import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
@@ -22,19 +24,41 @@ import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 
-@RequiredArgsConstructor
 public class SimpleReactiveCosmosRepository<T, K extends Serializable> implements ReactiveCosmosRepository<T, K> {
 
-    public final DocumentDbEntityInformation<T, K> entityInformation;
-    public final ReactiveCosmosOperations cosmosOperations;
+    private final DocumentDbEntityInformation<T, K> entityInformation;
+    private final ReactiveCosmosOperations cosmosOperations;
+    private final CosmosContainerResponse cosmosContainerResponse;
+
+    public SimpleReactiveCosmosRepository(DocumentDbEntityInformation<T, K> metadata,
+                                          ApplicationContext applicationContext) {
+        this.cosmosOperations = applicationContext.getBean(ReactiveCosmosOperations.class);
+        this.entityInformation = metadata;
+
+        cosmosContainerResponse = createCollectionIfNotExists();
+    }
+
+    public SimpleReactiveCosmosRepository(DocumentDbEntityInformation<T, K> metadata,
+                                          ReactiveCosmosOperations reactiveCosmosOperations) {
+        this.cosmosOperations = reactiveCosmosOperations;
+        this.entityInformation = metadata;
+
+        cosmosContainerResponse = createCollectionIfNotExists();
+    }
+
+    private CosmosContainerResponse createCollectionIfNotExists() {
+        return this.cosmosOperations.createCollectionIfNotExists(this.entityInformation).block();
+    }
 
     @Override
     public Flux<T> findAll(Sort sort) {
         Assert.notNull(sort, "Sort must not be null!");
 
-        final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
+        final DocumentQuery query =
+            new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
 
-        return cosmosOperations.find(query, entityInformation.getJavaType(), entityInformation.getCollectionName());
+        return cosmosOperations.find(query, entityInformation.getJavaType(),
+            entityInformation.getCollectionName());
     }
 
     @Override
@@ -44,11 +68,11 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
 
         if (entityInformation.isNew(entity)) {
             return cosmosOperations.insert(entityInformation.getCollectionName(),
-                    entity,
-                    createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+                entity,
+                createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
             return cosmosOperations.upsert(entityInformation.getCollectionName(),
-                    entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+                entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         }
     }
 
@@ -71,7 +95,8 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
     @Override
     public Mono<T> findById(K id) {
         Assert.notNull(id, "The given id must not be null!");
-        return cosmosOperations.findById(entityInformation.getCollectionName(), id, entityInformation.getJavaType());
+        return cosmosOperations.findById(entityInformation.getCollectionName(), id,
+            entityInformation.getJavaType());
     }
 
     @Override
@@ -79,8 +104,8 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(publisher, "The given id must not be null!");
 
         return Mono.from(publisher).flatMap(
-                id -> cosmosOperations.findById(entityInformation.getCollectionName(),
-                        id, entityInformation.getJavaType()));
+            id -> cosmosOperations.findById(entityInformation.getCollectionName(),
+                id, entityInformation.getJavaType()));
     }
 
     @Override
@@ -88,20 +113,22 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(id, "The given id must not be null!");
 
         return cosmosOperations.existsById(id, entityInformation.getJavaType(),
-                entityInformation.getCollectionName());
+            entityInformation.getCollectionName());
     }
 
     @Override
     public Mono<Boolean> existsById(Publisher<K> publisher) {
         Assert.notNull(publisher, "The given id must not be null!");
 
-        return Mono.from(publisher).flatMap(id -> cosmosOperations.existsById(id, entityInformation.getJavaType(),
-                entityInformation.getCollectionName()));
+        return Mono.from(publisher).flatMap(id -> cosmosOperations.existsById(id,
+            entityInformation.getJavaType(),
+            entityInformation.getCollectionName()));
     }
 
     @Override
     public Flux<T> findAll() {
-        return cosmosOperations.findAll(entityInformation.getCollectionName(), entityInformation.getJavaType());
+        return cosmosOperations.findAll(entityInformation.getCollectionName(),
+            entityInformation.getJavaType());
     }
 
     @Override
@@ -133,7 +160,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(publisher, "Id must not be null!");
 
         return Mono.from(publisher).flatMap(id -> cosmosOperations.deleteById(entityInformation.getCollectionName(),
-                id, null)).then();
+            id, null)).then();
     }
 
     @Override
@@ -142,8 +169,8 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
 
         final Object id = entityInformation.getId(entity);
         return cosmosOperations.deleteById(entityInformation.getCollectionName(),
-                id,
-                createKey(entityInformation.getPartitionKeyFieldValue(entity)));
+            id,
+            createKey(entityInformation.getPartitionKeyFieldValue(entity)));
     }
 
     @Override
@@ -159,15 +186,15 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(entityStream, "The given Publisher of entities must not be null!");
 
         return Flux.from(entityStream)//
-                .map(entityInformation::getRequiredId)//
-                .flatMap(this::deleteById)//
-                .then();
+                   .map(entityInformation::getRequiredId)//
+                   .flatMap(this::deleteById)//
+                   .then();
     }
 
     @Override
     public Mono<Void> deleteAll() {
         return cosmosOperations.deleteAll(entityInformation.getCollectionName(),
-                entityInformation.getPartitionKeyFieldName());
+            entityInformation.getPartitionKeyFieldName());
     }
 
     private PartitionKey createKey(String partitionKeyValue) {

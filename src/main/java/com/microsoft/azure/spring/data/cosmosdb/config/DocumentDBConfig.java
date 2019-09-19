@@ -21,6 +21,7 @@ public class DocumentDBConfig {
 
     private String key;
 
+    //  TODO: template API should be responsible to manage the global database account.
     private String database;
 
     private ConnectionPolicy connectionPolicy;

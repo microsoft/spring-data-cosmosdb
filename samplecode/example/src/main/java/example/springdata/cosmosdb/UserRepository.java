@@ -16,29 +16,29 @@
 
 package example.springdata.cosmosdb;
 
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 
 import java.util.Collection;
-import java.util.List;
 
 @Repository
 @RepositoryRestResource(collectionResourceRel = "user", path = "user")
-public interface UserRepository extends DocumentDbRepository<User, String> {
+public interface UserRepository extends ReactiveCosmosRepository<User, String> {
 
-    List<User> findByName(String firstName);
+    Flux<User> findByName(String firstName);
 
-    List<User> findByEmailAndAddress(String email, Address address);
+    Flux<User> findByEmailAndAddress(String email, Address address);
 
-    List<User> findByEmailOrName(String email, String Name);
+    Flux<User> findByEmailOrName(String email, String Name);
 
-    List<User> findByCount(Long count, Sort sort);
+    Flux<User> findByCount(Long count, Sort sort);
 
-    List<User> findByNameIn(Collection<String> names);
+    Flux<User> findByNameIn(Collection<String> names);
 
     Page<User> findByAddress(Address address, Pageable pageable);
 }

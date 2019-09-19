@@ -80,12 +80,12 @@ public class UserRepositoryIntegrationTest {
         this.repository.save(user);
 
         // Test for findById
-        User result = this.repository.findById(ID).get();
+        User result = this.repository.findById(ID).block();
         Assert.notNull(result, "should be exist in database");
         Assert.isTrue(result.getId().equals(ID), "should be the same id");
 
         // Test for findByName
-		List<User> resultList = this.repository.findByName(user.getName());
+		List<User> resultList = this.repository.findByName(user.getName()).collectList().block();
 		Assert.isTrue(resultList.size() == 1, "should be only one user here");
 		Assert.isTrue(resultList.get(0).getName().equals(user.getName()), "should be same Name");
 		Assert.notNull(result.getRoleList(), "roleList should not be null");
@@ -100,7 +100,7 @@ public class UserRepositoryIntegrationTest {
         }
 
         // Test for findByEmailAndAddress
-        resultList = this.repository.findByEmailAndAddress(user.getEmail(), user.getAddress());
+        resultList = this.repository.findByEmailAndAddress(user.getEmail(), user.getAddress()).collectList().block();
         Assert.isTrue(resultList.size() == 1, "should be only one user here");
 
         result = resultList.get(0);
@@ -110,15 +110,15 @@ public class UserRepositoryIntegrationTest {
         Assert.isTrue(result.getAddress().getCity().equals(user.getAddress().getCity()), "should be same City");
         Assert.isTrue(result.getAddress().getStreet().equals(user.getAddress().getStreet()), "should be same street");
 
-        resultList = this.repository.findByEmailOrName(user.getEmail(), user.getName());
+        resultList = this.repository.findByEmailOrName(user.getEmail(), user.getName()).collectList().block();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
-        resultList = this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count")));
+        resultList = this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
-        resultList = this.repository.findByNameIn(Arrays.asList(user.getName(), "fake-name"));
+        resultList = this.repository.findByNameIn(Arrays.asList(user.getName(), "fake-name")).collectList().block();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
@@ -146,12 +146,12 @@ public class UserRepositoryIntegrationTest {
         this.repository.save(user);
 
         // Test for findById
-        final User result = this.repository.findById(ID).get();
+        final User result = this.repository.findById(ID).block();
         Assert.notNull(result, "should be exist in database");
         Assert.isTrue(result.getId().equals(ID), "should be the same id");
 
         // Test for findByName
-        final List<User> resultList = this.repository.findByName(user.getName());
+        final List<User> resultList = this.repository.findByName(user.getName()).collectList().block();
         Assert.isTrue(resultList.size() == 1, "should be only one user here");
         Assert.isTrue(resultList.get(0).getName().equals(user.getName()), "should be same Name");
         Assert.notNull(result.getRoleList(), "roleList should not be null");
@@ -168,7 +168,7 @@ public class UserRepositoryIntegrationTest {
         this.repository.save(user);
 
         // Test for findById
-        final User result = this.repository.findById(ID).get();
+        final User result = this.repository.findById(ID).block();
         Assert.notNull(result, "should be exist in database");
         Assert.isTrue(result.getId().equals(ID), "should be the same id");
 

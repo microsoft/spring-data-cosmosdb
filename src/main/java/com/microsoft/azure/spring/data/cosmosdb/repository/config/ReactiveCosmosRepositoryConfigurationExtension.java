@@ -8,8 +8,8 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.config;
 
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbRepositoryFactoryBean;
+import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.ReactiveCosmosRepositoryFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 
-public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
+public class ReactiveCosmosRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
     @Override
     public String getModuleName() {
@@ -36,12 +36,12 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
     }
 
     public String getRepositoryFactoryBeanClassName() {
-        return DocumentDbRepositoryFactoryBean.class.getName();
+        return ReactiveCosmosRepositoryFactoryBean.class.getName();
     }
 
     @Override
     protected Collection<Class<?>> getIdentifyingTypes() {
-        return Collections.<Class<?>>singleton(DocumentDbRepository.class);
+        return Collections.<Class<?>>singleton(ReactiveCosmosRepository.class);
     }
 
     @Override
@@ -71,7 +71,6 @@ public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfig
     //  Overriding this to provide reactive repository support.
     @Override
     protected boolean useRepositoryConfiguration(RepositoryMetadata metadata) {
-        //  TODO: Add some comment.
-        return !metadata.isReactiveRepository();
+        return metadata.isReactiveRepository();
     }
 }

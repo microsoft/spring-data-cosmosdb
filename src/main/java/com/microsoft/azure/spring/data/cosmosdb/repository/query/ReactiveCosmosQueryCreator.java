@@ -22,16 +22,13 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-// TODO: String based query, based on how cosmosdb provides.
-//  StringCosmosQuery class,
-//  How to bind values to the query. if CosmosDb already has binding capability, if not we would have to do it here in some creative way.
-//  query creator are associated with part tree queries,
-public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
+
+public class ReactiveCosmosQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
     private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
 
-    public DocumentDbQueryCreator(PartTree tree, DocumentDbParameterAccessor accessor,
-                                  MappingContext<?, DocumentDbPersistentProperty> mappingContext) {
+    public ReactiveCosmosQueryCreator(PartTree tree, ReactiveCosmosParameterAccessor accessor,
+                                      MappingContext<?, DocumentDbPersistentProperty> mappingContext) {
         super(tree, accessor);
 
         this.mappingContext = mappingContext;

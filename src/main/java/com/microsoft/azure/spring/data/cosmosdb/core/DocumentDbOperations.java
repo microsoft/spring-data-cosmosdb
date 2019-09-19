@@ -16,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+//  TODO: Add comments
+//  TODO: Rename to CosmosDbOperations
+//  TODO: Also add deprecated variant of DocumentDbOperations -> which mentions switch to CosmosDbOperations
+//  TODO: In case there is a method API signature change, keep deprecated, add overloads APIs.
+//  TODO: okay to re-compile. but NOT okay to re-write.
 public interface DocumentDbOperations {
 
     String getCollectionName(Class<?> entityClass);
