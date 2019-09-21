@@ -150,12 +150,9 @@ public class ReactiveCosmosTemplatePartitionIT {
                 .verifyComplete();
     }
 
-    //  TODO: Once deleteAll works properly, remove @Ignore
     @Test
-    @Ignore (value = "deleteAll in cosmosTemplate is not working correctly with partitionKey")
     public void testDeleteAll() {
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
-        System.out.println("TEST_PERSON_2 = " + TEST_PERSON_2);
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
         final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
             new DocumentDbEntityInformation<>(PartitionPerson.class);

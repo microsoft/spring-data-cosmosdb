@@ -315,7 +315,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final FeedOptions options = new FeedOptions();
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
-        //  TODO: The problem is the partitionKey value here
+        //  TODO: Can add some error handling case for itemproperties.get(partitionkeyName)
         return cosmosClient.getDatabase(this.databaseName)
                     .getContainer(containerName)
                     .queryItems(sqlQuerySpec, options)
@@ -323,7 +323,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                     .flatMap(cosmosItemProperties -> cosmosClient
                         .getDatabase(this.databaseName)
                         .getContainer(containerName)
-                        .getItem(cosmosItemProperties.id(), new PartitionKey(partitionKeyName))
+                        .getItem(cosmosItemProperties.id(), cosmosItemProperties.get(partitionKeyName))
                         .delete())
                     .onErrorResume(this::databaseAccessExceptionHandler)
                     .then();
