@@ -23,20 +23,11 @@ public class ObjectMapperFactory {
         OBJECT_MAPPER.registerModule(new ParameterNamesModule())
                         .registerModule(new Jdk8Module())
                         .registerModule(new JavaTimeModule());
-
-        if (!OBJECT_MAPPER.canDeserialize(OBJECT_MAPPER.constructType(ZonedDateTime.class))) {
-            OBJECT_MAPPER.registerModule(provideAdvancedSerializersModule());
-        }
     }
 
     public static ObjectMapper getObjectMapper() {
         return OBJECT_MAPPER;
     }
 
-    private static SimpleModule provideAdvancedSerializersModule() {
-        final SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        return simpleModule;
-    }
 }
 

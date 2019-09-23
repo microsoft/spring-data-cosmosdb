@@ -53,8 +53,6 @@ public class MappingDocumentDbConverter
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() :
             objectMapper;
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.registerModule(provideAdvancedSerializersModule());
     }
 
     @Override
