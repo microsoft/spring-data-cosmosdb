@@ -9,6 +9,7 @@ jobs:
   include:
     - stage: test
       script:
+        - if [ -z "$CLIENT_ID" ]; then travis_terminate 0; fi
         - sudo apt-get install python3.5 python3.5-dev
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         - sudo apt-get update
@@ -19,7 +20,7 @@ jobs:
         - sudo apt-get install azure-cli
         # - az --help
         # - chmod +x install.sh && ./install.sh
-        - travis_wait 30 set -o pipefail && mvn -P travis-ci-test clean cobertura:cobertura-integration-test | grep -v "DEBUG"
+        - chmod +x ./src/libs/travis-wait-mvn-build.sh && ./src/libs/travis-wait-mvn-build.sh
         - bash <(curl -s https://codecov.io/bash)
     - stage: performance-test
       script:

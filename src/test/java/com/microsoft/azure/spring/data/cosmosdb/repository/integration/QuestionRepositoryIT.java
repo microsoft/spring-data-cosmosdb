@@ -7,7 +7,6 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRepository;
@@ -72,9 +71,10 @@ public class QuestionRepositoryIT {
         Assert.assertEquals(QUESTION, optional.get());
     }
 
-    @Test(expected = DocumentDBAccessException.class)
-    public void testFindByIdException() {
-        this.repository.findById(QUESTION_URL);
+    @Test
+    public void testFindByIdNull() {
+        final Optional<Question> byId = this.repository.findById(QUESTION_URL);
+        Assert.assertFalse(byId.isPresent());
     }
 
     @Test

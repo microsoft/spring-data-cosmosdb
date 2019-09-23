@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.azure.data.cosmos.CosmosClient;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender;
@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
-public class DocumentDbFactory {
+public class CosmosDbFactory {
 
     @Getter
     private final DocumentDBConfig config;
@@ -38,26 +38,22 @@ public class DocumentDbFactory {
         return suffix;
     }
 
-    public DocumentDbFactory(@NonNull DocumentDBConfig config) {
+    public CosmosDbFactory(@NonNull DocumentDBConfig config) {
         validateConfig(config);
 
         this.config = config;
     }
 
-    public DocumentClient getDocumentClient() {
+    public CosmosClient getCosmosClient() {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
 
         policy.setUserAgentSuffix(userAgent);
-        
-        //  With introduction to com.azure.data.cosmos.CosmosKeyCredential,
-        //  we are giving preference to config.getCosmosKeyCredential()
-        if (config.getCosmosKeyCredential() != null &&
-            !StringUtils.isEmpty(config.getCosmosKeyCredential().key())) {
-            return new DocumentClient(config.getUri(), config.getCosmosKeyCredential().key(),
-                policy, config.getConsistencyLevel());
-        }
-        return new DocumentClient(config.getUri(), config.getKey(), policy, config.getConsistencyLevel());
+        return CosmosClient.builder()
+                           .endpoint(config.getUri())
+                           .key(config.getKey())
+                           .cosmosKeyCredential(config.getCosmosKeyCredential())
+                           .build();
     }
 
     private void validateConfig(@NonNull DocumentDBConfig config) {

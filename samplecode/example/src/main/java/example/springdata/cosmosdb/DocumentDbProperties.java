@@ -28,5 +28,7 @@ public class DocumentDbProperties {
 
     private String key;
 
+    private String secondaryKey;
+
     private String database;
 }

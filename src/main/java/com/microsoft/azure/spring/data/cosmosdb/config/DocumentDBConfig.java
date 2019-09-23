@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
+import com.azure.data.cosmos.CosmosKeyCredential;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.RequestOptions;
@@ -29,6 +30,19 @@ public class DocumentDBConfig {
     private boolean allowTelemetry;
 
     private RequestOptions requestOptions;
+
+    private CosmosKeyCredential cosmosKeyCredential;
+
+    public static DocumentDBConfigBuilder builder(String uri, CosmosKeyCredential cosmosKeyCredential,
+                                                  String database) {
+        return defaultBuilder()
+            .uri(uri)
+            .cosmosKeyCredential(cosmosKeyCredential)
+            .database(database)
+            .connectionPolicy(ConnectionPolicy.GetDefault())
+            .consistencyLevel(ConsistencyLevel.Session)
+            .requestOptions(new RequestOptions());
+    }
 
     public static DocumentDBConfigBuilder builder(String uri, String key, String database) {
         return defaultBuilder()
