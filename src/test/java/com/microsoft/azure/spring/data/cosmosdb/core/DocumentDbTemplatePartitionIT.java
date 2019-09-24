@@ -69,13 +69,12 @@ public class DocumentDbTemplatePartitionIT {
     public void setup() throws ClassNotFoundException {
         final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
-        final ObjectMapper objectMapper = new ObjectMapper();
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
 
         personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, null);
 
         dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
         collectionName = personInfo.getCollectionName();

@@ -66,7 +66,6 @@ public class DocumentDbTemplateIT {
     private DocumentDbTemplate dbTemplate;
     private MappingDocumentDbConverter dbConverter;
     private DocumentDbMappingContext mappingContext;
-    private ObjectMapper objectMapper;
     private DocumentCollection collectionPerson;
     private DocumentDbEntityInformation<Person, String> personInfo;
     private String collectionName;
@@ -80,13 +79,12 @@ public class DocumentDbTemplateIT {
         final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
         mappingContext = new DocumentDbMappingContext();
-        objectMapper = new ObjectMapper();
         personInfo = new DocumentDbEntityInformation<>(Person.class);
         collectionName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
         
-        dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        dbConverter = new MappingDocumentDbConverter(mappingContext, null);
         dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
 
         collectionPerson = dbTemplate.createCollectionIfNotExists(this.personInfo);
