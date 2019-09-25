@@ -12,12 +12,14 @@ import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.DocumentDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.ExpressionResolver;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -26,11 +28,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.AbstractApplicationContext;
 
+import static org.junit.Assert.assertNotNull;
+
 public class AbstractDocumentDbConfigurationIT {
     private static final String OBJECTMAPPER_BEAN_NAME = Constants.OBJECTMAPPER_BEAN_NAME;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
+    
+    @Test
+    public void containsExpressionResolver() {
+        final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
+                TestDocumentDbConfiguration.class);
+
+        assertNotNull(context.getBean(ExpressionResolver.class));
+    }
 
     @Test
     public void containsDocumentDbFactory() {
