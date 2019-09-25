@@ -6,10 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 import com.azure.data.cosmos.CosmosClientException;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
@@ -40,11 +36,30 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.*;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ADDRESSES;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.FIRST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.HOBBIES;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_3;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.LAST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.NEW_FIRST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.NEW_LAST_NAME;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.NOT_EXIST_ID;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_2;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.UPDATED_FIRST_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = { "classpath:application.properties" })
