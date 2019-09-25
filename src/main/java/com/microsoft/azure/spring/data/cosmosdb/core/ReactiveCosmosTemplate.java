@@ -296,17 +296,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .queryItems(sqlQuerySpec, options)
-                .onErrorResume(this::databaseAccessExceptionHandler)
-                .map(cosmosItemFeedResponse -> cosmosItemFeedResponse.results()
-                        .stream()
-                        .map(cosmosItemProperties -> cosmosClient
-                                .getDatabase(this.databaseName)
-                                .getContainer(containerName)
-                                .getItem(cosmosItemProperties.id(), partitionKeyName)
-                                .delete(new CosmosItemRequestOptions())))
-                .then();
+                           .getContainer(containerName)
+                           .queryItems(sqlQuerySpec, options)
+                           .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()))
+                           .flatMap(cosmosItemProperties -> cosmosClient
+                               .getDatabase(this.databaseName)
+                               .getContainer(containerName)
+                               .getItem(cosmosItemProperties.id(), cosmosItemProperties.get(partitionKeyName))
+                               .delete())
+                           .onErrorResume(this::databaseAccessExceptionHandler)
+                           .then();
     }
 
     /**

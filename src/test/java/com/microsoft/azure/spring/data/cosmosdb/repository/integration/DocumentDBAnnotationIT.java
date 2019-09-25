@@ -49,32 +49,33 @@ public class DocumentDBAnnotationIT {
     @Autowired
     private ApplicationContext applicationContext;
 
-    private DocumentClient dbClient;
-    private DocumentDbTemplate dbTemplate;
-    private DocumentCollection collectionRole;
-    private DocumentCollection collectionExample;
-    private DocumentDbMappingContext dbContext;
-    private MappingDocumentDbConverter mappingConverter;
-    private ObjectMapper objectMapper;
-    private DocumentDbEntityInformation<Role, String> roleInfo;
-    private DocumentDbEntityInformation<TimeToLiveSample, String> sampleInfo;
+    private static DocumentDbTemplate dbTemplate;
+    private static DocumentCollection collectionRole;
+    private static DocumentCollection collectionExample;
+    private static DocumentDbEntityInformation<Role, String> roleInfo;
+    private static DocumentDbEntityInformation<TimeToLiveSample, String> sampleInfo;
+
+    private static boolean initialized;
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
-        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
+        if (!initialized) {
+            final DocumentDBConfig dbConfig = DocumentDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
+            final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
-        roleInfo = new DocumentDbEntityInformation<>(Role.class);
-        sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
-        dbContext = new DocumentDbMappingContext();
-        objectMapper = new ObjectMapper();
+            roleInfo = new DocumentDbEntityInformation<>(Role.class);
+            sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
+            final DocumentDbMappingContext dbContext = new DocumentDbMappingContext();
+            final ObjectMapper objectMapper = new ObjectMapper();
 
-        dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+            dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
-        dbClient = new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
-        dbTemplate = new DocumentDbTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
-
+            final MappingDocumentDbConverter mappingConverter =
+                new MappingDocumentDbConverter(dbContext, objectMapper);
+            new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
+            dbTemplate = new DocumentDbTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
+            initialized = true;
+        }
         collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo);
         collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo);
 
@@ -106,7 +107,7 @@ public class DocumentDBAnnotationIT {
     @Ignore //  TODO(kuthapar): time to live is not supported by v3 SDK.
     public void testDocumentAnnotationTimeToLive() {
         final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
-        final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
+        final Integer timeToLive = collectionExample.getDefaultTimeToLive();
 
         Assert.notNull(timeToLive, "timeToLive should not be null");
         Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");

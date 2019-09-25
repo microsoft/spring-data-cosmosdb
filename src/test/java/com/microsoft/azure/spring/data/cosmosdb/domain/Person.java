@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.domain;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -19,6 +20,8 @@ import java.util.List;
 public class Person {
     private String id;
     private String firstName;
+
+    @PartitionKey
     private String lastName;
     private List<String> hobbies;
     private List<Address> shippingAddresses;
