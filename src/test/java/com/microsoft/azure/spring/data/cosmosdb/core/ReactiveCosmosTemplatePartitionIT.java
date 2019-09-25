@@ -64,35 +64,41 @@ public class ReactiveCosmosTemplatePartitionIT {
     @Value("${cosmosdb.key}")
     private String documentDbKey;
 
-    private ReactiveCosmosTemplate cosmosTemplate;
-    private String containerName;
+    private static ReactiveCosmosTemplate cosmosTemplate;
+    private static String containerName;
+    private static DocumentDbEntityInformation<PartitionPerson, String> personInfo;
+
+    private static boolean initialized;
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
-        final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
+        if (!initialized) {
+            final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+            final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
-            new DocumentDbEntityInformation<>(PartitionPerson.class);
-        containerName = personInfo.getCollectionName();
+            final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+            final ObjectMapper objectMapper = new ObjectMapper();
 
-        mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+            personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
+            containerName = personInfo.getCollectionName();
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-        cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
+            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
+            final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+            cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
+            cosmosTemplate.createCollectionIfNotExists(personInfo).block();
+
+            initialized = true;
+        }
         cosmosTemplate.insert(TEST_PERSON).block();
     }
 
     @After
     public void cleanup() {
-        cosmosTemplate.deleteContainer(PartitionPerson.class.getSimpleName());
+        cosmosTemplate.deleteAll(PartitionPerson.class.getSimpleName(), personInfo.getPartitionKeyFieldName()).block();
     }
 
     @Test
