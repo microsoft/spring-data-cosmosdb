@@ -97,7 +97,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllSortASC() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
         final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
         PROJECTS.sort(Comparator.comparing(Project::getStarCount));
@@ -108,7 +108,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllSortDESC() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "creator");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "creator");
         final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
         PROJECTS.sort(Comparator.comparing(Project::getCreator).reversed());
@@ -131,7 +131,7 @@ public class ProjectRepositorySortIT {
 
     @Test(expected = CosmosDBAccessException.class)
     public void testFindAllSortMoreThanOneOrderException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "name", "creator");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "name", "creator");
 
         this.repository.findAll(sort);
     }
@@ -146,7 +146,7 @@ public class ProjectRepositorySortIT {
 
     @Test(expected = CosmosDBAccessException.class)
     public void testFindAllSortMissMatchException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "fake-name");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "fake-name");
 
         this.repository.findAll(sort);
     }
@@ -154,14 +154,14 @@ public class ProjectRepositorySortIT {
     @Test(expected = CosmosDBAccessException.class)
     @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
     public void testFindAllSortWithIdName() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "id");
 
         this.repository.findAll(sort);
     }
 
     @Test
     public void testFindSortWithOr() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
         final List<Project> projects = Lists.newArrayList(this.repository.findByNameOrCreator(NAME_0, CREATOR_3, sort));
         final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_3);
 
@@ -173,7 +173,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindSortWithAnd() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "forkCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "forkCount");
         final List<Project> projects = Lists.newArrayList(repository.findByNameAndCreator(NAME_0, CREATOR_0, sort));
         final List<Project> references = Arrays.asList(PROJECT_0);
 
@@ -185,7 +185,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindSortWithEqual() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final List<Project> projects = Lists.newArrayList(this.repository.findByForkCount(FORK_COUNT_3, sort));
         final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
 
@@ -197,7 +197,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllWithPageableAndSort() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
         final Page<Project> result = this.repository.findAll(pageable);
@@ -212,7 +212,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindWithPageableAndSort() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
         final Page<Project> result = this.repository.findByForkCount(FORK_COUNT_3, pageable);

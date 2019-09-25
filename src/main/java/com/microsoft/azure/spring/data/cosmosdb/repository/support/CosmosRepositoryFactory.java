@@ -29,10 +29,10 @@ import java.util.Optional;
 public class CosmosRepositoryFactory extends RepositoryFactorySupport {
 
     private final ApplicationContext applicationContext;
-    private final CosmosOperations dbOperations;
+    private final CosmosOperations cosmosOperations;
 
-    public CosmosRepositoryFactory(CosmosOperations dbOperations, ApplicationContext applicationContext) {
-        this.dbOperations = dbOperations;
+    public CosmosRepositoryFactory(CosmosOperations cosmosOperations, ApplicationContext applicationContext) {
+        this.cosmosOperations = cosmosOperations;
         this.applicationContext = applicationContext;
     }
 
@@ -55,13 +55,13 @@ public class CosmosRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
             QueryLookupStrategy.Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
-        return Optional.of(new DocumentDbQueryLookupStrategy(dbOperations, evaluationContextProvider));
+        return Optional.of(new CosmosDbQueryLookupStrategy(cosmosOperations, evaluationContextProvider));
     }
 
-    private static class DocumentDbQueryLookupStrategy implements QueryLookupStrategy {
+    private static class CosmosDbQueryLookupStrategy implements QueryLookupStrategy {
         private final CosmosOperations dbOperations;
 
-        public DocumentDbQueryLookupStrategy(
+        public CosmosDbQueryLookupStrategy(
                 CosmosOperations operations, QueryMethodEvaluationContextProvider provider) {
             this.dbOperations = operations;
         }

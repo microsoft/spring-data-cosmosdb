@@ -12,11 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
-import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.context.MappingContextIsNewStrategyFactory;
-import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.data.support.CachingIsNewStrategyFactory;
-import org.springframework.data.support.IsNewStrategyFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -36,13 +31,6 @@ public abstract class CosmosConfigurationSupport {
     protected Collection<String> getMappingBasePackages() {
         final Package mappingBasePackage = getClass().getPackage();
         return Collections.singleton(mappingBasePackage == null ? null : mappingBasePackage.getName());
-    }
-
-    @Bean
-    public IsNewStrategyFactory isNewStrategyFactory() throws ClassNotFoundException {
-        return new CachingIsNewStrategyFactory(new MappingContextIsNewStrategyFactory(
-                new PersistentEntities(Arrays.<MappingContext<?, ?>>asList(
-                        new MappingContext[]{documentDbMappingContext()}))));
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {

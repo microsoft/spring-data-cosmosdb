@@ -181,7 +181,7 @@ public class PerformanceCompare {
     public void findBySortingTest() {
         prepareListData(recurTimes);
 
-        final Sort sort = new Sort(Sort.Direction.ASC, "name");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "name");
         final List<Sort> sortList = buildSortList(sort, recurTimes);
 
         final long springCost = applyInputListFunc(sortList, repository::findAll);

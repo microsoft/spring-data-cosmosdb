@@ -6,9 +6,7 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.PartitionKey;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
@@ -66,9 +64,6 @@ public class CosmosTemplateIT {
     private String documentDbKey;
 
     private static CosmosTemplate cosmosTemplate;
-    private static MappingCosmosConverter cosmosConverter;
-    private static CosmosMappingContext mappingContext;
-    private static CosmosContainerProperties collectionPerson;
     private static CosmosEntityInformation<Person, String> personInfo;
     private static String collectionName;
     private static boolean initialized;
@@ -83,13 +78,14 @@ public class CosmosTemplateIT {
                 documentDbKey, DB_NAME).build();
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
-            mappingContext = new CosmosMappingContext();
+            final CosmosMappingContext mappingContext = new CosmosMappingContext();
             personInfo = new CosmosEntityInformation<>(Person.class);
             collectionName = personInfo.getCollectionName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            cosmosConverter = new MappingCosmosConverter(mappingContext, null);
+            final MappingCosmosConverter cosmosConverter = new MappingCosmosConverter(mappingContext,
+                null);
             cosmosTemplate = new CosmosTemplate(cosmosDbFactory, cosmosConverter, DB_NAME);
             cosmosTemplate.createCollectionIfNotExists(personInfo);
             initialized = true;
@@ -251,7 +247,7 @@ public class CosmosTemplateIT {
         cosmosTemplate.insert(TEST_PERSON_3,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
 
-        final Sort sort = new Sort(Sort.Direction.DESC, "firstName");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = CosmosPageRequest.of(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> page = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
@@ -279,7 +275,7 @@ public class CosmosTemplateIT {
         cosmosTemplate.insert(testPerson5,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(testPerson5)));
 
-        final Sort sort = new Sort(Sort.Direction.ASC, "firstName");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "firstName");
         final PageRequest pageRequest = CosmosPageRequest.of(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> firstPage = cosmosTemplate.findAll(pageRequest, Person.class,

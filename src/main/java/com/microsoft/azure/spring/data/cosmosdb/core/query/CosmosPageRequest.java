@@ -5,12 +5,13 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
+import com.azure.data.cosmos.FeedResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 /**
  * CosmosPageRequest representing page request during pagination query, field
- * {@link com.microsoft.azure.documentdb.FeedResponse#getResponseContinuation response continuation token} is saved
+ * {@link FeedResponse#continuationToken()}  response continuation token} is saved
  * to help query next page.
  * <p>
  * The requestContinuation token should be saved after each request and reused in later queries.
@@ -22,7 +23,7 @@ public class CosmosPageRequest extends PageRequest {
     private String requestContinuation;
 
     public CosmosPageRequest(int page, int size, String requestContinuation) {
-        super(page, size);
+        super(page, size, Sort.unsorted());
         this.requestContinuation = requestContinuation;
     }
 

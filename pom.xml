@@ -45,8 +45,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>MM-dd-HH-mm-ss</maven.build.timestamp.format>
 
-        <spring.springframework.version>5.1.9.RELEASE</spring.springframework.version>
-        <spring.data.version>2.1.10.RELEASE</spring.data.version>
+        <spring.springframework.version>5.2.0.RC2</spring.springframework.version>
+        <spring.data.version>2.2.0.RC3</spring.data.version>
         <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
@@ -66,6 +66,14 @@
         <test.on.azure>false</test.on.azure>
         <test.on.emualator>false</test.on.emualator>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>spring-milestone</id>
+            <name>Spring Milestones</name>
+            <url>http://repo.spring.io/libs-milestone</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
