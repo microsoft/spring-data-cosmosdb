@@ -53,8 +53,6 @@ public class MappingDocumentDbConverter
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() :
             objectMapper;
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.registerModule(provideAdvancedSerializersModule());
     }
 
     @Override
@@ -68,6 +66,7 @@ public class MappingDocumentDbConverter
 
         return readInternal(entity, type, cosmosItemProperties);
     }
+
 
     private <R> R readInternal(final DocumentDbPersistentEntity<?> entity, Class<R> type,
                                final CosmosItemProperties cosmosItemProperties) {
@@ -88,12 +87,6 @@ public class MappingDocumentDbConverter
             throw new IllegalStateException("Failed to read the source document " + cosmosItemProperties.toJson()
                 + "  to target type " + type, e);
         }
-    }
-
-    private SimpleModule provideAdvancedSerializersModule() {
-        final SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        return simpleModule;
     }
 
     @Override

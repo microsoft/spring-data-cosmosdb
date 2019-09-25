@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -58,29 +57,33 @@ public class DocumentDbTemplatePartitionIT {
     @Value("${cosmosdb.key}")
     private String documentDbKey;
 
-    private DocumentDbTemplate dbTemplate;
-    private String collectionName;
-    private DocumentDbEntityInformation<PartitionPerson, String> personInfo;
+    private static DocumentDbTemplate dbTemplate;
+    private static String collectionName;
+    private static DocumentDbEntityInformation<PartitionPerson, String> personInfo;
+    private static boolean initialized;
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Before
     public void setup() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
-        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        if (!initialized) {
+            final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+            final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
+            final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
 
-        personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
-        mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+            personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
+            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+            final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, null);
 
-        dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
-        collectionName = personInfo.getCollectionName();
+            dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
+            collectionName = personInfo.getCollectionName();
 
-        dbTemplate.createCollectionIfNotExists(personInfo);
+            dbTemplate.createCollectionIfNotExists(personInfo);
+            initialized = true;
+        }
+
         dbTemplate.insert(PartitionPerson.class.getSimpleName(), TEST_PERSON,
                 new PartitionKey(TEST_PERSON.getLastName()));
     }

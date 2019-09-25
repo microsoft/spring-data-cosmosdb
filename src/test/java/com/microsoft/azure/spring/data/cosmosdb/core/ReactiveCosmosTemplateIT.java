@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.azure.data.cosmos.PartitionKey;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -46,19 +45,23 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = {"classpath:application.properties"})
+@PropertySource(value = { "classpath:application.properties" })
 public class ReactiveCosmosTemplateIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID_1, TestConstants.FIRST_NAME,
-            TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON = new Person(TestConstants.ID_1,
+        TestConstants.FIRST_NAME,
+        TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2, TestConstants.NEW_FIRST_NAME,
-            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2,
+        TestConstants.NEW_FIRST_NAME,
+        TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    private static final Person TEST_PERSON_3 = new Person(TestConstants.ID_3, TestConstants.NEW_FIRST_NAME,
-            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON_3 = new Person(TestConstants.ID_3,
+        TestConstants.NEW_FIRST_NAME,
+        TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    private static final Person TEST_PERSON_4 = new Person(TestConstants.ID_4, TestConstants.NEW_FIRST_NAME,
-            TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON_4 = new Person(TestConstants.ID_4,
+        TestConstants.NEW_FIRST_NAME,
+        TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -67,43 +70,52 @@ public class ReactiveCosmosTemplateIT {
     @Value("${cosmosdb.secondaryKey}")
     private String documentDbSecondaryKey;
 
-    private ReactiveCosmosTemplate cosmosTemplate;
-    private String containerName;
-    private CosmosKeyCredential cosmosKeyCredential;
+    private static ReactiveCosmosTemplate cosmosTemplate;
+    private static String containerName;
+    private static DocumentDbEntityInformation<Person, String> personInfo;
+    private static CosmosKeyCredential cosmosKeyCredential;
+
+    private static boolean initialized;
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        cosmosKeyCredential = new CosmosKeyCredential(documentDbKey);
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, cosmosKeyCredential, DB_NAME).build();
-        final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
+        if (!initialized) {
+            cosmosKeyCredential = new CosmosKeyCredential(documentDbKey);
+            final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri,
+                cosmosKeyCredential, DB_NAME).build();
+            final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final DocumentDbEntityInformation<Person, String> personInfo = new DocumentDbEntityInformation<>(Person.class);
-        containerName = personInfo.getCollectionName();
+            final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+            personInfo = new DocumentDbEntityInformation<>(Person.class);
+            containerName = personInfo.getCollectionName();
 
-        mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+            mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
-
-        cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
-        cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
-        cosmosTemplate.insert(TEST_PERSON).block();
+            final MappingDocumentDbConverter dbConverter =
+                new MappingDocumentDbConverter(mappingContext, null);
+            cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
+            cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
+            initialized = true;
+        }
+        cosmosTemplate.insert(TEST_PERSON,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON))).block();
     }
 
     @After
     public void cleanup() {
         //  Reset master key
         cosmosKeyCredential.key(documentDbKey);
-        cosmosTemplate.deleteContainer(Person.class.getSimpleName());
+        cosmosTemplate.deleteAll(Person.class.getSimpleName(),
+            personInfo.getPartitionKeyFieldName()).block();
     }
 
     @Test
     public void testInsertDuplicateId() {
-        final Mono<Person> insertMono = cosmosTemplate.insert(TEST_PERSON);
+        final Mono<Person> insertMono = cosmosTemplate.insert(TEST_PERSON,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
         final TestSubscriber testSubscriber = new TestSubscriber();
         insertMono.subscribe(testSubscriber);
         testSubscriber.awaitTerminalEvent();
@@ -115,8 +127,9 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testFindByID() {
-        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(),
-                Person.class);
+        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(),
+            TEST_PERSON.getId(),
+            Person.class);
         StepVerifier.create(findById)
                     .consumeNextWith(actual -> Assert.assertEquals(actual, TEST_PERSON))
                     .verifyComplete();
@@ -125,7 +138,8 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testFindByIDBySecondaryKey() {
         cosmosKeyCredential.key(documentDbSecondaryKey);
-        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(),
+        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(),
+            TEST_PERSON.getId(),
             Person.class);
         StepVerifier.create(findById).consumeNextWith(actual -> {
             Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
@@ -135,34 +149,39 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testFindAll() {
-        final Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
+        final Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(),
+            Person.class);
         StepVerifier.create(flux).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testFindByIdWithContainerName() {
-        StepVerifier.create(cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class))
+        StepVerifier.create(cosmosTemplate.findById(Person.class.getSimpleName(),
+            TEST_PERSON.getId(), Person.class))
                     .consumeNextWith(actual -> Assert.assertEquals(actual, TEST_PERSON))
                     .verifyComplete();
     }
 
     @Test
     public void testInsert() {
-        StepVerifier.create(cosmosTemplate.insert(TEST_PERSON_3))
-                .expectNext(TEST_PERSON_3).verifyComplete();
+        StepVerifier.create(cosmosTemplate.insert(TEST_PERSON_3,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3))))
+                    .expectNext(TEST_PERSON_3).verifyComplete();
     }
 
     @Test
     public void testInsertBySecondaryKey() {
         cosmosKeyCredential.key(documentDbSecondaryKey);
-        StepVerifier.create(cosmosTemplate.insert(TEST_PERSON_3))
+        StepVerifier.create(cosmosTemplate.insert(TEST_PERSON_3,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3))))
                     .expectNext(TEST_PERSON_3).verifyComplete();
     }
 
     @Test
     public void testInsertWithCollectionName() {
-        StepVerifier.create(cosmosTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_2, null))
-                .expectNext(TEST_PERSON_2).verifyComplete();
+        StepVerifier.create(cosmosTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_2,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2))))
+                    .expectNext(TEST_PERSON_2).verifyComplete();
     }
 
     @Test
@@ -171,7 +190,8 @@ public class ReactiveCosmosTemplateIT {
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
-        final Mono<Person> upsert = cosmosTemplate.upsert(p, null);
+        final Mono<Person> upsert = cosmosTemplate.upsert(p,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(p)));
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
@@ -182,7 +202,8 @@ public class ReactiveCosmosTemplateIT {
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
-        final Mono<Person> upsert = cosmosTemplate.upsert(p, null);
+        final Mono<Person> upsert = cosmosTemplate.upsert(p,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(p)));
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
@@ -192,17 +213,20 @@ public class ReactiveCosmosTemplateIT {
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
-        final Mono<Person> upsert = cosmosTemplate.upsert(Person.class.getSimpleName(), p, null);
+        final Mono<Person> upsert = cosmosTemplate.upsert(Person.class.getSimpleName(), p,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(p)));
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testDeleteById() {
-        cosmosTemplate.insert(TEST_PERSON_4).block();
+        cosmosTemplate.insert(TEST_PERSON_4,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_4))).block();
         Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
         StepVerifier.create(flux).expectNextCount(2).verifyComplete();
-        final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
-                PartitionKey.None);
+        final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(),
+            TEST_PERSON_4.getId(),
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_4)));
         StepVerifier.create(voidMono).verifyComplete();
         flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
         StepVerifier.create(flux).expectNextCount(1).verifyComplete();
@@ -211,11 +235,13 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testDeleteByIdBySecondaryKey() {
         cosmosKeyCredential.key(documentDbSecondaryKey);
-        cosmosTemplate.insert(TEST_PERSON_4).block();
+        cosmosTemplate.insert(TEST_PERSON_4,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_4))).block();
         Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
         StepVerifier.create(flux).expectNextCount(2).verifyComplete();
-        final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON_4.getId(),
-            PartitionKey.None);
+        final Mono<Void> voidMono = cosmosTemplate.deleteById(Person.class.getSimpleName(),
+            TEST_PERSON_4.getId(),
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_4)));
         StepVerifier.create(voidMono).verifyComplete();
         flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
         StepVerifier.create(flux).expectNextCount(1).verifyComplete();
@@ -224,16 +250,17 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testFind() {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON.getFirstName()));
+            Arrays.asList(TEST_PERSON.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
-        final Flux<Person> personFlux = cosmosTemplate.find(query, Person.class, Person.class.getSimpleName());
+        final Flux<Person> personFlux = cosmosTemplate.find(query, Person.class,
+            Person.class.getSimpleName());
         StepVerifier.create(personFlux).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testExists() {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON.getFirstName()));
+            Arrays.asList(TEST_PERSON.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
         final Mono<Boolean> exists = cosmosTemplate.exists(query, Person.class, containerName);
         StepVerifier.create(exists).expectNext(true).verifyComplete();
@@ -255,7 +282,8 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testInvalidSecondaryKey() {
         cosmosKeyCredential.key("Invalid secondary key");
-        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(), TEST_PERSON.getId(),
+        final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(),
+            TEST_PERSON.getId(),
             Person.class);
         StepVerifier.create(findById).expectError(IllegalArgumentException.class);
     }

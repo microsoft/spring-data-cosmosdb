@@ -6,15 +6,16 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import java.util.List;
+
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.Version;
-
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(exclude = "_etag")
@@ -23,6 +24,8 @@ import java.util.List;
 public class Person {
     private String id;
     private String firstName;
+
+    @PartitionKey
     private String lastName;
     private List<String> hobbies;
     private List<Address> shippingAddresses;

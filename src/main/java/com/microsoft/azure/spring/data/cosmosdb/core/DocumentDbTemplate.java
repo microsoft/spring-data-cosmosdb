@@ -289,7 +289,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         try {
             return findDocuments(query, domainClass, collectionName)
                     .stream()
-                    .map(cosmosItemProperties -> cosmosItemProperties.toObject(domainClass))
+                .map(cosmosItemProperties -> toDomainObject(domainClass, cosmosItemProperties))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new DocumentDBAccessException("Failed to execute find operation from " + collectionName, e);
@@ -509,6 +509,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .getItem(cosmosItemProperties.id(), partitionKey)
                 .delete(options)
                 .block();
+    }
+
+    private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {
+        return mappingDocumentDbConverter.read(domainClass, cosmosItemProperties);
     }
 
     private void applyVersioning(Class<?> domainClass,

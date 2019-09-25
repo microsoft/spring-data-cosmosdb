@@ -5,8 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
+import java.util.List;
+
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
@@ -15,9 +18,7 @@ import org.junit.Test;
 
 import org.springframework.data.annotation.Version;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
+import static org.assertj.core.api.Assertions.*;
 
 public class DocumentDbEntityInformationUnitTest {
     private static final String ID = "entity_info_test_id";
@@ -63,6 +64,33 @@ public class DocumentDbEntityInformationUnitTest {
         final String collectionName = entityInformation.getCollectionName();
         assertThat(collectionName).isEqualTo("testCollection");
     }
+
+    @Test
+    public void testGetPartitionKeyName() {
+        final DocumentDbEntityInformation<VolunteerWithPartitionKey, String> entityInformation =
+                new DocumentDbEntityInformation<>(VolunteerWithPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("name");
+    }
+
+    @Test
+    public void testNullPartitionKeyName() {
+        final DocumentDbEntityInformation<Volunteer, String> entityInformation =
+                new DocumentDbEntityInformation<>(Volunteer.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo(null);
+    }
+
+    @Test
+    public void testCustomPartitionKeyName() {
+        final DocumentDbEntityInformation<VolunteerWithCustomPartitionKey, String> entityInformation =
+                new DocumentDbEntityInformation<>(VolunteerWithCustomPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("vol_name");
+    }
     
     @Test
     public void testVersionedEntity() {
@@ -72,7 +100,7 @@ public class DocumentDbEntityInformationUnitTest {
         final boolean isVersioned = entityInformation.isVersioned();
         assertThat(isVersioned).isTrue();
     }
-    
+
     @Test
     public void testEntityShouldNotBeVersionedWithWrongType() {
         final DocumentDbEntityInformation<WrongVersionType, String> entityInformation =
@@ -81,7 +109,7 @@ public class DocumentDbEntityInformationUnitTest {
         final boolean isVersioned = entityInformation.isVersioned();
         assertThat(isVersioned).isFalse();
     }
-    
+
     @Test
     public void testEntityShouldNotBeVersionedWithoutAnnotationOnEtag() {
         final DocumentDbEntityInformation<VersionOnWrongField, String> entityInformation =
@@ -90,7 +118,7 @@ public class DocumentDbEntityInformationUnitTest {
         final boolean isVersioned = entityInformation.isVersioned();
         assertThat(isVersioned).isFalse();
     }
-    
+
     @Test
     public void testNonVersionedEntity() {
         final DocumentDbEntityInformation<Student, String> entityInformation =
@@ -100,6 +128,58 @@ public class DocumentDbEntityInformationUnitTest {
         assertThat(isVersioned).isFalse();
     }
 
+    @Document(collection = "testCollection")
+    class Volunteer {
+        String id;
+        String name;
+    }
+
+    @Document
+    private class VolunteerWithCustomPartitionKey {
+        private String id;
+        @PartitionKey("vol_name")
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    @Document
+    private class VolunteerWithPartitionKey {
+        private String id;
+        @PartitionKey
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+    
     @Data
     @Document(collection = "testCollection")
     class VersionedVolunteer {
