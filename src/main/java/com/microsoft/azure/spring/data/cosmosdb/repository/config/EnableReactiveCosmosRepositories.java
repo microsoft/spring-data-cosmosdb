@@ -7,7 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.config;
 
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbRepositoryFactoryBean;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.ReactiveCosmosRepositoryFactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;

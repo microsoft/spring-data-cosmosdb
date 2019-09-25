@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 
 public class ReactiveCosmosQueryMethod extends QueryMethod {
 
-    private ReactiveCosmosEntityMetadata<?> metadata;
+    private CosmosEntityMetadata<?> metadata;
 
     public ReactiveCosmosQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
         super(method, metadata, factory);
@@ -25,10 +25,10 @@ public class ReactiveCosmosQueryMethod extends QueryMethod {
     @SuppressWarnings("unchecked")
     public EntityMetadata<?> getEntityInformation() {
         final Class<Object> domainClass = (Class<Object>) getDomainClass();
-        final DocumentDbEntityInformation entityInformation =
-                new DocumentDbEntityInformation<Object, String>(domainClass);
+        final CosmosEntityInformation entityInformation =
+                new CosmosEntityInformation<Object, String>(domainClass);
 
-        this.metadata = new SimpleReactiveCosmosEntityMetadata<>(domainClass, entityInformation);
+        this.metadata = new SimpleCosmosEntityMetadata<>(domainClass, entityInformation);
         return this.metadata;
     }
 }

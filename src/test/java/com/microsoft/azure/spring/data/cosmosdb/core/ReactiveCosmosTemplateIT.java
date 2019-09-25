@@ -11,14 +11,14 @@ import com.azure.data.cosmos.PartitionKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.After;
 import org.junit.Assert;
@@ -77,17 +77,17 @@ public class ReactiveCosmosTemplateIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         cosmosKeyCredential = new CosmosKeyCredential(documentDbKey);
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, cosmosKeyCredential, DB_NAME).build();
+        final CosmosDBConfig dbConfig = CosmosDBConfig.builder(documentDbUri, cosmosKeyCredential, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        final CosmosMappingContext mappingContext = new CosmosMappingContext();
         final ObjectMapper objectMapper = new ObjectMapper();
-        final DocumentDbEntityInformation<Person, String> personInfo = new DocumentDbEntityInformation<>(Person.class);
+        final CosmosEntityInformation<Person, String> personInfo = new CosmosEntityInformation<>(Person.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext, objectMapper);
 
         cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
         cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();

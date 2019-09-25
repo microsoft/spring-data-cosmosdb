@@ -5,12 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.RequestOptions;
+import com.azure.data.cosmos.ConsistencyLevel;
+import com.azure.data.cosmos.internal.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
-import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
+import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableCosmosRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +19,8 @@ import org.springframework.util.StringUtils;
 
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
-@EnableDocumentDbRepositories
-public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories
+public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
     private String documentDbUri;
 
@@ -36,22 +36,22 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     private RequestOptions getRequestOptions() {
         final RequestOptions options = new RequestOptions();
 
-        options.setConsistencyLevel(ConsistencyLevel.ConsistentPrefix);
-        options.setDisableRUPerMinuteUsage(true);
+        options.setConsistencyLevel(ConsistencyLevel.CONSISTENT_PREFIX);
+//        options.setDisableRUPerMinuteUsage(true);
         options.setScriptLoggingEnabled(true);
 
         return options;
     }
 
     @Bean
-    public DocumentDBConfig getConfig() {
+    public CosmosDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
         final RequestOptions options = getRequestOptions();
 
         if (StringUtils.hasText(this.documentDbUri) && StringUtils.hasText(this.documentDbKey)) {
-            return DocumentDBConfig.builder(documentDbUri, documentDbKey, dbName).requestOptions(options).build();
+            return CosmosDBConfig.builder(documentDbUri, documentDbKey, dbName).requestOptions(options).build();
         }
 
-        return DocumentDBConfig.builder(connectionString, dbName).requestOptions(options).build();
+        return CosmosDBConfig.builder(connectionString, dbName).requestOptions(options).build();
     }
 }

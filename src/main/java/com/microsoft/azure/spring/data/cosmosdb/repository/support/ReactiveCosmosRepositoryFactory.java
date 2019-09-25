@@ -37,7 +37,7 @@ public class ReactiveCosmosRepositoryFactory extends ReactiveRepositoryFactorySu
 
     @Override
     public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-        return new DocumentDbEntityInformation<>(domainClass);
+        return new CosmosEntityInformation<>(domainClass);
     }
 
     @Override

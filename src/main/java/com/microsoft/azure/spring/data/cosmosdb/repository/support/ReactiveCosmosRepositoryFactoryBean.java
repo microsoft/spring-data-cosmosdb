@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -64,7 +64,7 @@ public class ReactiveCosmosRepositoryFactoryBean<T extends Repository<S, K>, S,
             if (cosmosOperations != null) {
                 setMappingContext(cosmosOperations.getConverter().getMappingContext());
             } else {
-                setMappingContext(new DocumentDbMappingContext());
+                setMappingContext(new CosmosMappingContext());
             }
         }
     }

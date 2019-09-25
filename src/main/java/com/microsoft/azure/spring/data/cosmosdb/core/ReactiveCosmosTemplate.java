@@ -10,21 +10,19 @@ import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
-import com.azure.data.cosmos.CosmosItemResponse;
 import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.PartitionKey;
 import com.azure.data.cosmos.SqlQuerySpec;
-import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -38,7 +36,6 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 //  TODO: To expose client side request diagnostics,
@@ -48,7 +45,7 @@ import java.util.stream.Collectors;
 public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
-    private final MappingDocumentDbConverter mappingDocumentDbConverter;
+    private final MappingCosmosConverter mappingCosmosConverter;
     private final String databaseName;
 
     private final CosmosClient cosmosClient;
@@ -59,16 +56,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      * Constructor
      *
      * @param cosmosDbFactory            the cosmosdbfactory
-     * @param mappingDocumentDbConverter the mappingDocumentDbConverter
+     * @param mappingCosmosConverter the mappingCosmosConverter
      * @param dbName                     database name
      */
     public ReactiveCosmosTemplate(CosmosDbFactory cosmosDbFactory,
-                                  MappingDocumentDbConverter mappingDocumentDbConverter,
+                                  MappingCosmosConverter mappingCosmosConverter,
                                   String dbName) {
         Assert.notNull(cosmosDbFactory, "CosmosDbFactory must not be null!");
-        Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
+        Assert.notNull(mappingCosmosConverter, "MappingCosmosConverter must not be null!");
 
-        this.mappingDocumentDbConverter = mappingDocumentDbConverter;
+        this.mappingCosmosConverter = mappingCosmosConverter;
         this.databaseName = dbName;
         this.collectionCache = new ArrayList<>();
 
@@ -86,11 +83,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     /**
      * Creates a collection if it doesn't already exist
      *
-     * @param information the DocumentDbEntityInformation
+     * @param information the CosmosEntityInformation
      * @return Mono containing CosmosContainerResponse
      */
     @Override
-    public Mono<CosmosContainerResponse> createCollectionIfNotExists(DocumentDbEntityInformation information) {
+    public Mono<CosmosContainerResponse> createCollectionIfNotExists(CosmosEntityInformation information) {
 
         return cosmosClient
             .createDatabaseIfNotExists(this.databaseName)
@@ -281,14 +278,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         //  TODO: DatabaseName will be implemented inside DatabaseFactory.
         //  get rid of getDatabase() call from template, and addd it to DatabaseFactory.
         //  Customers can spin up multiple database factories, and multiple templates based on that.
-        //  spring-data-mongodb -> MongoDbFactory, SpringJPAFactory (routing datastores which gives routing facilities, spring-data-cassandra module)
-        Mono<Void> voidDelete = cosmosClient.getDatabase(this.databaseName)
+        //  spring-data-mongodb -> MongoDbFactory, SpringJPAFactory (routing datastores which gives routing facilities,
+        //  spring-data-cassandra module)
+        final Mono<Void> voidDelete = cosmosClient.getDatabase(this.databaseName)
                                       .getContainer(containerName)
                                       .getItem(id.toString(), partitionKey)
                                       .delete(options)
                                       .onErrorResume(Mono::error)
                                       .then();
-        //  TODO: spring-data-mongodb, call-back functions - supply an in-memory function, which users can override that function.
+        //  TODO: spring-data-mongodb, call-back functions - supply an in-memory function, which users can override
+        // that function.
         //  TODO: There is a elastic search functionality, spring-data-elastic-search.
         //  search-score injection into entities
         return voidDelete;
@@ -414,8 +413,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     @Override
-    public MappingDocumentDbConverter getConverter() {
-        return mappingDocumentDbConverter;
+    public MappingCosmosConverter getConverter() {
+        return mappingCosmosConverter;
     }
 
     public Mono<Long> count(DocumentQuery query, boolean isCrossPartitionQuery, String containerName) {
@@ -443,7 +442,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     private <T> Mono<T> databaseAccessExceptionHandler(Throwable e) {
-        throw new DocumentDBAccessException("failed to access cosmosdb database", e);
+        throw new CosmosDBAccessException("failed to access cosmosdb database", e);
     }
 
     /**
@@ -458,7 +457,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
             cosmosClient.getDatabase(this.databaseName).getContainer(containerName).delete().block();
             this.collectionCache.remove(containerName);
         } catch (Exception e) {
-            throw new DocumentDBAccessException("failed to delete collection: " + containerName, e);
+            throw new CosmosDBAccessException("failed to delete collection: " + containerName, e);
         }
     }
 
@@ -469,7 +468,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public String getContainerName(Class<?> domainClass) {
         Assert.notNull(domainClass, "domainClass should not be null");
 
-        return new DocumentDbEntityInformation<>(domainClass).getCollectionName();
+        return new CosmosEntityInformation<>(domainClass).getCollectionName();
     }
 
     private Flux<CosmosItemProperties> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
@@ -493,7 +492,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     private List<String> getPartitionKeyNames(Class<?> domainClass) {
-        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
+        final CosmosEntityInformation entityInfo = new CosmosEntityInformation(domainClass);
 
         if (entityInfo.getPartitionKeyFieldName() == null) {
             return new ArrayList<>();

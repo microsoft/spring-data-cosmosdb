@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Question;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 
-public interface QuestionRepository extends DocumentDbRepository<Question, String> {
+public interface QuestionRepository extends CosmosRepository<Question, String> {
 }

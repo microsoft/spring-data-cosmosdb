@@ -5,9 +5,10 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance;
 
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.DocumentClientException;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosClientException;
+import com.azure.data.cosmos.sync.CosmosSyncClient;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.performance.domain.PerfPerson;
 import com.microsoft.azure.spring.data.cosmosdb.performance.repository.PerfPersonRepository;
 import com.microsoft.azure.spring.data.cosmosdb.performance.service.SdkService;
@@ -32,7 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.*;
+import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.acceptInputListFunc;
+import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.applyInputListFunc;
+import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.getSupplier;
+import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.runConsumerForTimes;
+import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.FunctionUtils.runFunctionForTimes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
@@ -51,7 +56,10 @@ public class PerformanceCompare {
     private float acceptanceDiff;
 
     @Autowired
-    private DocumentClient documentClient;
+    private CosmosSyncClient documentClient;
+
+    @Autowired
+    private CosmosClient asyncClient;
 
     @Autowired
     private PerfPersonRepository repository;
@@ -61,14 +69,15 @@ public class PerformanceCompare {
     private static PerformanceReport report = new PerformanceReport();
 
     @Before
-    public void setup() throws DocumentClientException {
+    public void setup() throws CosmosClientException {
         if (!hasInit) {
             DatabaseUtils.createDatabase(documentClient, Constants.PERF_DATABASE_NAME);
             DatabaseUtils.createCollection(documentClient, Constants.PERF_DATABASE_NAME,
                     Constants.SPRING_COLLECTION_NAME);
             DatabaseUtils.createCollection(documentClient, Constants.PERF_DATABASE_NAME, Constants.SDK_COLLECTION_NAME);
 
-            sdkService = new SdkService(documentClient, Constants.PERF_DATABASE_NAME, Constants.SDK_COLLECTION_NAME);
+            sdkService = new SdkService(documentClient, Constants.PERF_DATABASE_NAME,
+                    Constants.SDK_COLLECTION_NAME, asyncClient);
             hasInit = true;
         }
 
@@ -248,7 +257,7 @@ public class PerformanceCompare {
     }
 
     private void queryTwoPages(int pageSize) {
-        final Pageable pageable = new DocumentDbPageRequest(0, pageSize, null);
+        final Pageable pageable = new CosmosPageRequest(0, pageSize, null);
         final Page<PerfPerson> page = this.repository.findAll(pageable);
         this.repository.findAll(page.getPageable());
     }

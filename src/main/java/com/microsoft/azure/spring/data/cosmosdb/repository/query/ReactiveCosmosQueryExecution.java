@@ -6,9 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import org.springframework.data.domain.Pageable;
 
 public interface ReactiveCosmosQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String collection);
@@ -81,9 +79,9 @@ public interface ReactiveCosmosQueryExecution {
 //
 //        @Override
 //        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-//            if (pageable.getPageNumber() != 0 && !(pageable instanceof DocumentDbPageRequest)) {
+//            if (pageable.getPageNumber() != 0 && !(pageable instanceof CosmosPageRequest)) {
 //                throw new IllegalStateException("Not the first page but Pageable is not a valid " +
-//                        "DocumentDbPageRequest, requestContinuation is required for non first page request");
+//                        "CosmosPageRequest, requestContinuation is required for non first page request");
 //            }
 //
 //            query.with(pageable);

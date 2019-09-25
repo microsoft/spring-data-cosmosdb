@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
@@ -26,11 +25,11 @@ import java.io.Serializable;
 
 public class SimpleReactiveCosmosRepository<T, K extends Serializable> implements ReactiveCosmosRepository<T, K> {
 
-    private final DocumentDbEntityInformation<T, K> entityInformation;
+    private final CosmosEntityInformation<T, K> entityInformation;
     private final ReactiveCosmosOperations cosmosOperations;
     private final CosmosContainerResponse cosmosContainerResponse;
 
-    public SimpleReactiveCosmosRepository(DocumentDbEntityInformation<T, K> metadata,
+    public SimpleReactiveCosmosRepository(CosmosEntityInformation<T, K> metadata,
                                           ApplicationContext applicationContext) {
         this.cosmosOperations = applicationContext.getBean(ReactiveCosmosOperations.class);
         this.entityInformation = metadata;
@@ -38,7 +37,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         cosmosContainerResponse = createCollectionIfNotExists();
     }
 
-    public SimpleReactiveCosmosRepository(DocumentDbEntityInformation<T, K> metadata,
+    public SimpleReactiveCosmosRepository(CosmosEntityInformation<T, K> metadata,
                                           ReactiveCosmosOperations reactiveCosmosOperations) {
         this.cosmosOperations = reactiveCosmosOperations;
         this.entityInformation = metadata;

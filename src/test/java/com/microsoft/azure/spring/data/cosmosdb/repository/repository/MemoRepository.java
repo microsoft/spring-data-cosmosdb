@@ -7,14 +7,14 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
 
 @Repository
-public interface MemoRepository extends DocumentDbRepository<Memo, String> {
+public interface MemoRepository extends CosmosRepository<Memo, String> {
     List<Memo> findMemoByDate(Date date);
 
     List<Memo> findMemoByImportance(Importance importance);

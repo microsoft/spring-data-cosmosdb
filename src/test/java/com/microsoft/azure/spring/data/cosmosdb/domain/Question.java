@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.azure.data.cosmos.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document
-@DocumentIndexingPolicy(mode = IndexingMode.Lazy)
+@DocumentIndexingPolicy(mode = IndexingMode.LAZY)
 public class Question {
 
     @Id

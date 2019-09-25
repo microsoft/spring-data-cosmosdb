@@ -8,17 +8,16 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,18 +72,18 @@ public class ReactiveCosmosTemplatePartitionIT {
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+        final CosmosDBConfig dbConfig = CosmosDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
         final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-        final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+        final CosmosMappingContext mappingContext = new CosmosMappingContext();
         final ObjectMapper objectMapper = new ObjectMapper();
-        final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
-            new DocumentDbEntityInformation<>(PartitionPerson.class);
+        final CosmosEntityInformation<PartitionPerson, String> personInfo =
+            new CosmosEntityInformation<>(PartitionPerson.class);
         containerName = personInfo.getCollectionName();
 
         mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+        final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext, objectMapper);
         cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
 
         cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
@@ -154,8 +153,8 @@ public class ReactiveCosmosTemplatePartitionIT {
     public void testDeleteAll() {
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
-        final DocumentDbEntityInformation<PartitionPerson, String> personInfo =
-            new DocumentDbEntityInformation<>(PartitionPerson.class);
+        final CosmosEntityInformation<PartitionPerson, String> personInfo =
+            new CosmosEntityInformation<>(PartitionPerson.class);
         cosmosTemplate.deleteAll(containerName, personInfo.getPartitionKeyFieldName()).block();
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class))
                     .expectNextCount(0)

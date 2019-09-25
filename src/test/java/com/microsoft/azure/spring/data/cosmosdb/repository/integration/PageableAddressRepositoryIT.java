@@ -7,12 +7,12 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableAddressRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,11 +44,11 @@ public class PageableAddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
 
-    private final DocumentDbEntityInformation<Address, String> entityInformation =
-            new DocumentDbEntityInformation<>(Address.class);
+    private final CosmosEntityInformation<Address, String> entityInformation =
+            new CosmosEntityInformation<>(Address.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private PageableAddressRepository repository;
@@ -80,7 +80,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindAllByPage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findAll(pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
@@ -93,7 +93,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindWithParitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
@@ -103,7 +103,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindWithParitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_1);
@@ -119,7 +119,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindWithoutPartitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
@@ -129,7 +129,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindWithoutPartitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(1);

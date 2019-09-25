@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.microsoft.azure.documentdb.JsonSerializable;
+import com.fasterxml.jackson.databind.JsonSerializable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class TestUtils {
         return null;
     }
 
-    public static <T extends JsonSerializable> void testIndexingPolicyPathsEquals(Collection<T> policyPaths,
+    public static <T> void testIndexingPolicyPathsEquals(List<T> policyPaths,
                                                                                   String [] pathsExpected) {
         if (policyPaths == null) {
             throw new IllegalStateException("policyPaths should not be null");
@@ -38,7 +38,6 @@ public class TestUtils {
         for (final String path: pathsExpected) {
             Assert.isTrue(pathIterator.hasNext(), "policy path iterator should have next");
             final T includedPath = pathIterator.next();
-
             Assert.isTrue(includedPath.toString().equals(path), "unmatched policy path");
         }
     }

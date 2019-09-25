@@ -6,13 +6,13 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface StudentRepository extends DocumentDbRepository<Student, String> {
+public interface StudentRepository extends CosmosRepository<Student, String> {
 
     List<Student> findByFirstNameContaining(String firstName);
 

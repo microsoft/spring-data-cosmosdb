@@ -7,11 +7,11 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -40,14 +40,14 @@ public class AddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_2, TestConstants.CITY_1);
 
-    private final DocumentDbEntityInformation<Address, String> entityInformation
-            = new DocumentDbEntityInformation<>(Address.class);
+    private final CosmosEntityInformation<Address, String> entityInformation
+            = new CosmosEntityInformation<>(Address.class);
 
     @Autowired
     AddressRepository repository;
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

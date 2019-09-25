@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.mapping.context.MappingContext;
@@ -16,7 +16,7 @@ import org.springframework.data.repository.query.parser.PartTree;
 public class PartTreeReactiveCosmosQuery extends AbstractReactiveCosmosQuery {
 
     private final PartTree tree;
-    private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
+    private final MappingContext<?, CosmosPersistentProperty> mappingContext;
     private final ResultProcessor processor;
 
     public PartTreeReactiveCosmosQuery(ReactiveCosmosQueryMethod method, ReactiveCosmosOperations operations) {

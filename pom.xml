@@ -59,7 +59,7 @@
         <project.reactor.test.version>3.2.5.RELEASE</project.reactor.test.version>
 
         <azure.documentdb.version>1.16.2</azure.documentdb.version>
-        <azure.cosmos.version>3.1.0</azure.cosmos.version>
+        <azure.cosmos.version>3.2.0</azure.cosmos.version>
         <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <skip.integration.tests>true</skip.integration.tests>
@@ -116,11 +116,11 @@
             <version>${spring.springframework.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-documentdb</artifactId>
-            <version>${azure.documentdb.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.microsoft.azure</groupId>-->
+            <!--<artifactId>azure-documentdb</artifactId>-->
+            <!--<version>${azure.documentdb.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -143,7 +143,11 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${fasterxml.jackson.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

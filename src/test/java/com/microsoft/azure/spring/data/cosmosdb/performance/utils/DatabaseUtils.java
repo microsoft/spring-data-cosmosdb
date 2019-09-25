@@ -5,45 +5,55 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance.utils;
 
-import com.microsoft.azure.documentdb.*;
+import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosClientException;
+import com.azure.data.cosmos.CosmosContainerProperties;
+import com.azure.data.cosmos.IncludedPath;
+import com.azure.data.cosmos.IndexingPolicy;
+import com.azure.data.cosmos.PartitionKey;
+import com.azure.data.cosmos.PartitionKeyDefinition;
+import com.azure.data.cosmos.internal.RequestOptions;
+import com.azure.data.cosmos.sync.CosmosSyncClient;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ORDER_BY_STRING_PATH;
 
 public class DatabaseUtils {
-    public static void createDatabase(DocumentClient documentClient, String databaseName)
-            throws DocumentClientException {
+    public static void createDatabase(CosmosSyncClient documentClient, String databaseName)
+            throws CosmosClientException {
         try {
-            documentClient.deleteDatabase("dbs/" + databaseName, null);
-        } catch (DocumentClientException e) {
+            // Can use sync api once ready
+            documentClient.getDatabase(databaseName).delete();
+        } catch (Exception e) {
             // Ignore delete failure
         }
 
-        final Database myDatabase = new Database();
-        myDatabase.setId(databaseName);
-
-        documentClient.createDatabase(myDatabase, null);
+        documentClient.createDatabase(databaseName);
     }
 
-    public static void deleteCollection(DocumentClient documentClient, String databaseName, String collectionName)
-            throws DocumentClientException{
+    public static void deleteCollection(CosmosSyncClient documentClient, String databaseName, String collectionName)
+            throws CosmosClientException{
         final RequestOptions requestOptions = new RequestOptions();
         requestOptions.setOfferThroughput(1000);
 
-        documentClient.deleteCollection("dbs/" + databaseName + "/colls/" + collectionName, requestOptions);
+        documentClient.getDatabase(databaseName).getContainer(collectionName).delete();
     }
 
-    public static void createCollection(DocumentClient documentClient, String databaseName, String collectionName)
-            throws DocumentClientException {
-        final DocumentCollection myCollection = new DocumentCollection();
-        myCollection.setId(collectionName);
+    public static void createCollection(CosmosSyncClient documentClient, String databaseName, String collectionName)
+            throws CosmosClientException {
+        final CosmosContainerProperties containerProperties = new CosmosContainerProperties(collectionName,
+                new PartitionKeyDefinition().paths(Collections.singletonList("/mypk")));
 
         final IndexingPolicy policy = new IndexingPolicy();
         policy.setIncludedPaths(Collections.singletonList(new IncludedPath(ORDER_BY_STRING_PATH)));
-        myCollection.setIndexingPolicy(policy);
+        containerProperties.indexingPolicy(policy);
 
-        documentClient.createCollection("dbs/" + databaseName, myCollection, null);
+        documentClient.getDatabase(databaseName).createContainer(containerProperties);
     }
 
     public static String getDocumentLink(String databaseName, String collectionName, Object documentId) {

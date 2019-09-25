@@ -6,11 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
@@ -35,14 +35,14 @@ public class ContactRepositoryIT {
 
     private static final Contact TEST_CONTACT = new Contact("testId", "faketitle");
 
-    private final DocumentDbEntityInformation<Contact, String> entityInformation =
-            new DocumentDbEntityInformation<>(Contact.class);
+    private final CosmosEntityInformation<Contact, String> entityInformation =
+            new CosmosEntityInformation<>(Contact.class);
 
     @Autowired
     ContactRepository repository;
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @PreDestroy
     public void cleanUpCollection() {

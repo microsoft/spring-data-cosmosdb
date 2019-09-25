@@ -7,7 +7,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.config;
 
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.ReactiveCosmosRepositoryFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -55,7 +55,7 @@ public class ReactiveCosmosRepositoryConfigurationExtension extends RepositoryCo
         super.registerBeansForRoot(registry, config);
 
         if (!registry.containsBeanDefinition(Constants.DOCUMENTDB_MAPPING_CONTEXT_NAME)) {
-            final RootBeanDefinition definition = new RootBeanDefinition(DocumentDbMappingContext.class);
+            final RootBeanDefinition definition = new RootBeanDefinition(CosmosMappingContext.class);
             definition.setRole(AbstractBeanDefinition.ROLE_INFRASTRUCTURE);
             definition.setSource(config.getSource());
 

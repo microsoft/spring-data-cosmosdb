@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.azure.data.cosmos.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -29,7 +29,7 @@ public class TestConstants {
     public static final String DEFAULT_COLLECTION_NAME = "Person";
     public static final int DEFAULT_REQUEST_UNIT = 4000;
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
-    public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
+    public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.CONSISTENT;
     public static final String[] DEFAULT_EXCLUDEDPATHS = {};
     public static final String[] DEFAULT_INCLUDEDPATHS = {
             "{\"path\":\"/*\",\"indexes\":[" +
@@ -43,7 +43,7 @@ public class TestConstants {
     public static final int TIME_TO_LIVE = 5;
     public static final String REQUEST_UNIT_STRING = "1000";
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
-    public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;
+    public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.LAZY;
     public static final String INCLUDEDPATH_0 = "{\"path\":\"/*\",\"indexes\":[" +
             "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":2}," +
             "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":2}," +

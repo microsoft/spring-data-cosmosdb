@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.config;
 
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;

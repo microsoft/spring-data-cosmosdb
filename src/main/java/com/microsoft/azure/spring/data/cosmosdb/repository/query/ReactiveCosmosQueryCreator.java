@@ -6,11 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -25,10 +25,10 @@ import java.util.List;
 
 public class ReactiveCosmosQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
-    private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;
+    private final MappingContext<?, CosmosPersistentProperty> mappingContext;
 
     public ReactiveCosmosQueryCreator(PartTree tree, ReactiveCosmosParameterAccessor accessor,
-                                      MappingContext<?, DocumentDbPersistentProperty> mappingContext) {
+                                      MappingContext<?, CosmosPersistentProperty> mappingContext) {
         super(tree, accessor);
 
         this.mappingContext = mappingContext;
@@ -38,8 +38,8 @@ public class ReactiveCosmosQueryCreator extends AbstractQueryCreator<DocumentQue
         String subject = mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
         final Class<?> domainClass = part.getProperty().getOwningType().getType();
 
-        @SuppressWarnings("unchecked") final DocumentDbEntityInformation information =
-                new DocumentDbEntityInformation(domainClass);
+        @SuppressWarnings("unchecked") final CosmosEntityInformation information =
+                new CosmosEntityInformation(domainClass);
 
         if (information.getIdField().getName().equals(subject)) {
             subject = Constants.ID_PROPERTY_NAME;
