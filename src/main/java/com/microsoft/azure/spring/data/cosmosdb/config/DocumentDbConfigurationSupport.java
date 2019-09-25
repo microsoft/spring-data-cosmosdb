@@ -6,7 +6,10 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.config;
 
+import com.microsoft.azure.spring.data.cosmosdb.common.ExpressionResolver;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -21,10 +24,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class DocumentDbConfigurationSupport {
 
+    @Bean
+    public ExpressionResolver expressionResolver(BeanFactory beanFactory) {
+        return new ExpressionResolver(beanFactory);
+    }
+    
     @Bean
     public DocumentDbMappingContext documentDbMappingContext() throws ClassNotFoundException {
         final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();

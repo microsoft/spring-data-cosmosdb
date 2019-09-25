@@ -54,4 +54,21 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
 
         return DocumentDBConfig.builder(connectionString, dbName).requestOptions(options).build();
     }
+    
+    @Bean
+    public DynamicCollectionContainer dynamicCollectionContainer() {
+        return new DynamicCollectionContainer("spel-bean-collection");
+    }
+    
+    public class DynamicCollectionContainer {
+        private String collectionName;
+
+        public DynamicCollectionContainer(String collectionName) {
+            this.collectionName = collectionName;
+        }
+        
+        public String getCollectionName() {
+            return this.collectionName;
+        }
+    }
 }
