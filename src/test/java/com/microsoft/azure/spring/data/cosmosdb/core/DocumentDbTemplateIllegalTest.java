@@ -16,13 +16,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.util.Assert;
+
+import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-
-import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DocumentDbTemplateIllegalTest {
@@ -83,9 +84,7 @@ public class DocumentDbTemplateIllegalTest {
     public void findByIdIllegalArgsShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getDeclaredMethod("findById", Object.class, Class.class);
 
-        checkIllegalArgument(method, null, Person.class);
-        checkIllegalArgument(method, EMPTY_STR, Person.class);
-        checkIllegalArgument(method, WHITESPACES_STR, Person.class);
+        checkIllegalArgument(method, DUMMY_ID, null);
     }
 
     @Test
