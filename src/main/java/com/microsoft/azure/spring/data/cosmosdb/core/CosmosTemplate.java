@@ -7,7 +7,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
@@ -277,7 +276,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         try {
             return findDocuments(query, domainClass, collectionName)
                 .stream()
-                .map(cosmosItemProperties -> cosmosItemProperties.toObject(domainClass))
+                .map(cosmosItemProperties -> toDomainObject(domainClass, cosmosItemProperties))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new CosmosDBAccessException("Failed to execute find operation from " + collectionName, e);
@@ -489,5 +488,9 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             .getItem(cosmosItemProperties.id(), partitionKey)
             .delete(options)
             .block();
+    }
+
+    private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {
+        return mappingCosmosConverter.read(domainClass, cosmosItemProperties);
     }
 }

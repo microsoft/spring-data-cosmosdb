@@ -24,12 +24,12 @@ public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSup
 
     @Bean
     public CosmosClient cosmosClient(CosmosDBConfig config) {
-        return this.documentDbFactory(config).getCosmosClient();
+        return this.cosmosDbFactory(config).getCosmosClient();
     }
 
     @Bean
     public CosmosSyncClient cosmosSyncClient(CosmosDBConfig config) {
-        return this.documentDbFactory(config).getCosmosSyncClient();
+        return this.cosmosDbFactory(config).getCosmosSyncClient();
     }
     
     @Qualifier(Constants.OBJECTMAPPER_BEAN_NAME)
@@ -37,23 +37,18 @@ public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSup
     private ObjectMapper objectMapper;
 
     @Bean
-    public CosmosDbFactory documentDbFactory(CosmosDBConfig config) {
-        return new CosmosDbFactory(config);
-    }
-
-    @Bean
     public CosmosDbFactory cosmosDbFactory(CosmosDBConfig config) {
         return new CosmosDbFactory(config);
     }
 
     @Bean
-    public CosmosTemplate documentDbTemplate(CosmosDBConfig config) throws ClassNotFoundException {
+    public CosmosTemplate cosmosTemplate(CosmosDBConfig config) throws ClassNotFoundException {
         return new CosmosTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
                 config.getDatabase());
     }
 
     @Bean
-    public ReactiveCosmosTemplate cosmosDbTemplate(CosmosDBConfig config) throws ClassNotFoundException {
+    public ReactiveCosmosTemplate reactiveCosmosTemplate(CosmosDBConfig config) throws ClassNotFoundException {
         return new ReactiveCosmosTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
             config.getDatabase());
     }

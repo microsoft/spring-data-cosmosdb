@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
-//  TODO: Database Factory interface, which exposese these methods to get the databases
+//  TODO: Database Factory interface, which exposes these methods to get the databases
 //  Configure the template using database factory.
 //  Ask the database factory to give you the instance.
 public class CosmosDbFactory {

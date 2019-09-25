@@ -7,9 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentEntity;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentProperty;
@@ -52,8 +50,6 @@ public class MappingCosmosConverter
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() :
             objectMapper;
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.registerModule(provideAdvancedSerializersModule());
     }
 
     @Override
@@ -88,12 +84,6 @@ public class MappingCosmosConverter
             throw new IllegalStateException("Failed to read the source document " + cosmosItemProperties.toJson()
                 + "  to target type " + type, e);
         }
-    }
-
-    private SimpleModule provideAdvancedSerializersModule() {
-        final SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        return simpleModule;
     }
 
     @Override
@@ -205,10 +195,10 @@ public class MappingCosmosConverter
         }
 
         // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
-        
+
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();
-        } else 
+        } else
         if (fromPropertyValue instanceof ZonedDateTime) {
             fromPropertyValue = ((ZonedDateTime) fromPropertyValue)
                                         .format(DateTimeFormatter.ofPattern(ISO_8601_COMPATIBLE_DATE_PATTERN));

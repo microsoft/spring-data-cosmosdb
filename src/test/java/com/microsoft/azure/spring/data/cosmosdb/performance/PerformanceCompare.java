@@ -56,7 +56,7 @@ public class PerformanceCompare {
     private float acceptanceDiff;
 
     @Autowired
-    private CosmosSyncClient documentClient;
+    private CosmosSyncClient cosmosSyncClient;
 
     @Autowired
     private CosmosClient asyncClient;
@@ -71,12 +71,13 @@ public class PerformanceCompare {
     @Before
     public void setup() throws CosmosClientException {
         if (!hasInit) {
-            DatabaseUtils.createDatabase(documentClient, Constants.PERF_DATABASE_NAME);
-            DatabaseUtils.createCollection(documentClient, Constants.PERF_DATABASE_NAME,
+            DatabaseUtils.createDatabase(cosmosSyncClient, Constants.PERF_DATABASE_NAME);
+            DatabaseUtils.createCollection(cosmosSyncClient, Constants.PERF_DATABASE_NAME,
                     Constants.SPRING_COLLECTION_NAME);
-            DatabaseUtils.createCollection(documentClient, Constants.PERF_DATABASE_NAME, Constants.SDK_COLLECTION_NAME);
+            DatabaseUtils.createCollection(cosmosSyncClient,
+                Constants.PERF_DATABASE_NAME, Constants.SDK_COLLECTION_NAME);
 
-            sdkService = new SdkService(documentClient, Constants.PERF_DATABASE_NAME,
+            sdkService = new SdkService(cosmosSyncClient, Constants.PERF_DATABASE_NAME,
                     Constants.SDK_COLLECTION_NAME, asyncClient);
             hasInit = true;
         }

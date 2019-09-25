@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import org.junit.Test;
@@ -60,9 +61,83 @@ public class CosmosEntityInformationUnitTest {
         assertThat(collectionName).isEqualTo("testCollection");
     }
 
+    @Test
+    public void testGetPartitionKeyName() {
+        final CosmosEntityInformation<VolunteerWithPartitionKey, String> entityInformation =
+                new CosmosEntityInformation<>(VolunteerWithPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("name");
+    }
+
+    @Test
+    public void testNullPartitionKeyName() {
+        final CosmosEntityInformation<Volunteer, String> entityInformation =
+                new CosmosEntityInformation<>(Volunteer.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo(null);
+    }
+
+    @Test
+    public void testCustomPartitionKeyName() {
+        final CosmosEntityInformation<VolunteerWithCustomPartitionKey, String> entityInformation =
+                new CosmosEntityInformation<>(VolunteerWithCustomPartitionKey.class);
+
+        final String partitionKeyName = entityInformation.getPartitionKeyFieldName();
+        assertThat(partitionKeyName).isEqualTo("vol_name");
+    }
+
     @Document(collection = "testCollection")
+    static
     class Volunteer {
         String id;
         String name;
+    }
+
+    @Document
+    private static class VolunteerWithCustomPartitionKey {
+        private String id;
+        @PartitionKey("vol_name")
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    @Document
+    private static class VolunteerWithPartitionKey {
+        private String id;
+        @PartitionKey
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 }

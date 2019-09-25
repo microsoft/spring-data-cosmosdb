@@ -23,7 +23,6 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -85,7 +84,12 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     }
 
     public String getPartitionKeyFieldName() {
-        return partitionKeyField == null ? null : partitionKeyField.getName();
+        if (partitionKeyField == null) {
+            return null;
+        } else {
+            final PartitionKey partitionKey = partitionKeyField.getAnnotation(PartitionKey.class);
+            return partitionKey.value().equals("") ? partitionKeyField.getName() : partitionKey.value();
+        }
     }
 
     public String getPartitionKeyFieldValue(T entity) {

@@ -54,48 +54,53 @@ public class CosmosAnnotationIT {
     @Autowired
     private ApplicationContext applicationContext;
 
-    private CosmosClient dbClient;
-    private CosmosTemplate dbTemplate;
-    private CosmosContainerProperties collectionRole;
-    private CosmosContainerProperties collectionExample;
-    private CosmosMappingContext dbContext;
-    private MappingCosmosConverter mappingConverter;
-    private ObjectMapper objectMapper;
-    private CosmosEntityInformation<Role, String> roleInfo;
-    private CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
+    private static CosmosClient cosmosClient;
+    private static CosmosTemplate cosmosTemplate;
+    private static CosmosContainerProperties collectionRole;
+    private static CosmosContainerProperties collectionExample;
+    private static CosmosMappingContext dbContext;
+    private static MappingCosmosConverter mappingConverter;
+    private static ObjectMapper objectMapper;
+    private static CosmosEntityInformation<Role, String> roleInfo;
+    private static CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
+
+    private static boolean initialized;
 
     @Before
     public void setUp() throws ClassNotFoundException {
-        final CosmosDBConfig dbConfig = CosmosDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
-        final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
+        if (!initialized) {
+            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
+            final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
-        roleInfo = new CosmosEntityInformation<>(Role.class);
-        sampleInfo = new CosmosEntityInformation<>(TimeToLiveSample.class);
-        dbContext = new CosmosMappingContext();
-        objectMapper = new ObjectMapper();
+            roleInfo = new CosmosEntityInformation<>(Role.class);
+            sampleInfo = new CosmosEntityInformation<>(TimeToLiveSample.class);
+            dbContext = new CosmosMappingContext();
+            final ObjectMapper objectMapper = new ObjectMapper();
 
-        dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
+            dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-        mappingConverter = new MappingCosmosConverter(dbContext, objectMapper);
-        dbClient = new CosmosClientBuilder()
+            mappingConverter =
+                new MappingCosmosConverter(dbContext, objectMapper);
+            cosmosClient = new CosmosClientBuilder()
                            .endpoint(dbUri)
                            .key(dbKey)
                            .connectionPolicy(ConnectionPolicy.defaultPolicy())
                            .consistencyLevel(ConsistencyLevel.SESSION)
                            .build();
-                           
-        dbTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
 
-        collectionRole = dbTemplate.createCollectionIfNotExists(roleInfo);
-        collectionExample = dbTemplate.createCollectionIfNotExists(sampleInfo);
+            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
+            initialized = true;
+        }
+        collectionRole = cosmosTemplate.createCollectionIfNotExists(roleInfo);
+        collectionExample = cosmosTemplate.createCollectionIfNotExists(sampleInfo);
 
-        dbTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
+        cosmosTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }
 
     @After
     public void cleanUp() {
-        dbTemplate.deleteCollection(roleInfo.getCollectionName());
-        dbTemplate.deleteCollection(sampleInfo.getCollectionName());
+        cosmosTemplate.deleteCollection(roleInfo.getCollectionName());
+        cosmosTemplate.deleteCollection(sampleInfo.getCollectionName());
     }
 
     @Test
@@ -118,20 +123,20 @@ public class CosmosAnnotationIT {
     public void testDocumentAnnotationTimeToLive() {
         final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
         // TODO: getDefaultTimeToLive is not available so should we delete the below?
-//        final Integer timeToLive = this.collectionExample.getDefaultTimeToLive();
+//        final Integer timeToLive = collectionExample.getDefaultTimeToLive();
 //        Assert.notNull(timeToLive, "timeToLive should not be null");
 //        Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");
 
-        dbTemplate.insert(sampleInfo.getCollectionName(), sample, null);
+        cosmosTemplate.insert(sampleInfo.getCollectionName(), sample, null);
 
         // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
-        TimeToLiveSample found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        TimeToLiveSample found = cosmosTemplate.findById(sample.getId(), TimeToLiveSample.class);
         Assert.notNull(found, "Address should not be null");
 
         TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
         TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
 
-        found = dbTemplate.findById(sample.getId(), TimeToLiveSample.class);
+        found = cosmosTemplate.findById(sample.getId(), TimeToLiveSample.class);
         Assert.isNull(found, "Timeout Address should be null");
     }
 }

@@ -33,7 +33,7 @@ public class AbstractCosmosConfigurationIT {
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void containsDocumentDbFactory() {
+    public void containsCosmosDbFactory() {
         final AbstractApplicationContext context = new AnnotationConfigApplicationContext(
                 TestCosmosConfiguration.class);
 
