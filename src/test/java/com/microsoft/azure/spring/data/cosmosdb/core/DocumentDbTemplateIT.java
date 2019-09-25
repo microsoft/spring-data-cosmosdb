@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
@@ -48,17 +47,16 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = { "classpath:application.properties" })
 public class DocumentDbTemplateIT {
-    private static final Person TEST_PERSON = new Person(TestConstants.ID_1,
-        TestConstants.FIRST_NAME,
-        TestConstants.LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON = new Person(ID_1, FIRST_NAME, LAST_NAME, HOBBIES,
+        ADDRESSES);
 
-    private static final Person TEST_PERSON_2 = new Person(TestConstants.ID_2,
-        TestConstants.NEW_FIRST_NAME,
-        TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON_2 = new Person(ID_2,
+        NEW_FIRST_NAME,
+        NEW_LAST_NAME, HOBBIES, ADDRESSES);
 
-    private static final Person TEST_PERSON_3 = new Person(TestConstants.ID_3,
-        TestConstants.NEW_FIRST_NAME,
-        TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
+    private static final Person TEST_PERSON_3 = new Person(ID_3,
+        NEW_FIRST_NAME,
+        NEW_LAST_NAME, HOBBIES, ADDRESSES);
 
     @Value("${cosmosdb.uri}")
     private String documentDbUri;
@@ -121,7 +119,7 @@ public class DocumentDbTemplateIT {
         assertEquals(result, TEST_PERSON);
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-            TestConstants.NOT_EXIST_ID, Person.class);
+            NOT_EXIST_ID, Person.class);
         assertThat(nullResult).isNull();
     }
 
@@ -146,9 +144,9 @@ public class DocumentDbTemplateIT {
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(),
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
 
-        final String firstName = TestConstants.NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
+        final String firstName = NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
         final Person newPerson = new Person(TEST_PERSON.getId(), firstName,
-            TestConstants.NEW_FIRST_NAME, null, null);
+            NEW_FIRST_NAME, null, null);
 
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
@@ -161,7 +159,7 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testUpdate() {
-        final Person updated = new Person(TEST_PERSON.getId(), TestConstants.UPDATED_FIRST_NAME,
+        final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
             TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(),
             TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated,
