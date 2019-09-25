@@ -11,6 +11,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.ObjectMapperFactory;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.SpELBeanStudent;
 import com.microsoft.azure.spring.data.cosmosdb.domain.SpELPropertyStudent;
@@ -87,7 +88,7 @@ public class SpELDocumentDBAnnotationIT {
       final DocumentDbMappingContext dbContext = new DocumentDbMappingContext();
       dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-      final ObjectMapper objectMapper = new ObjectMapper();
+      final ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
       final MappingDocumentDbConverter mappingConverter = new MappingDocumentDbConverter(dbContext, objectMapper);
       dbTemplate = new DocumentDbTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
       
