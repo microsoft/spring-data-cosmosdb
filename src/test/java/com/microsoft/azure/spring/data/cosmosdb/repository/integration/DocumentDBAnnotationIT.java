@@ -65,12 +65,12 @@ public class DocumentDBAnnotationIT {
 
             roleInfo = new DocumentDbEntityInformation<>(Role.class);
             sampleInfo = new DocumentDbEntityInformation<>(TimeToLiveSample.class);
-            DocumentDbMappingContext dbContext = new DocumentDbMappingContext();
-            ObjectMapper objectMapper = new ObjectMapper();
+            final DocumentDbMappingContext dbContext = new DocumentDbMappingContext();
+            final ObjectMapper objectMapper = new ObjectMapper();
 
             dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            MappingDocumentDbConverter mappingConverter =
+            final MappingDocumentDbConverter mappingConverter =
                 new MappingDocumentDbConverter(dbContext, objectMapper);
             new DocumentClient(dbUri, dbKey, ConnectionPolicy.GetDefault(), ConsistencyLevel.Session);
             dbTemplate = new DocumentDbTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);

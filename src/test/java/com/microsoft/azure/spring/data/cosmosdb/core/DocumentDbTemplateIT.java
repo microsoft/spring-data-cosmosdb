@@ -81,13 +81,13 @@ public class DocumentDbTemplateIT {
                 documentDbKey, DB_NAME).build();
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
-            DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
+            final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
             personInfo = new DocumentDbEntityInformation<>(Person.class);
             collectionName = personInfo.getCollectionName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            MappingDocumentDbConverter dbConverter =
+            final MappingDocumentDbConverter dbConverter =
                 new MappingDocumentDbConverter(mappingContext, null);
             dbTemplate = new DocumentDbTemplate(cosmosDbFactory, dbConverter, DB_NAME);
             dbTemplate.createCollectionIfNotExists(personInfo);
