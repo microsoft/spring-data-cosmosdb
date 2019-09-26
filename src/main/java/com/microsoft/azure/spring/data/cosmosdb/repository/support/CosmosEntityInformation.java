@@ -15,11 +15,14 @@ import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import org.apache.commons.lang3.reflect.FieldUtils;
+
 import org.json.JSONObject;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
+
+import static com.microsoft.azure.spring.data.cosmosdb.common.ExpressionResolver.resolveExpression;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -135,7 +138,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         final Document annotation = domainClass.getAnnotation(Document.class);
 
         if (annotation != null && annotation.collection() != null && !annotation.collection().isEmpty()) {
-            customCollectionName = annotation.collection();
+            customCollectionName = resolveExpression(annotation.collection());
         }
 
         return customCollectionName;
@@ -224,7 +227,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         final List<ExcludedPath> pathArrayList = new ArrayList<>();
         final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
 
-        if (annotation == null || annotation.excludePaths() == null || annotation.excludePaths().length == 0) {
+        if (annotation == null || annotation.excludePaths().length == 0) {
             return null; // Align the default value of IndexingPolicy
         }
 
