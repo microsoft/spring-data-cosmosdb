@@ -6,16 +6,20 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import java.util.List;
+
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import org.springframework.data.annotation.Version;
 
 @Data
-@AllArgsConstructor
+@EqualsAndHashCode(exclude = "_etag")
+@NoArgsConstructor
 @DocumentIndexingPolicy(includePaths = TestConstants.ORDER_BY_STRING_PATH)
 public class Person {
     private String id;
@@ -25,4 +29,14 @@ public class Person {
     private String lastName;
     private List<String> hobbies;
     private List<Address> shippingAddresses;
+    @Version
+    private String _etag;
+    
+    public Person(String id, String firstName, String lastName, List<String> hobbies, List<Address> shippingAddresses) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.hobbies = hobbies;
+        this.shippingAddresses = shippingAddresses;
+    }
 }

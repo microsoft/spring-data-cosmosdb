@@ -11,6 +11,7 @@ import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +21,7 @@ public interface DocumentDbOperations {
 
     String getCollectionName(Class<?> entityClass);
 
-    DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation information);
+    DocumentCollection createCollectionIfNotExists(DocumentDbEntityInformation<?, ?> information);
 
     <T> List<T> findAll(Class<T> entityClass);
 
@@ -38,7 +39,7 @@ public interface DocumentDbOperations {
 
     <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
-    <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
+    void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String collectionName, Class<?> domainClass);
 
