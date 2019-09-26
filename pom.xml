@@ -236,7 +236,7 @@
                     <failOnError>false</failOnError>
                     <sourceFileExcludes>
                         <exclude>
-                            com/microsoft/azure/spring/data/cosmosdb/documentdb/core/mapping/BasicDocumentDbPersistentProperty.java
+                            com/microsoft/azure/spring/data/cosmosdb/documentdb/core/mapping/BasicCosmosPersistentProperty.java
                         </exclude>
                     </sourceFileExcludes>
                 </configuration>
