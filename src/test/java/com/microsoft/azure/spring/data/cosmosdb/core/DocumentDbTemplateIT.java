@@ -75,7 +75,7 @@ public class DocumentDbTemplateIT {
             NEW_FIRST_NAME,
             NEW_LAST_NAME, HOBBIES, ADDRESSES);
 
-    private static final String PRECONDITION_IS_NOT_MET = "pre-condition is not met";
+    private static final String PRECONDITION_IS_NOT_MET = "is not met";
 
     private static final String WRONG_ETAG = "WRONG_ETAG";
 
