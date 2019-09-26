@@ -33,17 +33,13 @@ public class SdkService {
     private static Gson gson = new Gson();
 
     private final CosmosSyncClient cosmosSyncClient;
-    private final CosmosClient cosmosAsyncClient;
     private final String dbName;
     private final String collectionName;
-    private final String collectionLink;
 
     public SdkService(CosmosSyncClient client, String dbName, String collectionName, CosmosClient asyncClient) {
         this.cosmosSyncClient = client;
-        this.cosmosAsyncClient = asyncClient;
         this.dbName = dbName;
         this.collectionName = collectionName;
-        this.collectionLink = "dbs/" + PERF_DATABASE_NAME + "/colls/" + SDK_COLLECTION_NAME;
     }
 
     public PerfPerson save(PerfPerson person) {

@@ -5,21 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance.utils;
 
-import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.IncludedPath;
 import com.azure.data.cosmos.IndexingPolicy;
-import com.azure.data.cosmos.PartitionKey;
 import com.azure.data.cosmos.PartitionKeyDefinition;
 import com.azure.data.cosmos.internal.RequestOptions;
 import com.azure.data.cosmos.sync.CosmosSyncClient;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ORDER_BY_STRING_PATH;
 
