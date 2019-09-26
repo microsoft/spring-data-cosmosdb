@@ -5,13 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.azure.data.cosmos.ConnectionPolicy;
-import com.azure.data.cosmos.ConsistencyLevel;
-import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.CosmosClientBuilder;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.IndexingPolicy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
@@ -54,13 +49,9 @@ public class CosmosAnnotationIT {
     @Autowired
     private ApplicationContext applicationContext;
 
-    private static CosmosClient cosmosClient;
     private static CosmosTemplate cosmosTemplate;
     private static CosmosContainerProperties collectionRole;
     private static CosmosContainerProperties collectionExample;
-    private static CosmosMappingContext dbContext;
-    private static MappingCosmosConverter mappingConverter;
-    private static ObjectMapper objectMapper;
     private static CosmosEntityInformation<Role, String> roleInfo;
     private static CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
 
@@ -74,19 +65,11 @@ public class CosmosAnnotationIT {
 
             roleInfo = new CosmosEntityInformation<>(Role.class);
             sampleInfo = new CosmosEntityInformation<>(TimeToLiveSample.class);
-            dbContext = new CosmosMappingContext();
-            final ObjectMapper objectMapper = new ObjectMapper();
+            final CosmosMappingContext dbContext = new CosmosMappingContext();
 
             dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            mappingConverter =
-                new MappingCosmosConverter(dbContext, objectMapper);
-            cosmosClient = new CosmosClientBuilder()
-                           .endpoint(dbUri)
-                           .key(dbKey)
-                           .connectionPolicy(ConnectionPolicy.defaultPolicy())
-                           .consistencyLevel(ConsistencyLevel.SESSION)
-                           .build();
+            final MappingCosmosConverter mappingConverter = new MappingCosmosConverter(dbContext, null);
 
             cosmosTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
             initialized = true;

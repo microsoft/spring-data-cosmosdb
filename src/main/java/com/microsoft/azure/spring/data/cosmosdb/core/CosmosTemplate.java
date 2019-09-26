@@ -121,6 +121,29 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         return findById(getCollectionName(entityClass), id, entityClass);
     }
 
+    @Override
+    public <T> T findById(Object id, Class<T> entityClass, PartitionKey partitionKey) {
+        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.notNull(partitionKey, "partitionKey should not be null");
+        assertValidId(id);
+
+        try {
+            final String collectionName = getCollectionName(entityClass);
+            return cosmosClient
+                .getDatabase(databaseName)
+                .getContainer(collectionName)
+                .getItem(id.toString(), partitionKey)
+                .read()
+                .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
+                    cosmosItemResponse.properties())))
+                .onErrorResume(Mono::error)
+                .block();
+
+        } catch (Exception e) {
+            throw new CosmosDBAccessException("findById exception", e);
+        }
+    }
+
     public <T> T findById(String collectionName, Object id, Class<T> domainClass) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(domainClass, "entityClass should not be null");
@@ -246,13 +269,12 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
 
         log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
 
-        com.azure.data.cosmos.PartitionKey pk = partitionKey;
-        if (pk == null) {
-            pk = com.azure.data.cosmos.PartitionKey.None;
+        if (partitionKey == null) {
+            partitionKey = com.azure.data.cosmos.PartitionKey.None;
         }
         try {
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-            options.partitionKey(pk);
+            options.partitionKey(partitionKey);
             cosmosClient.getDatabase(this.databaseName)
             .getContainer(collectionName)
             .getItem(id.toString(), partitionKey)
@@ -482,13 +504,11 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             partitionKey = new PartitionKey(cosmosItemProperties.get(partitionKeyNames.get(0)));
         }
 
-        com.azure.data.cosmos.PartitionKey pk = partitionKey;
-
-        if (pk == null) {
-            pk = com.azure.data.cosmos.PartitionKey.None;
+        if (partitionKey == null) {
+            partitionKey = com.azure.data.cosmos.PartitionKey.None;
         }
 
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions(pk);
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions(partitionKey);
         applyVersioning(domainClass, cosmosItemProperties, options);
 
         return cosmosClient

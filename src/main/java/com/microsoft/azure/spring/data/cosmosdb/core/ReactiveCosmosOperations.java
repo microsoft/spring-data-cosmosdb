@@ -29,6 +29,8 @@ public interface ReactiveCosmosOperations {
 
     <T> Mono<T> findById(String collectionName, Object id, Class<T> entityClass);
 
+    <T> Mono<T> findById(Object id, Class<T> entityClass, PartitionKey partitionKey);
+
     <T> Mono<T> insert(T objectToSave, PartitionKey partitionKey);
 
     <T> Mono<T> insert(String collectionName, Object objectToSave, PartitionKey partitionKey);

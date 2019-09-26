@@ -90,7 +90,6 @@ public class ReactiveCosmosTemplateIT {
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
-            final ObjectMapper objectMapper = new ObjectMapper();
             personInfo = new CosmosEntityInformation<>(Person.class);
             containerName = personInfo.getCollectionName();
 

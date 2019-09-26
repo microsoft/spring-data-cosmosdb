@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
-
-import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosOperations;
@@ -140,6 +138,17 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         }
 
         return Optional.ofNullable(operation.findById(information.getCollectionName(), id, information.getJavaType()));
+    }
+
+    @Override
+    public Optional<T> findById(ID id, PartitionKey partitionKey) {
+        Assert.notNull(id, "id must not be null");
+
+        if (id instanceof String && !StringUtils.hasText((String) id)) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(operation.findById(id, information.getJavaType(), partitionKey));
     }
 
     /**

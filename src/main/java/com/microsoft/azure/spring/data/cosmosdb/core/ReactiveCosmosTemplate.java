@@ -163,10 +163,33 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .flatMap(cosmosItemFeedResponse -> Mono.justOrEmpty(cosmosItemFeedResponse
                     .results()
                     .stream()
-                    .map(cosmosItem -> cosmosItem.toObject(entityClass))
+                    .map(cosmosItem -> toDomainObject(entityClass, cosmosItem))
                     .findFirst()))
                 .onErrorResume(Mono::error)
                 .next();
+    }
+
+    /**
+     * Find by id
+     *
+     * @param id            the id
+     * @param entityClass   the entity class
+     * @param partitionKey  partition Key
+     * @return Mono with the item or error
+     */
+    @Override
+    public <T> Mono<T> findById(Object id, Class<T> entityClass, PartitionKey partitionKey) {
+        Assert.notNull(entityClass, "entityClass should not be null");
+        assertValidId(id);
+
+        final String containerName = getContainerName(entityClass);
+        return cosmosClient.getDatabase(databaseName)
+                           .getContainer(containerName)
+                           .getItem(id.toString(), partitionKey)
+                           .read()
+                           .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
+                               cosmosItemResponse.properties())))
+                           .onErrorResume(Mono::error);
     }
 
     /**
@@ -196,7 +219,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(getContainerName(objectToSave.getClass()))
                 .createItem(objectToSave, new CosmosItemRequestOptions())
                 .onErrorResume(Mono::error)
-                .flatMap(cosmosItemResponse -> Mono.just(cosmosItemResponse.properties().toObject(domainClass)));
+                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
     }
 
     /**
@@ -221,7 +244,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(containerName)
                 .createItem(objectToSave, options)
                 .onErrorResume(Mono::error)
-                .flatMap(cosmosItemResponse -> Mono.just(cosmosItemResponse.properties().toObject(domainClass)));
+                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
     }
 
     /**
@@ -255,7 +278,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return cosmosClient.getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .upsertItem(object, options)
-                .flatMap(cosmosItemResponse -> Mono.just(cosmosItemResponse.properties().toObject(domainClass)))
+                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())))
                 .onErrorResume(Mono::error);
     }
 
@@ -346,7 +369,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final List<String> partitionKeyName = getPartitionKeyNames(entityClass);
 
         return results.flatMap(d -> deleteDocument(d, partitionKeyName, containerName))
-                      .flatMap(cosmosItemProperties -> Mono.just(cosmosItemProperties.toObject(entityClass)));
+                      .flatMap(cosmosItemProperties -> Mono.just(toDomainObject(entityClass, cosmosItemProperties)));
     }
 
     /**
@@ -360,7 +383,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public <T> Flux<T> find(DocumentQuery query, Class<T> entityClass, String containerName) {
         return findDocuments(query, entityClass, containerName)
-                .map(cosmosItemProperties -> cosmosItemProperties.toObject(entityClass));
+                .map(cosmosItemProperties -> toDomainObject(entityClass, cosmosItemProperties));
     }
 
     /**
@@ -520,6 +543,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getItem(cosmosItemProperties.id(), partitionKey)
                 .delete(options)
                 .map(cosmosItemResponse -> cosmosItemProperties);
+    }
+
+    private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {
+        return mappingCosmosConverter.read(domainClass, cosmosItemProperties);
     }
 
 }

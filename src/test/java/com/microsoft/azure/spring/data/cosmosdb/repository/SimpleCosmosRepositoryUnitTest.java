@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -40,7 +41,7 @@ public class SimpleCosmosRepositoryUnitTest {
 
     SimpleCosmosRepository<Person, String> repository;
     @Mock
-    CosmosOperations dbOperations;
+    CosmosOperations cosmosOperations;
     @Mock
     CosmosEntityInformation<Person, String> entityInformation;
 
@@ -51,9 +52,9 @@ public class SimpleCosmosRepositoryUnitTest {
     public void setUp() {
         when(entityInformation.getJavaType()).thenReturn(Person.class);
         when(entityInformation.getCollectionName()).thenReturn(Person.class.getSimpleName());
-        when(dbOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
+        when(cosmosOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
 
-        repository = new SimpleCosmosRepository<>(entityInformation, dbOperations);
+        repository = new SimpleCosmosRepository<>(entityInformation, cosmosOperations);
     }
 
     @Test
@@ -67,7 +68,7 @@ public class SimpleCosmosRepositoryUnitTest {
 
     @Test
     public void testFindOne() {
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(TEST_PERSON);
+        when(cosmosOperations.findById(anyString(), anyString(), any())).thenReturn(TEST_PERSON);
 
         repository.save(TEST_PERSON);
 
@@ -82,7 +83,7 @@ public class SimpleCosmosRepositoryUnitTest {
 
         repository.save(TEST_PERSON);
 
-        when(dbOperations.findById(anyString(), any(), any()))
+        when(cosmosOperations.findById(anyString(), anyString(), any()))
                 .thenThrow(new UnsupportedOperationException(PARTITION_VALUE_REQUIRED_MSG));
 
         final Person result = repository.findById(TEST_PERSON.getId()).get();
@@ -98,7 +99,7 @@ public class SimpleCosmosRepositoryUnitTest {
                         TestConstants.UPDATED_HOBBIES, updatedAddress);
         repository.save(updatedPerson);
 
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(updatedPerson);
+        when(cosmosOperations.findById(anyString(), anyString(), any())).thenReturn(updatedPerson);
 
         final Person result = repository.findById(TEST_PERSON.getId()).get();
         assertEquals(updatedPerson, result);
