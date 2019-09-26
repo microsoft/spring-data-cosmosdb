@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.1.8-SNAPSHOT</version>
+    <version>2.2.0.M1</version>
 
     <name>Spring Data for Azure Cosmos DB SQL API</name>
     <description>Spring Data for Azure Cosmos DB SQL API</description>
@@ -58,7 +58,6 @@
         <gson.version>2.8.4</gson.version>
         <project.reactor.test.version>3.2.5.RELEASE</project.reactor.test.version>
 
-        <azure.documentdb.version>1.16.2</azure.documentdb.version>
         <azure.cosmos.version>3.2.0</azure.cosmos.version>
         <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
@@ -123,13 +122,6 @@
             <artifactId>spring-expression</artifactId>
             <version>${spring.springframework.version}</version>
         </dependency>
-
-        <!--<dependency>-->
-            <!--<groupId>com.microsoft.azure</groupId>-->
-            <!--<artifactId>azure-documentdb</artifactId>-->
-            <!--<version>${azure.documentdb.version}</version>-->
-        <!--</dependency>-->
-
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-cosmos</artifactId>
@@ -420,32 +412,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- TODO -->
-            <!-- Plugin to create fat jar - Remove after testing -->
-            <!-- Maven Assembly Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4.1</version>
-                <configuration>
-                    <!-- get all project dependencies -->
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <!-- bind to the packaging phase -->
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 
