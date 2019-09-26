@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import reactor.core.publisher.Flux;
@@ -24,6 +25,8 @@ public interface ReactiveCosmosOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass);
 
     <T> Mono<T> findById(String collectionName, Object id, Class<T> entityClass);
+
+    <T> Mono<T> findById(Object id, Class<T> entityClass, PartitionKey partitionKey);
 
     <T> Mono<T> insert(T objectToSave, PartitionKey partitionKey);
 
@@ -50,4 +53,6 @@ public interface ReactiveCosmosOperations {
     Mono<Long> count(String collectionName);
 
     Mono<Long> count(DocumentQuery query, String containerName);
+
+    MappingDocumentDbConverter getConverter();
 }

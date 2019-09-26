@@ -5,9 +5,20 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository;
 
+import com.azure.data.cosmos.PartitionKey;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
+import reactor.core.publisher.Mono;
 
 @NoRepositoryBean
 public interface ReactiveCosmosRepository<T, K> extends ReactiveSortingRepository<T, K> {
+
+    /**
+     * Retrieves an entity by its id and partition key.
+     * @param id must not be {@literal null}.
+     * @param partitionKey partition key value of the entity.
+     * @return {@link Mono} emitting the entity with the given id or {@link Mono#empty()} if none found.
+     * @throws IllegalArgumentException in case the given {@code id} is {@literal null}.
+     */
+    Mono<T> findById(K id, PartitionKey partitionKey);
 }

@@ -84,6 +84,13 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
     }
 
     @Override
+    public Mono<T> findById(K id, PartitionKey partitionKey) {
+        Assert.notNull(id, "The given id must not be null!");
+        return cosmosOperations.findById(id,
+            entityInformation.getJavaType(), partitionKey);
+    }
+
+    @Override
     public Mono<Boolean> existsById(K id) {
         Assert.notNull(id, "The given id must not be null!");
 

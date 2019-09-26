@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -344,6 +346,16 @@ public class ProjectRepositoryIT {
 
         projects = repository.findByHasReleasedFalseOrCreator(CREATOR_3);
         assertProjectListEquals(projects, Arrays.asList(PROJECT_3, PROJECT_4));
+    }
+
+    @Test
+    public void findByIdWithPartitionKey() {
+        final Optional<Project> project = repository.findById(PROJECT_0.getId(),
+            new PartitionKey(entityInformation.getPartitionKeyFieldValue(PROJECT_0)));
+
+        Assert.assertTrue(project.isPresent());
+
+        Assert.assertEquals(project.get(), PROJECT_0);
     }
 
     @Test

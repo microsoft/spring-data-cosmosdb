@@ -67,7 +67,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
 
     @Test
     public void testFindOne() {
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(TEST_PERSON);
+        when(dbOperations.findById(anyString(), anyString(), any())).thenReturn(TEST_PERSON);
 
         repository.save(TEST_PERSON);
 
@@ -82,7 +82,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
 
         repository.save(TEST_PERSON);
 
-        when(dbOperations.findById(anyString(), any(), any()))
+        when(dbOperations.findById(anyString(), anyString(), any()))
                 .thenThrow(new UnsupportedOperationException(PARTITION_VALUE_REQUIRED_MSG));
 
         final Person result = repository.findById(TEST_PERSON.getId()).get();
@@ -98,7 +98,7 @@ public class SimpleDocumentDbRepositoryUnitTest {
                         TestConstants.UPDATED_HOBBIES, updatedAddress);
         repository.save(updatedPerson);
 
-        when(dbOperations.findById(anyString(), any(), any())).thenReturn(updatedPerson);
+        when(dbOperations.findById(anyString(), anyString(), any())).thenReturn(updatedPerson);
 
         final Person result = repository.findById(TEST_PERSON.getId()).get();
         assertEquals(updatedPerson, result);

@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
@@ -80,14 +79,13 @@ public class ReactiveCosmosTemplatePartitionIT {
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
             final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
-            final ObjectMapper objectMapper = new ObjectMapper();
 
             personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
             containerName = personInfo.getCollectionName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, objectMapper);
+            final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, null);
             cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
             cosmosTemplate.createCollectionIfNotExists(personInfo).block();
 
@@ -108,6 +106,17 @@ public class ReactiveCosmosTemplatePartitionIT {
         final Flux<PartitionPerson> partitionPersonFlux = cosmosTemplate.find(query, PartitionPerson.class,
                 PartitionPerson.class.getSimpleName());
         StepVerifier.create(partitionPersonFlux).consumeNextWith(actual -> {
+            Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
+            Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
+        }).verifyComplete();
+    }
+
+    @Test
+    public void testFindByIdWithPartition() {
+        final Mono<PartitionPerson> partitionPersonMono = cosmosTemplate.findById(TEST_PERSON.getId(),
+            PartitionPerson.class,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
+        StepVerifier.create(partitionPersonMono).consumeNextWith(actual -> {
             Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
             Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
         }).verifyComplete();

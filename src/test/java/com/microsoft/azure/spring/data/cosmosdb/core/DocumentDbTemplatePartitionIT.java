@@ -112,6 +112,15 @@ public class DocumentDbTemplatePartitionIT {
     }
 
     @Test
+    public void testFindByIdWithPartition() {
+        final PartitionPerson partitionPersonById = dbTemplate.findById(TEST_PERSON.getId(),
+            PartitionPerson.class,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
+
+        assertEquals(TEST_PERSON, partitionPersonById);
+    }
+
+    @Test
     public void testFindByNonExistIdWithPartition() {
         final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_ID, Arrays.asList(NOT_EXIST_ID));
         final DocumentQuery query = new DocumentQuery(criteria);
