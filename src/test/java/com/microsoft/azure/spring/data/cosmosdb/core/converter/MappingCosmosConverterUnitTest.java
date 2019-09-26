@@ -108,7 +108,7 @@ public class MappingCosmosConverterUnitTest {
     @Test
     public void convertDateValueToMilliSeconds() throws ParseException {
         final Date date = TIMEZONE_DATE.parse(TestConstants.DATE_TIMEZONE_STRING);
-        final long time = (Long) MappingCosmosConverter.toDocumentDBValue(date);
+        final long time = (Long) MappingCosmosConverter.toCosmosDbValue(date);
 
         assertThat(time).isEqualTo(TestConstants.MILLI_SECONDS);
     }

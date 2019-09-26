@@ -22,10 +22,10 @@ import org.springframework.util.StringUtils;
 @EnableCosmosRepositories
 public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
-    private String documentDbUri;
+    private String cosmosDbUri;
 
     @Value("${cosmosdb.key:}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     @Value("${cosmosdb.connection-string:}")
     private String connectionString;
@@ -48,8 +48,8 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
         final RequestOptions options = getRequestOptions();
 
-        if (StringUtils.hasText(this.documentDbUri) && StringUtils.hasText(this.documentDbKey)) {
-            return CosmosDBConfig.builder(documentDbUri, documentDbKey, dbName).requestOptions(options).build();
+        if (StringUtils.hasText(this.cosmosDbUri) && StringUtils.hasText(this.cosmosDbKey)) {
+            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, dbName).requestOptions(options).build();
         }
 
         return CosmosDBConfig.builder(connectionString, dbName).requestOptions(options).build();

@@ -27,12 +27,12 @@ public class CosmosRepositoryConfigurationExtension extends RepositoryConfigurat
 
     @Override
     public String getModuleName() {
-        return Constants.DOCUMENTDB_MODULE_NAME;
+        return Constants.COSMOSDB_MODULE_NAME;
     }
 
     @Override
     public String getModulePrefix() {
-        return Constants.DOCUMENTDB_MODULE_PREFIX;
+        return Constants.COSMOSDB_MODULE_PREFIX;
     }
 
     public String getRepositoryFactoryBeanClassName() {
@@ -54,12 +54,12 @@ public class CosmosRepositoryConfigurationExtension extends RepositoryConfigurat
     public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource config) {
         super.registerBeansForRoot(registry, config);
 
-        if (!registry.containsBeanDefinition(Constants.DOCUMENTDB_MAPPING_CONTEXT_NAME)) {
+        if (!registry.containsBeanDefinition(Constants.COSMOS_MAPPING_CONTEXT)) {
             final RootBeanDefinition definition = new RootBeanDefinition(CosmosMappingContext.class);
             definition.setRole(AbstractBeanDefinition.ROLE_INFRASTRUCTURE);
             definition.setSource(config.getSource());
 
-            registry.registerBeanDefinition(Constants.DOCUMENTDB_MAPPING_CONTEXT_NAME, definition);
+            registry.registerBeanDefinition(Constants.COSMOS_MAPPING_CONTEXT, definition);
         }
     }
 

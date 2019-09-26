@@ -89,17 +89,17 @@ public class AbstractCosmosConfigurationIT {
     static class TestCosmosConfiguration extends AbstractCosmosConfiguration {
 
         @Value("${cosmosdb.uri:}")
-        private String documentDbUri;
+        private String cosmosDbUri;
 
         @Value("${cosmosdb.key:}")
-        private String documentDbKey;
+        private String cosmosDbKey;
 
         @Mock
         private CosmosClient mockClient;
 
         @Bean
         public CosmosDBConfig getConfig() {
-            return CosmosDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME).build();
+            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, TestConstants.DB_NAME).build();
         }
 
         @Override
@@ -121,10 +121,10 @@ public class AbstractCosmosConfigurationIT {
     static class RequestOptionsConfiguration extends AbstractCosmosConfiguration {
 
         @Value("${cosmosdb.uri:}")
-        private String documentDbUri;
+        private String cosmosDbUri;
 
         @Value("${cosmosdb.key:}")
-        private String documentDbKey;
+        private String cosmosDbKey;
 
         private RequestOptions getRequestOptions() {
             final RequestOptions options = new RequestOptions();
@@ -138,7 +138,7 @@ public class AbstractCosmosConfigurationIT {
         @Bean
         public CosmosDBConfig getConfig() {
             final RequestOptions options = getRequestOptions();
-            return CosmosDBConfig.builder(documentDbUri, documentDbKey, TestConstants.DB_NAME)
+            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, TestConstants.DB_NAME)
                     .requestOptions(options)
                     .build();
         }

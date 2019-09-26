@@ -130,11 +130,11 @@ public class TestConstants {
     public static final String CRITERIA_FAKE_KEY = "CriteriaFakeKey";
     public static final String CRITERIA_OBJECT = "CriteriaTestObject";
 
-    public static final String DOCUMENTDB_FAKE_HOST = "https://fakeuri";
-    public static final String DOCUMENTDB_FAKE_KEY = "fakekey";
-    public static final String DOCUMENTDB_FAKE_CONNECTION_STRING =
+    public static final String COSMOSDB_FAKE_HOST = "https://fakeuri";
+    public static final String COSMOSDB_FAKE_KEY = "fakekey";
+    public static final String COSMOSDB_FAKE_CONNECTION_STRING =
             "AccountEndpoint=https://fakeuri/;AccountKey=fakekey;";
-    public static final String DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING = "invalid connection string";
+    public static final String COSMOSDB_INVALID_FAKE_CONNECTION_STRING = "invalid connection string";
 
     public static final String PROPERTY_ID = "id";
     public static final String PROPERTY_FIRST_NAME = "firstName";

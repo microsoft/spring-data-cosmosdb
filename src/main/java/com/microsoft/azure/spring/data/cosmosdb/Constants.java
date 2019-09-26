@@ -21,9 +21,9 @@ public class Constants {
 
     public static final String ID_PROPERTY_NAME = "id";
 
-    public static final String DOCUMENTDB_MODULE_NAME = "cosmosdb";
-    public static final String DOCUMENTDB_MODULE_PREFIX = "cosmosdb";
-    public static final String DOCUMENTDB_MAPPING_CONTEXT_NAME = "documentDbMappingContext";
+    public static final String COSMOSDB_MODULE_NAME = "cosmosdb";
+    public static final String COSMOSDB_MODULE_PREFIX = "cosmosdb";
+    public static final String COSMOS_MAPPING_CONTEXT = "cosmosMappingContext";
 
     public static final String USER_AGENT_SUFFIX = "spring-data/";
 

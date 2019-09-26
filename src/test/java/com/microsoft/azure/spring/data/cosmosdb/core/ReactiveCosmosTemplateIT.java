@@ -65,11 +65,11 @@ public class ReactiveCosmosTemplateIT {
         TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
     @Value("${cosmosdb.uri}")
-    private String documentDbUri;
+    private String cosmosDbUri;
     @Value("${cosmosdb.key}")
-    private String documentDbKey;
+    private String cosmosDbKey;
     @Value("${cosmosdb.secondaryKey}")
-    private String documentDbSecondaryKey;
+    private String cosmosDbSecondaryKey;
 
     private static ReactiveCosmosTemplate cosmosTemplate;
     private static String containerName;
@@ -84,8 +84,8 @@ public class ReactiveCosmosTemplateIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         if (!initialized) {
-            cosmosKeyCredential = new CosmosKeyCredential(documentDbKey);
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(documentDbUri,
+            cosmosKeyCredential = new CosmosKeyCredential(cosmosDbKey);
+            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri,
                 cosmosKeyCredential, DB_NAME).build();
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
@@ -109,7 +109,7 @@ public class ReactiveCosmosTemplateIT {
     @After
     public void cleanup() {
         //  Reset master key
-        cosmosKeyCredential.key(documentDbKey);
+        cosmosKeyCredential.key(cosmosDbKey);
         cosmosTemplate.deleteAll(Person.class.getSimpleName(),
             personInfo.getPartitionKeyFieldName()).block();
     }
@@ -140,7 +140,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testFindByIDBySecondaryKey() {
-        cosmosKeyCredential.key(documentDbSecondaryKey);
+        cosmosKeyCredential.key(cosmosDbSecondaryKey);
         final Mono<Person> findById = cosmosTemplate.findById(Person.class.getSimpleName(),
             TEST_PERSON.getId(),
             Person.class);
@@ -174,7 +174,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testInsertBySecondaryKey() {
-        cosmosKeyCredential.key(documentDbSecondaryKey);
+        cosmosKeyCredential.key(cosmosDbSecondaryKey);
         StepVerifier.create(cosmosTemplate.insert(TEST_PERSON_3,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3))))
                     .expectNext(TEST_PERSON_3).verifyComplete();
@@ -200,7 +200,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testUpsertBySecondaryKey() {
-        cosmosKeyCredential.key(documentDbSecondaryKey);
+        cosmosKeyCredential.key(cosmosDbSecondaryKey);
         final Person p = TEST_PERSON_2;
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
@@ -237,7 +237,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testDeleteByIdBySecondaryKey() {
-        cosmosKeyCredential.key(documentDbSecondaryKey);
+        cosmosKeyCredential.key(cosmosDbSecondaryKey);
         cosmosTemplate.insert(TEST_PERSON_4,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_4))).block();
         Flux<Person> flux = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
@@ -277,7 +277,7 @@ public class ReactiveCosmosTemplateIT {
 
     @Test
     public void testCountBySecondaryKey() {
-        cosmosKeyCredential.key(documentDbSecondaryKey);
+        cosmosKeyCredential.key(cosmosDbSecondaryKey);
         final Mono<Long> count = cosmosTemplate.count(containerName);
         StepVerifier.create(count).expectNext((long) 1).verifyComplete();
     }

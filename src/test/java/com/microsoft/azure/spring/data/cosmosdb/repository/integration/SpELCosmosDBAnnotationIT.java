@@ -38,7 +38,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
-public class SpELDocumentDBAnnotationIT {
+public class SpELCosmosDBAnnotationIT {
     private static final SpELPropertyStudent TEST_PROPERTY_STUDENT = 
             new SpELPropertyStudent(TestConstants.ID_1, TestConstants.FIRST_NAME,
             TestConstants.LAST_NAME);
@@ -53,12 +53,12 @@ public class SpELDocumentDBAnnotationIT {
     private ApplicationContext applicationContext;
 
     private CosmosTemplate cosmosTemplate;
-    private CosmosEntityInformation<SpELPropertyStudent, String> documentDbEntityInfo;
+    private CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
 
     @After
     public void cleanUp() {
-        if (cosmosTemplate != null && documentDbEntityInfo != null) {
-            cosmosTemplate.deleteCollection(documentDbEntityInfo.getCollectionName());
+        if (cosmosTemplate != null && cosmosEntityInformation != null) {
+            cosmosTemplate.deleteCollection(cosmosEntityInformation.getCollectionName());
         }
     }
     
@@ -83,7 +83,7 @@ public class SpELDocumentDBAnnotationIT {
       final CosmosDBConfig dbConfig = CosmosDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
       final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-      documentDbEntityInfo = new CosmosEntityInformation<>(SpELPropertyStudent.class);
+      cosmosEntityInformation = new CosmosEntityInformation<>(SpELPropertyStudent.class);
       final CosmosMappingContext dbContext = new CosmosMappingContext();
       dbContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
@@ -91,10 +91,10 @@ public class SpELDocumentDBAnnotationIT {
       final MappingCosmosConverter mappingConverter = new MappingCosmosConverter(dbContext, objectMapper);
       cosmosTemplate = new CosmosTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
       
-      cosmosTemplate.createCollectionIfNotExists(documentDbEntityInfo);
+      cosmosTemplate.createCollectionIfNotExists(cosmosEntityInformation);
 
       final SpELPropertyStudent insertedRecord = 
-              cosmosTemplate.insert(documentDbEntityInfo.getCollectionName(), TEST_PROPERTY_STUDENT, null);
+              cosmosTemplate.insert(cosmosEntityInformation.getCollectionName(), TEST_PROPERTY_STUDENT, null);
       assertNotNull(insertedRecord);
       
       final SpELPropertyStudent readRecord = 

@@ -189,12 +189,12 @@ public class MappingCosmosConverter
      * @param fromPropertyValue
      * @return
      */
-    public static Object toDocumentDBValue(Object fromPropertyValue) {
+    public static Object toCosmosDbValue(Object fromPropertyValue) {
         if (fromPropertyValue == null) {
             return null;
         }
 
-        // com.microsoft.azure.documentdb.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
+        // com.microsoft.azure.data.cosmos.JsonSerializable#set(String, T) cannot set values for Date and Enum correctly
 
         if (fromPropertyValue instanceof Date) {
             fromPropertyValue = ((Date) fromPropertyValue).getTime();

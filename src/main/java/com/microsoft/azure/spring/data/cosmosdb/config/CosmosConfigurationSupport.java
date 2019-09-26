@@ -31,7 +31,7 @@ public abstract class CosmosConfigurationSupport {
     }
 
     @Bean
-    public CosmosMappingContext documentDbMappingContext() throws ClassNotFoundException {
+    public CosmosMappingContext cosmosMappingContext() throws ClassNotFoundException {
         final CosmosMappingContext mappingContext = new CosmosMappingContext();
         mappingContext.setInitialEntitySet(getInitialEntitySet());
 

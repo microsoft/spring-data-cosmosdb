@@ -19,13 +19,13 @@ import org.springframework.context.annotation.PropertySource;
 @EnableCosmosRepositories
 public class PerfConfiguration extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
-    private String documentDbUri;
+    private String cosmosDbUri;
 
     @Value("${cosmosdb.key:}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     @Bean
     public CosmosDBConfig getConfig() {
-        return CosmosDBConfig.builder(documentDbUri, documentDbKey, Constants.PERF_DATABASE_NAME).build();
+        return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, Constants.PERF_DATABASE_NAME).build();
     }
 }

@@ -59,9 +59,9 @@ public class CosmosTemplateIT {
         NEW_LAST_NAME, HOBBIES, ADDRESSES);
 
     @Value("${cosmosdb.uri}")
-    private String documentDbUri;
+    private String cosmosDbUri;
     @Value("${cosmosdb.key}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosEntityInformation<Person, String> personInfo;
@@ -74,8 +74,8 @@ public class CosmosTemplateIT {
     @Before
     public void setup() throws ClassNotFoundException {
         if (!initialized) {
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(documentDbUri,
-                documentDbKey, DB_NAME).build();
+            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri,
+                cosmosDbKey, DB_NAME).build();
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();

@@ -27,7 +27,7 @@ public class CosmosRepositoryFactoryUnitTest {
     ApplicationContext applicationContext;
 
     @Test
-    public void useMappingDocumentDBEntityInfoIfMappingContextSet() {
+    public void useMappingCosmosDBEntityInfoIfMappingContextSet() {
         final CosmosRepositoryFactory factory = new CosmosRepositoryFactory(dbTemplate, applicationContext);
         final EntityInformation<Person, String> entityInfo = factory.getEntityInformation(Person.class);
         assertTrue(entityInfo instanceof CosmosEntityInformation);

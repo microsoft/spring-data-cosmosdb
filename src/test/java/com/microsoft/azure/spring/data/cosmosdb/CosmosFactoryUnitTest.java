@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
-import com.azure.data.cosmos.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import org.junit.Ignore;
@@ -24,14 +23,14 @@ public class CosmosFactoryUnitTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testEmptyKey() {
-        final CosmosDBConfig dbConfig = CosmosDBConfig.builder(DOCUMENTDB_FAKE_HOST, "", DB_NAME).build();
+        final CosmosDBConfig dbConfig = CosmosDBConfig.builder(COSMOSDB_FAKE_HOST, "", DB_NAME).build();
         new CosmosDbFactory(dbConfig);
     }
 
     @Test
     public void testInvalidEndpoint() {
         final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(DOCUMENTDB_FAKE_HOST, DOCUMENTDB_FAKE_KEY, DB_NAME).build();
+                CosmosDBConfig.builder(COSMOSDB_FAKE_HOST, COSMOSDB_FAKE_KEY, DB_NAME).build();
         final CosmosDbFactory factory = new CosmosDbFactory(dbConfig);
 
         assertThat(factory).isNotNull();
@@ -40,7 +39,7 @@ public class CosmosFactoryUnitTest {
     @Test
     public void testConnectWithConnectionString() {
         final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(DOCUMENTDB_FAKE_CONNECTION_STRING, DB_NAME).build();
+                CosmosDBConfig.builder(COSMOSDB_FAKE_CONNECTION_STRING, DB_NAME).build();
         final CosmosDbFactory factory = new CosmosDbFactory(dbConfig);
 
         assertThat(factory).isNotNull();
@@ -49,13 +48,13 @@ public class CosmosFactoryUnitTest {
     @Test(expected = CosmosDBAccessException.class)
     public void testInvalidConnectionString() {
         final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
+                CosmosDBConfig.builder(COSMOSDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
     }
 
     @Test
     public void testConnectionPolicyUserAgentKept() {
         final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(DOCUMENTDB_FAKE_HOST, DOCUMENTDB_FAKE_KEY, DB_NAME).build();
+                CosmosDBConfig.builder(COSMOSDB_FAKE_HOST, COSMOSDB_FAKE_KEY, DB_NAME).build();
         final CosmosDbFactory factory = new CosmosDbFactory(dbConfig);
         // TODO: getConnectionPolicy is not public on cosmosclient
         final String uaSuffix = factory.getCosmosClient().builder().connectionPolicy().userAgentSuffix();

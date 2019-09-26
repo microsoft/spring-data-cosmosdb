@@ -60,9 +60,9 @@ public class ReactiveCosmosTemplatePartitionIT {
             TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
 
     @Value("${cosmosdb.uri}")
-    private String documentDbUri;
+    private String cosmosDbUri;
     @Value("${cosmosdb.key}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     private static ReactiveCosmosTemplate cosmosTemplate;
     private static String containerName;
@@ -76,7 +76,7 @@ public class ReactiveCosmosTemplatePartitionIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         if (!initialized) {
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(documentDbUri, documentDbKey,
+            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey,
                 DB_NAME).build();
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 

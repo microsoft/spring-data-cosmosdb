@@ -43,18 +43,18 @@ public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSup
 
     @Bean
     public CosmosTemplate cosmosTemplate(CosmosDBConfig config) throws ClassNotFoundException {
-        return new CosmosTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
+        return new CosmosTemplate(this.cosmosDbFactory(config), this.mappingCosmosConverter(),
                 config.getDatabase());
     }
 
     @Bean
     public ReactiveCosmosTemplate reactiveCosmosTemplate(CosmosDBConfig config) throws ClassNotFoundException {
-        return new ReactiveCosmosTemplate(this.cosmosDbFactory(config), this.mappingDocumentDbConverter(),
+        return new ReactiveCosmosTemplate(this.cosmosDbFactory(config), this.mappingCosmosConverter(),
             config.getDatabase());
     }
 
     @Bean
-    public MappingCosmosConverter mappingDocumentDbConverter() throws ClassNotFoundException {
-        return new MappingCosmosConverter(this.documentDbMappingContext(), objectMapper);
+    public MappingCosmosConverter mappingCosmosConverter() throws ClassNotFoundException {
+        return new MappingCosmosConverter(this.cosmosMappingContext(), objectMapper);
     }
 }
