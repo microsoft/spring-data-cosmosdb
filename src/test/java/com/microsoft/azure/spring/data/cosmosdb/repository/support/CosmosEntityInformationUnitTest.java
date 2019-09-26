@@ -5,14 +5,18 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
+import java.util.List;
+
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
+import lombok.Data;
 import org.junit.Test;
 
-import java.util.List;
+import org.springframework.data.annotation.Version;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,8 +58,8 @@ public class CosmosEntityInformationUnitTest {
 
     @Test
     public void testCustomCollectionName() {
-        final CosmosEntityInformation<Volunteer, String> entityInformation =
-                new CosmosEntityInformation<Volunteer, String>(Volunteer.class);
+        final CosmosEntityInformation<VersionedVolunteer, String> entityInformation =
+                new CosmosEntityInformation<VersionedVolunteer, String>(VersionedVolunteer.class);
 
         final String collectionName = entityInformation.getCollectionName();
         assertThat(collectionName).isEqualTo("testCollection");
@@ -88,9 +92,44 @@ public class CosmosEntityInformationUnitTest {
         assertThat(partitionKeyName).isEqualTo("vol_name");
     }
 
+    @Test
+    public void testVersionedEntity() {
+        final CosmosEntityInformation<VersionedVolunteer, String> entityInformation =
+                new CosmosEntityInformation<VersionedVolunteer, String>(VersionedVolunteer.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isTrue();
+    }
+
+    @Test
+    public void testEntityShouldNotBeVersionedWithWrongType() {
+        final CosmosEntityInformation<WrongVersionType, String> entityInformation =
+                new CosmosEntityInformation<WrongVersionType, String>(WrongVersionType.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
+
+    @Test
+    public void testEntityShouldNotBeVersionedWithoutAnnotationOnEtag() {
+        final CosmosEntityInformation<VersionOnWrongField, String> entityInformation =
+                new CosmosEntityInformation<VersionOnWrongField, String>(VersionOnWrongField.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
+
+    @Test
+    public void testNonVersionedEntity() {
+        final CosmosEntityInformation<Student, String> entityInformation =
+                new CosmosEntityInformation<Student, String>(Student.class);
+
+        final boolean isVersioned = entityInformation.isVersioned();
+        assertThat(isVersioned).isFalse();
+    }
+
     @Document(collection = "testCollection")
-    static
-    class Volunteer {
+    private static class Volunteer {
         String id;
         String name;
     }
@@ -139,5 +178,31 @@ public class CosmosEntityInformationUnitTest {
         public void setName(String name) {
             this.name = name;
         }
+    }
+
+    @Data
+    @Document(collection = "testCollection")
+    private static class VersionedVolunteer {
+        private String id;
+        private String name;
+        @Version
+        private String _etag;
+    }
+
+    @Data
+    @Document
+    private static class WrongVersionType {
+        private String id;
+        private String name;
+        private long _etag;
+    }
+
+    @Data
+    @Document
+    private static class VersionOnWrongField {
+        private String id;
+        @Version
+        private String name;
+        private String _etag;
     }
 }

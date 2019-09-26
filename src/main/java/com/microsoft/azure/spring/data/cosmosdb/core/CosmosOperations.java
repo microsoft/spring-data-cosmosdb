@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
@@ -26,7 +25,7 @@ public interface CosmosOperations {
 
     String getCollectionName(Class<?> entityClass);
 
-    CosmosContainerProperties createCollectionIfNotExists(CosmosEntityInformation information);
+    CosmosContainerProperties createCollectionIfNotExists(CosmosEntityInformation<?, ?> information);
 
     <T> List<T> findAll(Class<T> entityClass);
 
@@ -44,7 +43,7 @@ public interface CosmosOperations {
 
     <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
-    <T> void deleteById(String collectionName, Object id, PartitionKey partitionKey);
+    void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String collectionName, Class<?> domainClass);
 
