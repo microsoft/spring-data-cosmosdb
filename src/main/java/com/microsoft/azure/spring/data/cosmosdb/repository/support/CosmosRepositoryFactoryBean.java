@@ -34,7 +34,7 @@ public class CosmosRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exte
     }
 
     @Autowired
-    public void setDocumentDbOperations(CosmosOperations operations) {
+    public void setCosmosOperations(CosmosOperations operations) {
         this.operations = operations;
     }
 
