@@ -5,21 +5,31 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.azure.data.cosmos.CosmosClient;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSMOSDB_FAKE_CONNECTION_STRING;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSMOSDB_FAKE_HOST;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSMOSDB_FAKE_KEY;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSMOSDB_INVALID_FAKE_CONNECTION_STRING;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
-// TODO: CosmosFactory could be safe deleted so as this test. 
-// TODO: Should add test for ReactiveCosmosFactory 
-@Ignore
+@PropertySource(value = {"classpath:application.properties"})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class CosmosFactoryUnitTest {
+public class CosmosDbFactoryTestIT {
+
+    @Value("${cosmosdb.uri:}")
+    private String cosmosDbUri;
+
+    @Value("${cosmosdb.key:}")
+    private String cosmosDbKey;
 
     @Test(expected = IllegalArgumentException.class)
     public void testEmptyKey() {
@@ -54,10 +64,11 @@ public class CosmosFactoryUnitTest {
     @Test
     public void testConnectionPolicyUserAgentKept() {
         final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(COSMOSDB_FAKE_HOST, COSMOSDB_FAKE_KEY, DB_NAME).build();
+                CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, DB_NAME).build();
         final CosmosDbFactory factory = new CosmosDbFactory(dbConfig);
-        // TODO: getConnectionPolicy is not public on cosmosclient
-        final String uaSuffix = factory.getCosmosClient().builder().connectionPolicy().userAgentSuffix();
+        factory.getCosmosClient();
+
+        final String uaSuffix = factory.getConfig().getConnectionPolicy().userAgentSuffix();
         assertThat(uaSuffix).contains("spring-data");
     }
 }

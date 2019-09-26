@@ -61,6 +61,8 @@ public class CosmosDbFactory {
                            .endpoint(config.getUri())
                            .key(config.getKey())
                            .cosmosKeyCredential(config.getCosmosKeyCredential())
+                           .connectionPolicy(policy)
+                           .consistencyLevel(config.getConsistencyLevel())
                            .build();
     }
 
@@ -73,6 +75,8 @@ public class CosmosDbFactory {
                        .endpoint(config.getUri())
                        .key(config.getKey())
                        .cosmosKeyCredential(config.getCosmosKeyCredential())
+                       .connectionPolicy(policy)
+                       .consistencyLevel(config.getConsistencyLevel())
                        .buildSyncClient();
     }
 
