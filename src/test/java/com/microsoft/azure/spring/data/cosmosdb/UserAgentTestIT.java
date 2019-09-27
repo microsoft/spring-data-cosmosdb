@@ -5,14 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
-import com.azure.data.cosmos.CosmosClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -29,9 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserAgentTestIT {
 
     private static final String TEST_VERSION = "1.0.0-FOR-TEST";
-
-    @Mock
-    private CosmosClient cosmosClient;
 
     @Test
     public void testUserAgentSuffixAppended() {

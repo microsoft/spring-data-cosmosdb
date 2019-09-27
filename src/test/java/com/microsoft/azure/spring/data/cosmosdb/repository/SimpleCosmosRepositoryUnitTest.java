@@ -25,9 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,7 +38,7 @@ public class SimpleCosmosRepositoryUnitTest {
     private static final String PARTITION_VALUE_REQUIRED_MSG =
             "PartitionKey value must be supplied for this operation.";
 
-    SimpleCosmosRepository<Person, String> repository;
+    private SimpleCosmosRepository<Person, String> repository;
     @Mock
     CosmosOperations cosmosOperations;
     @Mock
