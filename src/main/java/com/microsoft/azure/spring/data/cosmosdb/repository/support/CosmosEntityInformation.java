@@ -241,8 +241,6 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
 
         final String[] rawPaths = annotation.excludePaths();
         for (final String path : rawPaths) {
-            // TODO: This change is added because ExcludedPath(string) is not part of the sdk now. Can be refactored
-            // TODO: Can add some error checking for to handle JSON exception
             final JSONObject obj = new JSONObject(path);
             pathArrayList.add(new ExcludedPath().path(obj.get("path").toString()));
         }

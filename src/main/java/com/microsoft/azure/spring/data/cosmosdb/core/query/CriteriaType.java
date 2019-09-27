@@ -14,8 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-//  TODO: Spring-data-mongodb, spring-data-jpa has some examples on how to make these predicates fluent.
-
 @AllArgsConstructor
 public enum CriteriaType {
 
@@ -44,9 +42,6 @@ public enum CriteriaType {
     @Getter
     private String sqlKeyword;
 
-    // Map Part.Type to CriteriaType
-    //  TODO: Part type comes from spring data commons repository, and this is being used in data.cosmosdb.queery,
-    //  Try to keep things into the right package structure.
     private static final Map<Part.Type, CriteriaType> PART_TREE_TYPE_TO_CRITERIA;
 
     static {

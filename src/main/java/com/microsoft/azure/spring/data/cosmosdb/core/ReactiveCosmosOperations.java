@@ -14,7 +14,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityI
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-//  TODO: Add comments
 public interface ReactiveCosmosOperations {
 
     String getContainerName(Class<?> domainClass);

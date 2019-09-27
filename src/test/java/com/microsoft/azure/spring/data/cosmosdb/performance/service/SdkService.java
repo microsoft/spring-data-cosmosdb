@@ -25,10 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.Constants.PERF_DATABASE_NAME;
-import static com.microsoft.azure.spring.data.cosmosdb.performance.utils.Constants.SDK_COLLECTION_NAME;
-
-// TODO: Majority of calls below can be converted to use sync SDK once we upgrade to 3.2
 public class SdkService {
     private static Gson gson = new Gson();
 

@@ -71,7 +71,8 @@ public class CosmosRepositoryConfigurationExtension extends RepositoryConfigurat
     //  Overriding this to provide reactive repository support.
     @Override
     protected boolean useRepositoryConfiguration(RepositoryMetadata metadata) {
-        //  TODO: Add some comment.
+        //  CosmosRepository is the sync repository, and hence returning !isReactiveRepository.
+        //  ReactiveCosmosRepository is reactive repository.
         return !metadata.isReactiveRepository();
     }
 }

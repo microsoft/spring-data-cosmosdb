@@ -99,28 +99,5 @@ public class CosmosAnnotationIT {
         TestUtils.testIndexingPolicyPathsEquals(policy.includedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.excludedPaths(), TestConstants.EXCLUDEDPATHS);
     }
-
-    @Test
-    @SneakyThrows
-    @Ignore //  TODO(kuthapar): time to live is not supported by v3 SDK.
-    public void testDocumentAnnotationTimeToLive() {
-        final TimeToLiveSample sample = new TimeToLiveSample(TestConstants.ID_1);
-        // TODO: getDefaultTimeToLive is not available so should we delete the below?
-//        final Integer timeToLive = collectionExample.getDefaultTimeToLive();
-//        Assert.notNull(timeToLive, "timeToLive should not be null");
-//        Assert.isTrue(timeToLive == TestConstants.TIME_TO_LIVE, "should be the same timeToLive");
-
-        cosmosTemplate.insert(sampleInfo.getCollectionName(), sample, null);
-
-        // Take care of following test, breakpoint may exhaust the time of TIME_TO_LIVE seconds.
-        TimeToLiveSample found = cosmosTemplate.findById(sample.getId(), TimeToLiveSample.class);
-        Assert.notNull(found, "Address should not be null");
-
-        TimeUnit.SECONDS.sleep(TestConstants.TIME_TO_LIVE);
-        TimeUnit.SECONDS.sleep(1); // make sure the time exhaust, the timing may not very precise.
-
-        found = cosmosTemplate.findById(sample.getId(), TimeToLiveSample.class);
-        Assert.isNull(found, "Timeout Address should be null");
-    }
 }
 

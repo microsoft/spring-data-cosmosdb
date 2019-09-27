@@ -11,8 +11,6 @@ import org.springframework.lang.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-//  TODO: Make it more fluent,
-
 @Getter
 public class Criteria {
 

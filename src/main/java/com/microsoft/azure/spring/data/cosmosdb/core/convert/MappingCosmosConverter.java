@@ -70,7 +70,6 @@ public class MappingCosmosConverter
         try {
             final CosmosPersistentProperty idProperty = entity.getIdProperty();
             final Object idValue = cosmosItemProperties.id();
-            // TODO: Added json.org dependency for this. We should plan to refactor this
             final JSONObject jsonObject = new JSONObject(cosmosItemProperties.toJson());
 
             if (idProperty != null) {

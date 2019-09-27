@@ -20,9 +20,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
-//  TODO: Database Factory interface, which exposes these methods to get the databases
-//  Configure the template using database factory.
-//  Ask the database factory to give you the instance.
 public class CosmosDbFactory {
 
     @Getter
@@ -48,10 +45,6 @@ public class CosmosDbFactory {
         this.config = config;
     }
 
-    //  TODO: Stick with the driver, do not need to expose auxillary APIs.
-    //  spring-data-mongo, cassandra configuration.
-    //  Only for spring-boot -> Builder customizer pattern, which can customize the cosmos client.
-    //  spring-boot transactionManager customizer, mongo client customizer.
     public CosmosClient getCosmosClient() {
         final ConnectionPolicy policy = config.getConnectionPolicy();
         final String userAgent = getUserAgentSuffix() + ";" + policy.userAgentSuffix();

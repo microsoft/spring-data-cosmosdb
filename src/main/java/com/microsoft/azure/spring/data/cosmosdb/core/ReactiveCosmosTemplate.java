@@ -37,10 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
-//  TODO: To expose client side request diagnostics,
-//  Need to do this by adding a listener at cosmos client level, at the driver level.
-
 @Slf4j
 public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
@@ -298,26 +294,13 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         options.partitionKey(partitionKey);
-        //  TODO: DatabaseName will be implemented inside DatabaseFactory.
-        //  get rid of getDatabase() call from template, and addd it to DatabaseFactory.
-        //  Customers can spin up multiple database factories, and multiple templates based on that.
-        //  spring-data-mongodb -> MongoDbFactory, SpringJPAFactory (routing datastores which gives routing facilities,
-        //  spring-data-cassandra module)
-        final Mono<Void> voidDelete = cosmosClient.getDatabase(this.databaseName)
-                                      .getContainer(containerName)
-                                      .getItem(id.toString(), partitionKey)
-                                      .delete(options)
-                                      .onErrorResume(Mono::error)
-                                      .then();
-        //  TODO: spring-data-mongodb, call-back functions - supply an in-memory function, which users can override
-        // that function.
-        //  TODO: There is a elastic search functionality, spring-data-elastic-search.
-        //  search-score injection into entities
-        return voidDelete;
+        return cosmosClient.getDatabase(this.databaseName)
+                           .getContainer(containerName)
+                           .getItem(id.toString(), partitionKey)
+                           .delete(options)
+                           .onErrorResume(Mono::error)
+                           .then();
     }
-
-
-    //tDODO:
 
     /**
      * Delete all items in a container
@@ -337,7 +320,6 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final FeedOptions options = new FeedOptions();
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
-        //  TODO: Can add some error handling case for itemproperties.get(partitionkeyName)
         return cosmosClient.getDatabase(this.databaseName)
                     .getContainer(containerName)
                     .queryItems(sqlQuerySpec, options)
@@ -515,7 +497,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     private List<String> getPartitionKeyNames(Class<?> domainClass) {
-        final CosmosEntityInformation entityInfo = new CosmosEntityInformation(domainClass);
+        final CosmosEntityInformation<?, ?> entityInfo = new CosmosEntityInformation<>(domainClass);
 
         if (entityInfo.getPartitionKeyFieldName() == null) {
             return new ArrayList<>();
