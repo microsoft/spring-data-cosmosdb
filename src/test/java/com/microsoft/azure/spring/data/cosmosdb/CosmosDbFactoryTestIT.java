@@ -56,8 +56,7 @@ public class CosmosDbFactoryTestIT {
 
     @Test(expected = CosmosDBAccessException.class)
     public void testInvalidConnectionString() {
-        final CosmosDBConfig dbConfig =
-                CosmosDBConfig.builder(COSMOSDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
+        CosmosDBConfig.builder(COSMOSDB_INVALID_FAKE_CONNECTION_STRING, DB_NAME).build();
     }
 
     @Test

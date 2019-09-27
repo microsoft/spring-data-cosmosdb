@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 
 public class ReactiveCosmosQueryMethod extends QueryMethod {
 
-    private CosmosEntityMetadata<?> metadata;
+    private ReactiveCosmosEntityMetadata<?> metadata;
 
     public ReactiveCosmosQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
         super(method, metadata, factory);
@@ -28,7 +28,7 @@ public class ReactiveCosmosQueryMethod extends QueryMethod {
         final CosmosEntityInformation entityInformation =
                 new CosmosEntityInformation<Object, String>(domainClass);
 
-        this.metadata = new SimpleCosmosEntityMetadata<>(domainClass, entityInformation);
+        this.metadata = new SimpleReactiveCosmosEntityMetadata<Object>(domainClass, entityInformation);
         return this.metadata;
     }
 }

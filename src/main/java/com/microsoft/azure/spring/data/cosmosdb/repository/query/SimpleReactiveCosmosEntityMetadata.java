@@ -8,12 +8,12 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.springframework.util.Assert;
 
-public class SimpleReactiveCosmosEntityMetadataUnused<T> implements CosmosEntityMetadata<T> {
+public class SimpleReactiveCosmosEntityMetadata<T> implements ReactiveCosmosEntityMetadata<T> {
 
     private final Class<T> type;
     private final CosmosEntityInformation<T, String> entityInformation;
 
-    public SimpleReactiveCosmosEntityMetadataUnused(Class<T> type, CosmosEntityInformation<T,
+    public SimpleReactiveCosmosEntityMetadata(Class<T> type, CosmosEntityInformation<T,
                                                                             String> entityInformation) {
         Assert.notNull(type, "type must not be null!");
         Assert.notNull(entityInformation, "entityInformation must not be null!");

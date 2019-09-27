@@ -17,7 +17,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContex
 import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
-import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -31,8 +30,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
-
-import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application.properties"})

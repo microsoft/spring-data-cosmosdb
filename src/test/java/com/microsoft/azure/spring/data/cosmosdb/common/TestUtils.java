@@ -5,11 +5,9 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.fasterxml.jackson.databind.JsonSerializable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class TestUtils {
     }
 
     public static <T> void testIndexingPolicyPathsEquals(List<T> policyPaths,
-                                                                                  String [] pathsExpected) {
+                                                         String [] pathsExpected) {
         if (policyPaths == null) {
             throw new IllegalStateException("policyPaths should not be null");
         } else if (pathsExpected == null) {

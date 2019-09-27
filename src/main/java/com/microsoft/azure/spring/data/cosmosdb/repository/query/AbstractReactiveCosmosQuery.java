@@ -29,7 +29,7 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
         final ResultProcessor processor =
             method.getResultProcessor().withDynamicProjection(accessor);
         final String collection =
-            ((SimpleCosmosEntityMetadata) method.getEntityInformation()).getCollectionName();
+            ((ReactiveCosmosEntityMetadata) method.getEntityInformation()).getCollectionName();
 
         final ReactiveCosmosQueryExecution execution = getExecution(accessor);
         return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
@@ -42,8 +42,6 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
         } else if (method.isPageQuery()) {
             throw new IllegalArgumentException("Paged Query is not supported by reactive cosmos " +
                 "db");
-            //            return new ReactiveCosmosQueryExecution.PagedExecution(operations,
-            //                accessor.getPageable());
         } else if (isExistsQuery()) {
             return new ReactiveCosmosQueryExecution.ExistsExecution(operations);
         } else {
