@@ -31,6 +31,8 @@ public interface DocumentDbOperations {
 
     <T> T findById(String collectionName, Object id, Class<T> entityClass);
 
+    <T> T findById(Object id, Class<T> entityClass, PartitionKey partitionKey);
+
     <T> T insert(T objectToSave, PartitionKey partitionKey);
 
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);

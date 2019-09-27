@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
@@ -23,6 +24,7 @@ import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,6 +77,14 @@ public class AddressRepositoryIT {
         final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void testFindByIdWithPartitionKey() {
+        final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(entityInformation.getPartitionKeyFieldValue(TEST_ADDRESS1_PARTITION1)));
+
+        assertThat(addressById.equals(TEST_ADDRESS1_PARTITION1));
     }
 
     @Test

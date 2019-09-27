@@ -142,6 +142,24 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     }
 
     /**
+     * find one entity per id without partitions
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Optional<T> findById(ID id, PartitionKey partitionKey) {
+        Assert.notNull(id, "id must not be null");
+
+        if (id instanceof String && !StringUtils.hasText((String) id)) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(operation.findById(id, information.getJavaType(), partitionKey));
+    }
+
+
+    /**
      * return count of documents in one collection without partitions
      *
      * @return

@@ -153,6 +153,32 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
+    @Override
+    public <T> T findById(Object id, Class<T> entityClass, PartitionKey partitionKey) {
+        Assert.notNull(entityClass, "entityClass should not be null");
+        Assert.notNull(partitionKey, "partitionKey should not be null");
+        assertValidId(id);
+
+        final com.azure.data.cosmos.PartitionKey pk = toCosmosPartitionKey(partitionKey);
+
+        try {
+            final String collectionName = getCollectionName(entityClass);
+            return cosmosClient
+                .getDatabase(databaseName)
+                .getContainer(collectionName)
+                .getItem(id.toString(), pk)
+                .read()
+                .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
+                    cosmosItemResponse.properties())))
+                .onErrorResume(Mono::error)
+                .block();
+
+        } catch (Exception e) {
+            throw new DocumentDBAccessException("findById exception", e);
+        }
+
+    }
+
     public <T> void upsert(T object, PartitionKey partitionKey) {
         Assert.notNull(object, "Upsert object should not be null");
 
