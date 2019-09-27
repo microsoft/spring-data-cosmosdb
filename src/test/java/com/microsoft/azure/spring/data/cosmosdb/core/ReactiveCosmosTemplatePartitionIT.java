@@ -7,13 +7,13 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,13 +59,13 @@ public class ReactiveCosmosTemplatePartitionIT {
             TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
 
     @Value("${cosmosdb.uri}")
-    private String documentDbUri;
+    private String cosmosDbUri;
     @Value("${cosmosdb.key}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     private static ReactiveCosmosTemplate cosmosTemplate;
     private static String containerName;
-    private static DocumentDbEntityInformation<PartitionPerson, String> personInfo;
+    private static CosmosEntityInformation<PartitionPerson, String> personInfo;
 
     private static boolean initialized;
 
@@ -75,17 +75,19 @@ public class ReactiveCosmosTemplatePartitionIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         if (!initialized) {
-            final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri, documentDbKey, DB_NAME).build();
+            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey,
+                DB_NAME).build();
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
-            final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
-
-            personInfo = new DocumentDbEntityInformation<>(PartitionPerson.class);
+            final CosmosMappingContext mappingContext = new CosmosMappingContext();
+            personInfo =
+                new CosmosEntityInformation<>(PartitionPerson.class);
             containerName = personInfo.getCollectionName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
-            final MappingDocumentDbConverter dbConverter = new MappingDocumentDbConverter(mappingContext, null);
+            final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext,
+                null);
             cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
             cosmosTemplate.createCollectionIfNotExists(personInfo).block();
 
@@ -96,20 +98,24 @@ public class ReactiveCosmosTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        cosmosTemplate.deleteAll(PartitionPerson.class.getSimpleName(), personInfo.getPartitionKeyFieldName()).block();
+        cosmosTemplate.deleteAll(PartitionPerson.class.getSimpleName(),
+            personInfo.getPartitionKeyFieldName()).block();
     }
 
     @Test
     public void testFindWithPartition() {
-        final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME, Arrays.asList(LAST_NAME));
+        final Criteria criteria = Criteria.getInstance(IS_EQUAL, PROPERTY_LAST_NAME,
+            Arrays.asList(LAST_NAME));
         final DocumentQuery query = new DocumentQuery(criteria);
-        final Flux<PartitionPerson> partitionPersonFlux = cosmosTemplate.find(query, PartitionPerson.class,
-                PartitionPerson.class.getSimpleName());
+        final Flux<PartitionPerson> partitionPersonFlux = cosmosTemplate.find(query,
+            PartitionPerson.class,
+            PartitionPerson.class.getSimpleName());
         StepVerifier.create(partitionPersonFlux).consumeNextWith(actual -> {
             Assert.assertThat(actual.getFirstName(), is(equalTo(TEST_PERSON.getFirstName())));
             Assert.assertThat(actual.getLastName(), is(equalTo(TEST_PERSON.getLastName())));
         }).verifyComplete();
     }
+
 
     @Test
     public void testFindByIdWithPartition() {
@@ -122,25 +128,28 @@ public class ReactiveCosmosTemplatePartitionIT {
         }).verifyComplete();
     }
 
-//    @Test
-//    public void testFindByNonExistIdWithPartition() {
-//
-//    }
+    //    @Test
+    //    public void testFindByNonExistIdWithPartition() {
+    //
+    //    }
 
     @Test
     public void testUpsertNewDocumentPartition() {
         final String firstName = NEW_FIRST_NAME + "_" + UUID.randomUUID().toString();
-        final PartitionPerson newPerson = new PartitionPerson(UUID.randomUUID().toString(), firstName, NEW_LAST_NAME,
-                null, null);
+        final PartitionPerson newPerson = new PartitionPerson(UUID.randomUUID().toString(),
+            firstName, NEW_LAST_NAME,
+            null, null);
         final String partitionKeyValue = newPerson.getLastName();
-        final Mono<PartitionPerson> upsert = cosmosTemplate.upsert(newPerson, new PartitionKey(partitionKeyValue));
+        final Mono<PartitionPerson> upsert = cosmosTemplate.upsert(newPerson,
+            new PartitionKey(partitionKeyValue));
         StepVerifier.create(upsert).expectNextCount(1).verifyComplete();
     }
 
     @Test
     public void testUpdateWithPartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
-                TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+            TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(),
+            TEST_PERSON.getShippingAddresses());
         cosmosTemplate.upsert(updated, new PartitionKey(updated.getLastName())).block();
 
         final PartitionPerson person = cosmosTemplate
@@ -158,26 +167,41 @@ public class ReactiveCosmosTemplatePartitionIT {
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
 
         cosmosTemplate.deleteById(PartitionPerson.class.getSimpleName(),
-                TEST_PERSON.getId(), new PartitionKey(TEST_PERSON.getLastName())).block();
+            TEST_PERSON.getId(), new PartitionKey(TEST_PERSON.getLastName())).block();
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class))
-                .expectNext(TEST_PERSON_2)
-                .verifyComplete();
+                    .expectNext(TEST_PERSON_2)
+                    .verifyComplete();
+    }
+
+    @Test
+    public void testDeleteAll() {
+        cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
+        StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
+        final CosmosEntityInformation<PartitionPerson, String> personInfo =
+            new CosmosEntityInformation<>(PartitionPerson.class);
+        cosmosTemplate.deleteAll(containerName, personInfo.getPartitionKeyFieldName()).block();
+        StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class))
+                    .expectNextCount(0)
+                    .verifyComplete();
     }
 
     @Test
     public void testCountForPartitionedCollection() {
-        StepVerifier.create(cosmosTemplate.count(containerName)).expectNext((long) 1).verifyComplete();
+        StepVerifier.create(cosmosTemplate.count(containerName))
+                    .expectNext((long) 1).verifyComplete();
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
-        StepVerifier.create(cosmosTemplate.count(containerName)).expectNext((long) 2).verifyComplete();
+        StepVerifier.create(cosmosTemplate.count(containerName))
+                    .expectNext((long) 2).verifyComplete();
     }
 
     @Test
     public void testCountForPartitionedCollectionByQuery() {
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
         final Criteria criteria = Criteria.getInstance(IS_EQUAL, "firstName",
-                Arrays.asList(TEST_PERSON_2.getFirstName()));
+            Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
-        StepVerifier.create(cosmosTemplate.count(query, containerName)).expectNext((long) 1).verifyComplete();
+        StepVerifier.create(cosmosTemplate.count(query, containerName))
+                    .expectNext((long) 1).verifyComplete();
 
     }
 }

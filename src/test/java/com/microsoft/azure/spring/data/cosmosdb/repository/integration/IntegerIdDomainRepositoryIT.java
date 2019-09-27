@@ -5,11 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.junit.After;
@@ -32,11 +32,11 @@ public class IntegerIdDomainRepositoryIT {
     private static final String NAME = "panli";
     private static final IntegerIdDomain DOMAIN = new IntegerIdDomain(ID, NAME);
 
-    private final DocumentDbEntityInformation<IntegerIdDomain, Integer> entityInformation =
-            new DocumentDbEntityInformation<>(IntegerIdDomain.class);
+    private final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
+            new CosmosEntityInformation<>(IntegerIdDomain.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private IntegerIdDomainRepository repository;
@@ -75,7 +75,7 @@ public class IntegerIdDomainRepositoryIT {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidDomain() {
-        new DocumentDbEntityInformation<InvalidDomain, Integer>(InvalidDomain.class);
+        new CosmosEntityInformation<InvalidDomain, Integer>(InvalidDomain.class);
     }
 
     @AllArgsConstructor

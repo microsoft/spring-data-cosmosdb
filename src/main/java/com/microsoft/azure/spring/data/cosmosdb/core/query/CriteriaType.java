@@ -42,7 +42,6 @@ public enum CriteriaType {
     @Getter
     private String sqlKeyword;
 
-    // Map Part.Type to CriteriaType
     private static final Map<Part.Type, CriteriaType> PART_TREE_TYPE_TO_CRITERIA;
 
     static {

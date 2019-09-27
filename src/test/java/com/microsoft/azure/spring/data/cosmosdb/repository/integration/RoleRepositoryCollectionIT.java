@@ -5,13 +5,13 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +31,11 @@ public class RoleRepositoryCollectionIT {
     @Autowired
     private IntegerIdDomainRepository repository;
 
-    private final DocumentDbEntityInformation<IntegerIdDomain, Integer> entityInformation =
-            new DocumentDbEntityInformation<>(IntegerIdDomain.class);
+    private final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
+            new CosmosEntityInformation<>(IntegerIdDomain.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @PreDestroy
     public void cleanUpCollection() {
@@ -72,12 +72,12 @@ public class RoleRepositoryCollectionIT {
         this.repository.count();
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     public void testDeleteById() {
         this.repository.deleteById(DOMAIN.getNumber());
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     public void testDelete() {
         this.repository.delete(DOMAIN);
     }
@@ -99,7 +99,7 @@ public class RoleRepositoryCollectionIT {
 
     @Test
     public void testFindAllPageable() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, 3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, 3, null);
         this.repository.findAll(pageRequest);
     }
 }

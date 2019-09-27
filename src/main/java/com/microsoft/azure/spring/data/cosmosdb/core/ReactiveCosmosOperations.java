@@ -8,15 +8,17 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.PartitionKey;
-import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ReactiveCosmosOperations {
 
-    Mono<CosmosContainerResponse> createCollectionIfNotExists(DocumentDbEntityInformation information);
+    String getContainerName(Class<?> domainClass);
+
+    Mono<CosmosContainerResponse> createCollectionIfNotExists(CosmosEntityInformation information);
 
     <T> Flux<T> findAll(String collectionName, Class<T> entityClass);
 
@@ -42,7 +44,7 @@ public interface ReactiveCosmosOperations {
 
     void deleteContainer(String collectionName);
 
-    <T> Mono<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> Flux<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
 
     <T> Flux<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
 
@@ -54,5 +56,5 @@ public interface ReactiveCosmosOperations {
 
     Mono<Long> count(DocumentQuery query, String containerName);
 
-    MappingDocumentDbConverter getConverter();
+    MappingCosmosConverter getConverter();
 }

@@ -6,7 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,7 +14,7 @@ import org.springframework.data.domain.Sort;
 import java.util.Collection;
 import java.util.List;
 
-public interface ProjectRepository extends DocumentDbRepository<Project, String> {
+public interface ProjectRepository extends CosmosRepository<Project, String> {
 
     List<Project> findByNameAndStarCount(String name, Long startCount);
 

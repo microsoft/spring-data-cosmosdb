@@ -6,10 +6,10 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.inheritance.Square;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SquareRepository extends DocumentDbRepository<Square, String> {
+public interface SquareRepository extends CosmosRepository<Square, String> {
 
 }

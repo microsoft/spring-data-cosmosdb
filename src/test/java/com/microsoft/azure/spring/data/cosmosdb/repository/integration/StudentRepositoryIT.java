@@ -5,11 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Student;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.StudentRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,11 +53,11 @@ public class StudentRepositoryIT {
     private static final Student STUDENT_3 = new Student(ID_3, FIRST_NAME_3, LAST_NAME_3);
     private static final List<Student> PEOPLE = Arrays.asList(STUDENT_0, STUDENT_1, STUDENT_2, STUDENT_3);
 
-    private final DocumentDbEntityInformation<Student, String> entityInformation =
-            new DocumentDbEntityInformation<>(Student.class);
+    private final CosmosEntityInformation<Student, String> entityInformation =
+            new CosmosEntityInformation<>(Student.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private StudentRepository repository;

@@ -5,12 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.azure.data.cosmos.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,11 +72,11 @@ public class ProjectRepositoryIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
 
-    private final DocumentDbEntityInformation<Project, String> entityInformation =
-            new DocumentDbEntityInformation<>(Project.class);
+    private final CosmosEntityInformation<Project, String> entityInformation =
+            new CosmosEntityInformation<>(Project.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private ProjectRepository repository;

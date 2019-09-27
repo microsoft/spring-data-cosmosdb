@@ -55,7 +55,7 @@ public class CriteriaUnitTest {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IN, CRITERIA_KEY, values);
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        new FindQuerySpecGenerator().generate(query);
+        new FindQuerySpecGenerator().generateCosmos(query);
     }
 
     @Test(expected = IllegalQueryException.class)
@@ -64,6 +64,6 @@ public class CriteriaUnitTest {
         final Criteria criteria = Criteria.getInstance(CriteriaType.IN, CRITERIA_KEY, values);
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        new FindQuerySpecGenerator().generate(query);
+        new FindQuerySpecGenerator().generateCosmos(query);
     }
 }

@@ -6,10 +6,10 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Customer;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 
 import java.util.List;
 
-public interface CustomerRepository extends DocumentDbRepository<Customer, String> {
+public interface CustomerRepository extends CosmosRepository<Customer, String> {
     List<Customer> findByUser_Name(String name);
 }

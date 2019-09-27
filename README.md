@@ -29,7 +29,7 @@ Please refer to [sample project here](./samplecode).
 This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about more details and corresponding branch mapping. 
 
 ## Feature List
-- Spring Data CRUDRepository basic CRUD functionality
+- Spring Data ReactiveCrudRepository CrudRepository basic CRUD functionality
     - save
     - findAll
     - findOne by Id
@@ -73,7 +73,7 @@ If you are using Maven, add the following dependency.
 <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.1.7</version>
+    <version>2.2.0.M1</version>
 </dependency>
 ```
 
@@ -83,10 +83,17 @@ Setup configuration class.
 CosmosKeyCredential feature provides capability to rotate keys on the fly. You can switch keys using switchToSecondaryKey(). 
 For more information on this, see the Sample Application code.
 
+### Sync and Reactive Repository support
+2.2.x supports both sync and reactive repository support. 
+
+Use `@EnableCosmosRepositories` to enable sync repository support. 
+
+For reactive repository support, use `@EnableReactiveCosmosRepositories`
+
 ```java
 @Configuration
-@EnableDocumentDbRepositories
-public class AppConfiguration extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories
+public class AppConfiguration extends AbstractCosmosConfiguration {
 
     @Value("${azure.cosmosdb.uri}")
     private String uri;
@@ -102,9 +109,9 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     
     private CosmosKeyCredential cosmosKeyCredential;
 
-    public DocumentDBConfig getConfig() {
+    public CosmosDBConfig getConfig() {
         this.cosmosKeyCredential = new CosmosKeyCredential(key);
-        return DocumentDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
+        return CosmosDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
     }
     
     public void switchToSecondaryKey() {
@@ -114,19 +121,19 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
 ```
 Or if you want to customize your config:
 ```java
-public DocumentDBConfig getConfig() {
+public CosmosDBConfig getConfig() {
     this.cosmosKeyCredential = new CosmosKeyCredential(key);
-    DocumentDBConfig dbConfig = DocumentDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
-    dbConfig.getConnectionPolicy().setConnectionMode(ConnectionMode.DirectHttps);
-    dbConfig.getConnectionPolicy().setMaxPoolSize(1000);
-    return dbConfig;
+    CosmosDBConfig cosmosDbConfig = CosmosDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
+    cosmosDbConfig.getConnectionPolicy().setConnectionMode(ConnectionMode.DIRECT);
+    cosmosDbConfig.getConnectionPolicy().setMaxPoolSize(1000);
+    return cosmosDbConfig;
 }
 ```
-By default, `@EnableDocumentDbRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
+By default, `@EnableCosmosRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
 ```java
 @Configuration
-@EnableDocumentDbRepositories(basePackageClass=UserRepository.class)
-public class AppConfiguration extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories(basePackageClass=UserRepository.class)
+public class AppConfiguration extends AbstractCosmosConfiguration {
     // configuration code
 }
 ```
@@ -140,6 +147,7 @@ Define a simple entity as Document in Azure Cosmos DB.
 public class User {
     private String id;
     private String firstName;
+
     @PartitionKey
     private String lastName;
  
@@ -178,14 +186,14 @@ public class User {
 ```
 
 ### Create repositories
-Extends DocumentDbRepository interface, which provides Spring Data repository support.
+Extends CosmosRepository interface, which provides Spring Data repository support.
 
 ```java
-import DocumentDbRepository;
+import CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends DocumentDbRepository<User, String> {
+public interface UserRepository extends CosmosRepository<User, String> {
     List<User> findByFirstName(String firstName); 
 }
 ```
@@ -232,7 +240,7 @@ public class SampleApplication implements CommandLineRunner {
     }
 }
 ```
-Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
+Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the CosmosTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
 
 ## Snapshots
 [![Nexus OSS](https://img.shields.io/nexus/snapshots/https/oss.sonatype.org/com.microsoft.azure/spring-data-cosmosdb.svg)](https://oss.sonatype.org/content/repositories/snapshots/com/microsoft/azure/spring-data-cosmosdb/)

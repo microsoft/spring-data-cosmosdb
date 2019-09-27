@@ -5,13 +5,13 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -71,11 +71,11 @@ public class ProjectRepositorySortIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3, PROJECT_2, PROJECT_1, PROJECT_0);
 
-    private final DocumentDbEntityInformation<Project, String> entityInformation =
-            new DocumentDbEntityInformation<>(Project.class);
+    private final CosmosEntityInformation<Project, String> entityInformation =
+            new CosmosEntityInformation<>(Project.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private ProjectRepository repository;
@@ -97,7 +97,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllSortASC() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
         final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
         PROJECTS.sort(Comparator.comparing(Project::getStarCount));
@@ -108,7 +108,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllSortDESC() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "creator");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "creator");
         final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
 
         PROJECTS.sort(Comparator.comparing(Project::getCreator).reversed());
@@ -129,14 +129,14 @@ public class ProjectRepositorySortIT {
         Assert.assertEquals(PROJECTS, projects);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     public void testFindAllSortMoreThanOneOrderException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "name", "creator");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "name", "creator");
 
         this.repository.findAll(sort);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     public void testFindAllSortIgnoreCaseException() {
         final Sort.Order order = Sort.Order.by("name").ignoreCase();
         final Sort sort = Sort.by(order);
@@ -144,24 +144,24 @@ public class ProjectRepositorySortIT {
         this.repository.findAll(sort);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     public void testFindAllSortMissMatchException() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "fake-name");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "fake-name");
 
         this.repository.findAll(sort);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
     public void testFindAllSortWithIdName() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "id");
 
         this.repository.findAll(sort);
     }
 
     @Test
     public void testFindSortWithOr() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "starCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
         final List<Project> projects = Lists.newArrayList(this.repository.findByNameOrCreator(NAME_0, CREATOR_3, sort));
         final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_3);
 
@@ -173,7 +173,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindSortWithAnd() {
-        final Sort sort = new Sort(Sort.Direction.ASC, "forkCount");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "forkCount");
         final List<Project> projects = Lists.newArrayList(repository.findByNameAndCreator(NAME_0, CREATOR_0, sort));
         final List<Project> references = Arrays.asList(PROJECT_0);
 
@@ -185,7 +185,7 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindSortWithEqual() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final List<Project> projects = Lists.newArrayList(this.repository.findByForkCount(FORK_COUNT_3, sort));
         final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
 
@@ -197,8 +197,8 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindAllWithPageableAndSort() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
-        final Pageable pageable = new DocumentDbPageRequest(0, 5, null, sort);
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
+        final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
         final Page<Project> result = this.repository.findAll(pageable);
 
@@ -212,8 +212,8 @@ public class ProjectRepositorySortIT {
 
     @Test
     public void testFindWithPageableAndSort() {
-        final Sort sort = new Sort(Sort.Direction.DESC, "name");
-        final Pageable pageable = new DocumentDbPageRequest(0, 5, null, sort);
+        final Sort sort = Sort.by(Sort.Direction.DESC, "name");
+        final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
         final Page<Project> result = this.repository.findByForkCount(FORK_COUNT_3, pageable);
 

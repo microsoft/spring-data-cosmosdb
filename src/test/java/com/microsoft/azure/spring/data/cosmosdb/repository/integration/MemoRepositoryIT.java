@@ -7,13 +7,13 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
-import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.MemoRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +45,11 @@ public class MemoRepositoryIT {
     private static Memo testMemo2;
     private static Memo testMemo3;
 
-    private final DocumentDbEntityInformation<Memo, String> entityInformation =
-            new DocumentDbEntityInformation<>(Memo.class);
+    private final CosmosEntityInformation<Memo, String> entityInformation =
+            new CosmosEntityInformation<>(Memo.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     MemoRepository repository;
@@ -236,7 +236,7 @@ public class MemoRepositoryIT {
         Assert.assertEquals(reference, memos);
     }
 
-    @Test(expected = DocumentDBAccessException.class)
+    @Test(expected = CosmosDBAccessException.class)
     @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
     public void testFindByStartsWithWithException() {
         repository.findByMessageStartsWith(testMemo1.getMessage());

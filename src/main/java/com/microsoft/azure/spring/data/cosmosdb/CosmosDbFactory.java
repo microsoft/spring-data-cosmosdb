@@ -6,12 +6,13 @@
 
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.azure.data.cosmos.ConnectionPolicy;
 import com.azure.data.cosmos.CosmosClient;
-import com.microsoft.azure.documentdb.ConnectionPolicy;
+import com.azure.data.cosmos.sync.CosmosSyncClient;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.util.Assert;
@@ -22,7 +23,7 @@ import javax.annotation.PostConstruct;
 public class CosmosDbFactory {
 
     @Getter
-    private final DocumentDBConfig config;
+    private final CosmosDBConfig config;
 
     private static final boolean IS_TELEMETRY_ALLOWED = PropertyLoader.isApplicationTelemetryAllowed();
 
@@ -38,7 +39,7 @@ public class CosmosDbFactory {
         return suffix;
     }
 
-    public CosmosDbFactory(@NonNull DocumentDBConfig config) {
+    public CosmosDbFactory(@NonNull CosmosDBConfig config) {
         validateConfig(config);
 
         this.config = config;
@@ -46,17 +47,33 @@ public class CosmosDbFactory {
 
     public CosmosClient getCosmosClient() {
         final ConnectionPolicy policy = config.getConnectionPolicy();
-        final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
+        final String userAgent = getUserAgentSuffix() + ";" + policy.userAgentSuffix();
 
-        policy.setUserAgentSuffix(userAgent);
+        policy.userAgentSuffix(userAgent);
         return CosmosClient.builder()
                            .endpoint(config.getUri())
                            .key(config.getKey())
                            .cosmosKeyCredential(config.getCosmosKeyCredential())
+                           .connectionPolicy(policy)
+                           .consistencyLevel(config.getConsistencyLevel())
                            .build();
     }
 
-    private void validateConfig(@NonNull DocumentDBConfig config) {
+    public CosmosSyncClient getCosmosSyncClient() {
+        final ConnectionPolicy policy = config.getConnectionPolicy();
+        final String userAgent = getUserAgentSuffix() + ";" + policy.userAgentSuffix();
+
+        policy.userAgentSuffix(userAgent);
+        return CosmosClient.builder()
+                       .endpoint(config.getUri())
+                       .key(config.getKey())
+                       .cosmosKeyCredential(config.getCosmosKeyCredential())
+                       .connectionPolicy(policy)
+                       .consistencyLevel(config.getConsistencyLevel())
+                       .buildSyncClient();
+    }
+
+    private void validateConfig(@NonNull CosmosDBConfig config) {
         Assert.hasText(config.getUri(), "cosmosdb host url should have text!");
         if (config.getCosmosKeyCredential() == null) {
             Assert.hasText(config.getKey(), "cosmosdb host key should have text!");
