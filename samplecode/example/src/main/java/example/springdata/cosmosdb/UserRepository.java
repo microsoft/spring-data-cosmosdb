@@ -17,8 +17,6 @@
 package example.springdata.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.repository.ReactiveCosmosRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
@@ -40,6 +38,6 @@ public interface UserRepository extends ReactiveCosmosRepository<User, String> {
 
     Flux<User> findByNameIn(Collection<String> names);
 
-    Page<User> findByAddress(Address address, Pageable pageable);
+    Flux<User> findByAddress(Address address);
 }
 

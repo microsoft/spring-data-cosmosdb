@@ -161,7 +161,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                     .stream()
                     .map(cosmosItem -> toDomainObject(entityClass, cosmosItem))
                     .findFirst()))
-                .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                 .next();
     }
 
@@ -185,7 +185,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                            .read()
                            .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
                                cosmosItemResponse.properties())))
-                           .onErrorResume(Mono::error);
+                           .onErrorResume(this::databaseAccessExceptionHandler);
     }
 
     /**
@@ -214,7 +214,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return cosmosClient.getDatabase(this.databaseName)
                 .getContainer(getContainerName(objectToSave.getClass()))
                 .createItem(objectToSave, new CosmosItemRequestOptions())
-                .onErrorResume(Mono::error)
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
     }
 
@@ -239,7 +239,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return cosmosClient.getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .createItem(objectToSave, options)
-                .onErrorResume(Mono::error)
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
     }
 
@@ -275,7 +275,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(containerName)
                 .upsertItem(object, options)
                 .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())))
-                .onErrorResume(Mono::error);
+                .onErrorResume(this::databaseAccessExceptionHandler);
     }
 
     /**
@@ -298,7 +298,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                            .getContainer(containerName)
                            .getItem(id.toString(), partitionKey)
                            .delete(options)
-                           .onErrorResume(Mono::error)
+                           .onErrorResume(this::databaseAccessExceptionHandler)
                            .then();
     }
 

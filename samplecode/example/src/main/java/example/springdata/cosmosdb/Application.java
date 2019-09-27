@@ -77,13 +77,13 @@ public class Application implements CommandLineRunner{
 
     @PostConstruct
     public void setup() {
-        this.repository.save(user_1);
-        this.repository.saveAll(Lists.newArrayList(user_2, user_3));
+        this.repository.save(user_1).block();
+        this.repository.saveAll(Lists.newArrayList(user_2, user_3)).collectList().block();
     }
 
     @PreDestroy
     public void cleanup() {
-        this.repository.deleteAll();
+        this.repository.deleteAll().block();
     }
 
     private void printList(List<User> users) {

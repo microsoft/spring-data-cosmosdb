@@ -17,6 +17,7 @@
 package example.springdata.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,7 @@ public class User {
 
     private String email;
 
+    @PartitionKey
     private String name;
 
     private Long count;

@@ -16,8 +16,8 @@
 package example.springdata.cosmosdb;
 
 import com.azure.data.cosmos.CosmosKeyCredential;
-import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableReactiveCosmosRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,20 +27,20 @@ import org.springframework.context.annotation.PropertySource;
 
 
 @Configuration
-@EnableConfigurationProperties(DocumentDbProperties.class)
+@EnableConfigurationProperties(CosmosDbProperties.class)
 @EnableReactiveCosmosRepositories
 @PropertySource("classpath:application.properties")
-public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration {
+public class UserRepositoryConfiguration extends AbstractCosmosConfiguration {
 
     @Autowired
-    private DocumentDbProperties properties;
+    private CosmosDbProperties properties;
 
     private CosmosKeyCredential cosmosKeyCredential;
 
     @Bean
-    public DocumentDBConfig documentDBConfig() {
+    public CosmosDBConfig cosmosDbConfig() {
         this.cosmosKeyCredential = new CosmosKeyCredential(properties.getKey());
-        return DocumentDBConfig.builder(properties.getUri(), cosmosKeyCredential, properties.getDatabase()).build();
+        return CosmosDBConfig.builder(properties.getUri(), cosmosKeyCredential, properties.getDatabase()).build();
     }
 
     public void switchToSecondaryKey() {
