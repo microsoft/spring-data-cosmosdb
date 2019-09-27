@@ -39,8 +39,8 @@ public class MappingCosmosConverterUnitTest {
 
     @Before
     public void setup() {
-        CosmosMappingContext mappingContext = new CosmosMappingContext();
-        ObjectMapper objectMapper = new ObjectMapper();
+        final CosmosMappingContext mappingContext = new CosmosMappingContext();
+        final ObjectMapper objectMapper = new ObjectMapper();
 
         mappingContext.setApplicationContext(applicationContext);
         mappingContext.afterPropertiesSet();
