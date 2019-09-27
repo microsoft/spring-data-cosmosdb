@@ -48,7 +48,6 @@ public class CosmosAnnotationIT {
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosContainerProperties collectionRole;
-    private static CosmosContainerProperties collectionExample;
     private static CosmosEntityInformation<Role, String> roleInfo;
     private static CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
 
@@ -72,7 +71,8 @@ public class CosmosAnnotationIT {
             initialized = true;
         }
         collectionRole = cosmosTemplate.createCollectionIfNotExists(roleInfo);
-        collectionExample = cosmosTemplate.createCollectionIfNotExists(sampleInfo);
+
+        cosmosTemplate.createCollectionIfNotExists(sampleInfo);
 
         cosmosTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }

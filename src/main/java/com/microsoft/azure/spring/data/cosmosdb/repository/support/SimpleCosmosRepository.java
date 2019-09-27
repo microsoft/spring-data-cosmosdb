@@ -30,14 +30,13 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
     private final CosmosOperations operation;
     private final CosmosEntityInformation<T, ID> information;
-    private final CosmosContainerProperties collection;
 
     public SimpleCosmosRepository(CosmosEntityInformation<T, ID> metadata,
                                   ApplicationContext applicationContext) {
         this.operation = applicationContext.getBean(CosmosOperations.class);
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        createCollectionIfNotExists();
     }
 
     public SimpleCosmosRepository(CosmosEntityInformation<T, ID> metadata,
@@ -45,7 +44,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         this.operation = dbOperations;
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        createCollectionIfNotExists();
     }
 
     private CosmosContainerProperties createCollectionIfNotExists() {

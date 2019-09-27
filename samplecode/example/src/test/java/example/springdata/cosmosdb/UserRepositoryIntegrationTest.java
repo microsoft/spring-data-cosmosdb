@@ -107,7 +107,8 @@ public class UserRepositoryIntegrationTest {
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
-        resultList = this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block();
+        resultList = this.repository.findByCount(COUNT,
+            Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
@@ -116,7 +117,7 @@ public class UserRepositoryIntegrationTest {
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");
 
         // Test for findByAddress
-        Flux<User> findByAddressFlux = this.repository.findByAddress(address);
+        final Flux<User> findByAddressFlux = this.repository.findByAddress(address);
         resultList = findByAddressFlux.collectList().block();
         result = resultList.get(0);
         Assert.isTrue(result.getId().equals(user.getId()), "should be the same Id");

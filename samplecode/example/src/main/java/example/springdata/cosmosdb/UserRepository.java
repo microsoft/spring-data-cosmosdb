@@ -32,7 +32,7 @@ public interface UserRepository extends ReactiveCosmosRepository<User, String> {
 
     Flux<User> findByEmailAndAddress(String email, Address address);
 
-    Flux<User> findByEmailOrName(String email, String Name);
+    Flux<User> findByEmailOrName(String email, String name);
 
     Flux<User> findByCount(Long count, Sort sort);
 
