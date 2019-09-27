@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb;
 
-import com.azure.data.cosmos.CosmosClient;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import org.junit.Test;

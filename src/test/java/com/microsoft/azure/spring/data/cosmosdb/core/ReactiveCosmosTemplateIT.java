@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.azure.data.cosmos.PartitionKey;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;

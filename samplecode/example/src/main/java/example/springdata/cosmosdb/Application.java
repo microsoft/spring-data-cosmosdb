@@ -65,32 +65,28 @@ public class Application implements CommandLineRunner{
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("run called");
-        System.out.println("find by email or name");
-        printList(this.repository.findByEmailOrName(this.user_1.getEmail(), this.user_1.getName()).collectList().block());
+        printList(this.repository.findByEmailOrName(this.user_1.getEmail(),
+            this.user_1.getName()).collectList().block());
 
-        System.out.println("find by count");
-        printList(this.repository.findByCount(COUNT, Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block());
+        printList(this.repository.findByCount(COUNT,
+            Sort.by(new Sort.Order(Sort.Direction.ASC, "count"))).collectList().block());
 
-        System.out.println("find by name in");
-        printList(this.repository.findByNameIn(Arrays.asList(this.user_1.getName(), "fake-name")).collectList().block());
+        printList(this.repository.findByNameIn(Arrays.asList(this.user_1.getName(),
+            "fake-name")).collectList().block());
     }
 
     @PostConstruct
     public void setup() {
-        System.out.println("Setup called");
         this.repository.save(user_1);
         this.repository.saveAll(Lists.newArrayList(user_2, user_3));
     }
 
     @PreDestroy
     public void cleanup() {
-        System.out.println("Cleanup called");
         this.repository.deleteAll();
     }
 
     private void printList(List<User> users) {
-        System.out.println("Printing users");
         users.forEach(System.out::println);
     }
 }

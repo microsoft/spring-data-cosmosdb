@@ -270,7 +270,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         log.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
 
         if (partitionKey == null) {
-            partitionKey = com.azure.data.cosmos.PartitionKey.None;
+            partitionKey = PartitionKey.None;
         }
         try {
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
@@ -505,7 +505,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         }
 
         if (partitionKey == null) {
-            partitionKey = com.azure.data.cosmos.PartitionKey.None;
+            partitionKey = PartitionKey.None;
         }
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions(partitionKey);

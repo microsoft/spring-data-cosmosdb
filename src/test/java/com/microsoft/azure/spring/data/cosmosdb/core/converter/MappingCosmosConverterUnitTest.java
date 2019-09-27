@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
 import java.text.ParseException;
@@ -32,29 +32,27 @@ public class MappingCosmosConverterUnitTest {
     private static final SimpleDateFormat DATE = new SimpleDateFormat(TestConstants.DATE_FORMAT);
     private static final SimpleDateFormat TIMEZONE_DATE = new SimpleDateFormat(TestConstants.DATE_TIMEZONE_FORMAT);
 
-    MappingCosmosConverter dbConverter;
-    CosmosMappingContext mappingContext;
-    ObjectMapper objectMapper;
+    private MappingCosmosConverter mappingCosmosConverter;
 
     @Mock
     ApplicationContext applicationContext;
 
     @Before
     public void setup() {
-        mappingContext = new CosmosMappingContext();
-        objectMapper = new ObjectMapper();
+        CosmosMappingContext mappingContext = new CosmosMappingContext();
+        ObjectMapper objectMapper = new ObjectMapper();
 
         mappingContext.setApplicationContext(applicationContext);
         mappingContext.afterPropertiesSet();
         mappingContext.getPersistentEntity(Address.class);
 
-        dbConverter = new MappingCosmosConverter(mappingContext, objectMapper);
+        mappingCosmosConverter = new MappingCosmosConverter(mappingContext, objectMapper);
     }
 
     @Test
     public void covertAddressToDocumentCorrectly() {
         final Address testAddress = new Address(TestConstants.POSTAL_CODE, TestConstants.CITY, TestConstants.STREET);
-        final CosmosItemProperties cosmosItemProperties = dbConverter.writeCosmosItemProperties(testAddress);
+        final CosmosItemProperties cosmosItemProperties = mappingCosmosConverter.writeCosmosItemProperties(testAddress);
 
         assertThat(cosmosItemProperties.id()).isEqualTo(testAddress.getPostalCode());
         assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_CITY)).isEqualTo(testAddress.getCity());
@@ -70,7 +68,7 @@ public class MappingCosmosConverterUnitTest {
         final CosmosItemProperties cosmosItemProperties = new CosmosItemProperties(jsonObject.toString());
         cosmosItemProperties.id(TestConstants.POSTAL_CODE);
 
-        final Address address = dbConverter.read(Address.class, cosmosItemProperties);
+        final Address address = mappingCosmosConverter.read(Address.class, cosmosItemProperties);
 
         assertThat(address.getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
         assertThat(address.getCity()).isEqualTo(TestConstants.CITY);
@@ -81,7 +79,7 @@ public class MappingCosmosConverterUnitTest {
     public void canWritePojoWithDateToDocument() throws ParseException {
         final Memo memo = new Memo(TestConstants.ID_1, TestConstants.MESSAGE, DATE.parse(TestConstants.DATE_STRING),
                 Importance.NORMAL);
-        final CosmosItemProperties cosmosItemProperties = dbConverter.writeCosmosItemProperties(memo);
+        final CosmosItemProperties cosmosItemProperties = mappingCosmosConverter.writeCosmosItemProperties(memo);
 
         assertThat(cosmosItemProperties.id()).isEqualTo(memo.getId());
         assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(memo.getMessage());
@@ -99,7 +97,7 @@ public class MappingCosmosConverterUnitTest {
         final CosmosItemProperties cosmosItemProperties = new CosmosItemProperties(jsonObject.toString());
         cosmosItemProperties.id(TestConstants.ID_1);
 
-        final Memo memo = dbConverter.read(Memo.class, cosmosItemProperties);
+        final Memo memo = mappingCosmosConverter.read(Memo.class, cosmosItemProperties);
         assertThat(cosmosItemProperties.id()).isEqualTo(memo.getId());
         assertThat(cosmosItemProperties.getString(TestConstants.PROPERTY_MESSAGE)).isEqualTo(TestConstants.MESSAGE);
         assertThat(cosmosItemProperties.getLong(TestConstants.PROPERTY_DATE)).isEqualTo(date);
