@@ -83,7 +83,7 @@ Setup configuration class.
 CosmosKeyCredential feature provides capability to rotate keys on the fly. You can switch keys using switchToSecondaryKey(). 
 For more information on this, see the Sample Application code.
 
-###Sync and Reactive Repository support
+### Sync and Reactive Repository support
 2.2.x supports both sync and reactive repository support. 
 
 Use `@EnableCosmosRepositories` to enable sync repository support. 
