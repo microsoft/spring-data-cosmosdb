@@ -171,11 +171,12 @@ public class AddressRepositoryIT {
         final long count = repository.count();
         assertThat(count).isEqualTo(4);
 
-        Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+        final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
             new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
         assertThat(addressById.isPresent()).isTrue();
 
-        repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode(), new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+        repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
 
         final List<Address> result = TestUtils.toList(repository.findAll());
         assertThat(result.size()).isEqualTo(3);
