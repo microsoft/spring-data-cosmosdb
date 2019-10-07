@@ -172,6 +172,14 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         operation.deleteById(information.getCollectionName(), id, null);
     }
 
+    @Override
+    public void deleteById(ID id, PartitionKey partitionKey) {
+        Assert.notNull(id, "id to be deleted should not be null");
+        Assert.notNull(partitionKey, "partitionKey to be deleted should not be null");
+
+        operation.deleteById(information.getCollectionName(), id, partitionKey);
+    }
+
     /**
      * delete one document per entity
      *

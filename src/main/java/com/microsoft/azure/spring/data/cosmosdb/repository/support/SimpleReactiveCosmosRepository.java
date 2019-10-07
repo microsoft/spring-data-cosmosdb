@@ -169,6 +169,15 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
     }
 
     @Override
+    public Mono<Void> deleteById(K id, PartitionKey partitionKey) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(partitionKey, "PartitionKey must not be null!");
+
+        return cosmosOperations.deleteById(entityInformation.getCollectionName(), id, partitionKey);
+
+    }
+
+    @Override
     public Mono<Void> delete(@NonNull T entity) {
         Assert.notNull(entity, "entity to be deleted must not be null!");
 
