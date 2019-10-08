@@ -254,7 +254,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
                 .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
                         .database()
                         .createContainerIfNotExists(information.getCollectionName(),
-                                "/" + information.getPartitionKeyFieldName())
+                                "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                         .map(cosmosContainerResponse -> cosmosContainerResponse))
                 .block();
         if (response == null) {
