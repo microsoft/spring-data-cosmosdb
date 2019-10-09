@@ -90,7 +90,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
             .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
                 .database()
                 .createContainerIfNotExists(information.getCollectionName(),
-                    "/" + information.getPartitionKeyFieldName())
+                    "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                 .map(cosmosContainerResponse -> {
                     this.collectionCache.add(information.getCollectionName());
                     return cosmosContainerResponse;
