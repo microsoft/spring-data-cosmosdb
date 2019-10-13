@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils.fillAndProcessResponseDiagnostics;
+
 @Slf4j
 public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, ApplicationContextAware {
     private static final String COUNT_VALUE_KEY = "_aggregate";
@@ -45,6 +47,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private final String databaseName;
 
     private final CosmosClient cosmosClient;
+    private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
 
     private final List<String> collectionCache;
 
@@ -66,6 +69,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         this.collectionCache = new ArrayList<>();
 
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
+        this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
     }
 
     /**
@@ -87,14 +91,20 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         return cosmosClient
             .createDatabaseIfNotExists(this.databaseName)
-            .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
-                .database()
-                .createContainerIfNotExists(information.getCollectionName(),
-                    "/" + information.getPartitionKeyFieldName())
-                .map(cosmosContainerResponse -> {
-                    this.collectionCache.add(information.getCollectionName());
-                    return cosmosContainerResponse;
-                }));
+            .flatMap(cosmosDatabaseResponse -> {
+                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    cosmosDatabaseResponse, null);
+                return cosmosDatabaseResponse
+                    .database()
+                    .createContainerIfNotExists(information.getCollectionName(),
+                        "/" + information.getPartitionKeyFieldName())
+                    .map(cosmosContainerResponse -> {
+                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            cosmosContainerResponse, null);
+                        this.collectionCache.add(information.getCollectionName());
+                        return cosmosContainerResponse;
+                    });
+            });
 
     }
 
@@ -154,15 +164,19 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final FeedOptions options = new FeedOptions();
         options.enableCrossPartitionQuery(true);
         return cosmosClient.getDatabase(databaseName)
-                .getContainer(containerName)
-                .queryItems(query, options)
-                .flatMap(cosmosItemFeedResponse -> Mono.justOrEmpty(cosmosItemFeedResponse
-                    .results()
-                    .stream()
-                    .map(cosmosItem -> toDomainObject(entityClass, cosmosItem))
-                    .findFirst()))
-                    .onErrorResume(this::databaseAccessExceptionHandler)
-                .next();
+                           .getContainer(containerName)
+                           .queryItems(query, options)
+                           .flatMap(cosmosItemFeedResponse -> {
+                                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                    null, cosmosItemFeedResponse);
+                                return Mono.justOrEmpty(cosmosItemFeedResponse
+                                    .results()
+                                    .stream()
+                                    .map(cosmosItem -> toDomainObject(entityClass, cosmosItem))
+                                    .findFirst());
+                           })
+                           .onErrorResume(this::databaseAccessExceptionHandler)
+                           .next();
     }
 
     /**
@@ -183,8 +197,12 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                            .getContainer(containerName)
                            .getItem(id.toString(), partitionKey)
                            .read()
-                           .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
-                               cosmosItemResponse.properties())))
+                           .flatMap(cosmosItemResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                   cosmosItemResponse, null);
+                               return Mono.justOrEmpty(toDomainObject(entityClass,
+                                   cosmosItemResponse.properties()));
+                           })
                            .onErrorResume(this::databaseAccessExceptionHandler);
     }
 
@@ -215,7 +233,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(getContainerName(objectToSave.getClass()))
                 .createItem(objectToSave, new CosmosItemRequestOptions())
                 .onErrorResume(this::databaseAccessExceptionHandler)
-                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
+                .flatMap(cosmosItemResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null);
+                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                });
     }
 
     /**
@@ -240,7 +262,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(containerName)
                 .createItem(objectToSave, options)
                 .onErrorResume(this::databaseAccessExceptionHandler)
-                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())));
+                .flatMap(cosmosItemResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null);
+                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                });
     }
 
     /**
@@ -274,7 +300,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return cosmosClient.getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .upsertItem(object, options)
-                .flatMap(cosmosItemResponse -> Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties())))
+                .flatMap(cosmosItemResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null);
+                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                })
                 .onErrorResume(this::databaseAccessExceptionHandler);
     }
 
@@ -298,6 +328,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                            .getContainer(containerName)
                            .getItem(id.toString(), partitionKey)
                            .delete(options)
+                           .doOnNext(cosmosItemResponse ->
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                               cosmosItemResponse, null))
                            .onErrorResume(this::databaseAccessExceptionHandler)
                            .then();
     }
@@ -323,12 +356,18 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return cosmosClient.getDatabase(this.databaseName)
                     .getContainer(containerName)
                     .queryItems(sqlQuerySpec, options)
-                    .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()))
+                    .flatMap(cosmosItemFeedResponse -> {
+                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            null, cosmosItemFeedResponse);
+                        return Flux.fromIterable(cosmosItemFeedResponse.results());
+                    })
                     .flatMap(cosmosItemProperties -> cosmosClient
                         .getDatabase(this.databaseName)
                         .getContainer(containerName)
                         .getItem(cosmosItemProperties.id(), cosmosItemProperties.get(partitionKeyName))
-                        .delete())
+                        .delete()
+                        .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            cosmosItemResponse, null)))
                     .onErrorResume(this::databaseAccessExceptionHandler)
                     .then();
     }
@@ -433,6 +472,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
 
         return executeQuery(querySpec, containerName, options)
+                .doOnNext(feedResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    null, feedResponse))
                 .onErrorResume(this::databaseAccessExceptionHandler)
                 .next()
                 .map(r -> r.results().get(0).getLong(COUNT_VALUE_KEY));
@@ -459,7 +500,13 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public void deleteContainer(@NonNull String containerName) {
         Assert.hasText(containerName, "containerName should have text.");
         try {
-            cosmosClient.getDatabase(this.databaseName).getContainer(containerName).delete().block();
+            cosmosClient.getDatabase(this.databaseName)
+                        .getContainer(containerName)
+                        .delete()
+                        .doOnNext(cosmosContainerResponse ->
+                            fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            cosmosContainerResponse, null))
+                        .block();
             this.collectionCache.remove(containerName);
         } catch (Exception e) {
             throw new CosmosDBAccessException("failed to delete collection: " + containerName, e);
@@ -486,7 +533,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .queryItems(sqlQuerySpec, feedOptions)
-                .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()));
+                .flatMap(cosmosItemFeedResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        null, cosmosItemFeedResponse);
+                    return Flux.fromIterable(cosmosItemFeedResponse.results());
+                });
     }
 
     private void assertValidId(Object id) {
@@ -524,7 +575,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .getContainer(containerName)
                 .getItem(cosmosItemProperties.id(), partitionKey)
                 .delete(options)
-                .map(cosmosItemResponse -> cosmosItemProperties);
+                .map(cosmosItemResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null);
+                    return cosmosItemProperties;
+                });
     }
 
     private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {

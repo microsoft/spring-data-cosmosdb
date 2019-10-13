@@ -9,9 +9,11 @@ import com.azure.data.cosmos.ConnectionPolicy;
 import com.azure.data.cosmos.ConsistencyLevel;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.azure.data.cosmos.internal.RequestOptions;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.util.Assert;
 
 @Getter
@@ -32,6 +34,9 @@ public class CosmosDBConfig {
     private RequestOptions requestOptions;
 
     private CosmosKeyCredential cosmosKeyCredential;
+
+    @Setter
+    private ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
 
     public static CosmosDBConfigBuilder builder(String uri, CosmosKeyCredential cosmosKeyCredential,
                                                   String database) {
