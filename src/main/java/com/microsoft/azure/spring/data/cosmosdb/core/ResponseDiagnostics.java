@@ -22,7 +22,7 @@ public class ResponseDiagnostics {
 
     @Override
     public String toString() {
-        StringBuilder diagnostics = new StringBuilder();
+        final StringBuilder diagnostics = new StringBuilder();
         if (cosmosResponseDiagnostics != null) {
             diagnostics.append("cosmosResponseDiagnostics={")
                        .append(cosmosResponseDiagnostics)
