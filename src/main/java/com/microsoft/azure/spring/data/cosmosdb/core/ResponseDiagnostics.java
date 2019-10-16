@@ -22,9 +22,17 @@ public class ResponseDiagnostics {
 
     @Override
     public String toString() {
-        return "ResponseDiagnostics{" +
-            "cosmosResponseDiagnostics=" + cosmosResponseDiagnostics +
-            ", feedResponseDiagnostics=" + feedResponseDiagnostics +
-            '}';
+        StringBuilder diagnostics = new StringBuilder();
+        if (cosmosResponseDiagnostics != null) {
+            diagnostics.append("cosmosResponseDiagnostics={")
+                       .append(cosmosResponseDiagnostics)
+                       .append("}");
+        }
+        if (feedResponseDiagnostics != null) {
+            diagnostics.append("feedResponseDiagnostics={")
+                       .append(feedResponseDiagnostics)
+                       .append("}");
+        }
+        return diagnostics.toString();
     }
 }

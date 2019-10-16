@@ -279,7 +279,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
                     return cosmosDatabaseResponse
                         .database()
                         .createContainerIfNotExists(information.getCollectionName(),
-                            "/" + information.getPartitionKeyFieldName())
+                            "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                         .doOnNext(cosmosContainerResponse ->
                             fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                                 cosmosContainerResponse, null));

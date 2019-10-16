@@ -97,7 +97,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 return cosmosDatabaseResponse
                     .database()
                     .createContainerIfNotExists(information.getCollectionName(),
-                        "/" + information.getPartitionKeyFieldName())
+                        "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                     .map(cosmosContainerResponse -> {
                         fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                             cosmosContainerResponse, null);

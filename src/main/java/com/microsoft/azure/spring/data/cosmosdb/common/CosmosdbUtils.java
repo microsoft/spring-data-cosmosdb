@@ -15,9 +15,11 @@ import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcesso
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.ObjectMapperFactory;
 import com.microsoft.azure.spring.data.cosmosdb.exception.ConfigurationException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+@Slf4j
 public class CosmosdbUtils {
 
     @SuppressWarnings("unchecked")
@@ -45,8 +47,9 @@ public class CosmosdbUtils {
         if (feedResponse != null) {
             feedResponseDiagnostics = feedResponse.feedResponseDiagnostics();
         }
-        if (cosmosResponseDiagnostics == null && feedResponseDiagnostics == null) {
-            responseDiagnosticsProcessor.processResponseDiagnostics(null);
+        if (cosmosResponseDiagnostics == null &&
+            (feedResponseDiagnostics == null || feedResponseDiagnostics.toString().isEmpty())) {
+            log.debug("Empty response diagnostics");
             return;
         }
         final ResponseDiagnostics responseDiagnostics =

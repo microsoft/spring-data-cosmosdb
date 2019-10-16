@@ -11,30 +11,20 @@ import com.azure.data.cosmos.FeedResponseDiagnostics;
 import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnostics;
 import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
 import lombok.Getter;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class ResponseDiagnosticsTestUtils {
 
-    private final AtomicInteger counter;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
     private ResponseDiagnostics diagnostics;
 
     public ResponseDiagnosticsTestUtils() {
-        counter = new AtomicInteger(0);
         responseDiagnosticsProcessor = responseDiagnostics -> {
-            counter.incrementAndGet();
+            log.info("response diagnostics {}", responseDiagnostics);
             diagnostics = responseDiagnostics;
         };
-    }
-
-    public void initializeCounter() {
-        this.counter.set(0);
-    }
-
-    public int getCounterValue() {
-        return this.counter.get();
     }
 
     public CosmosResponseDiagnostics getCosmosResponseDiagnostics() {
