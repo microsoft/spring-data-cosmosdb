@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
-import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;

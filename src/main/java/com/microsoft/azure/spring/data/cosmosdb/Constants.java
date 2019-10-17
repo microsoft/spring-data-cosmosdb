@@ -30,5 +30,7 @@ public class Constants {
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
 
     public static final String ISO_8601_COMPATIBLE_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
+    public static final String AZURE_COSMOS_DIRECT_MODE_PROTOCOL_PROPERTY = "azure.cosmos.directModeProtocol";
 }
 

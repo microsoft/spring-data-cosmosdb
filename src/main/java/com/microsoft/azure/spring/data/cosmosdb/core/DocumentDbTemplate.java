@@ -258,14 +258,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation<?, ?> information) {
         final CosmosContainerResponse response = cosmosClient
-                .createDatabaseIfNotExists(this.databaseName)
-                .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
-                        .database()
-                        .createContainerIfNotExists(information.getCollectionName(),
-                                "/" + information.getPartitionKeyFieldName(),
-                            information.getRequestUnit())
-                        .map(cosmosContainerResponse -> cosmosContainerResponse))
-                .block();
+            .createDatabaseIfNotExists(this.databaseName)
+            .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
+                .database()
+                .createContainerIfNotExists(information.getCollectionName(),
+                    "/" + information.getPartitionKeyFieldName(),
+                    information.getRequestUnit()))
+            .block();
         if (response == null) {
             throw new DocumentDBAccessException("Failed to create collection");
         }
