@@ -17,6 +17,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.After;
@@ -122,7 +123,7 @@ public class ReactiveCosmosTemplateIT {
         testSubscriber.assertNotComplete();
         testSubscriber.assertTerminated();
         assertThat(testSubscriber.errors()).hasSize(1);
-        assertThat(((List) testSubscriber.getEvents().get(1)).get(0)).isInstanceOf(CosmosClientException.class);
+        assertThat(((List) testSubscriber.getEvents().get(1)).get(0)).isInstanceOf(DocumentDBAccessException.class);
     }
 
     @Test

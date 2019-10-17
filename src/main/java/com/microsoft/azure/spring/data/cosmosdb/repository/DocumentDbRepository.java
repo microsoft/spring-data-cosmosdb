@@ -25,11 +25,19 @@ public interface DocumentDbRepository<T, ID extends Serializable> extends Paging
      * Retrieves an entity by its id.
      *
      * @param id must not be {@literal null}.
-     * @param partitionKey partition key value of entity
+     * @param partitionKey partition key value of entity, must not be null.
      * @return the entity with the given id or {@literal Optional#empty()} if none found
      * @throws IllegalArgumentException if {@code id} is {@literal null}.
      */
     Optional<T> findById(ID id, PartitionKey partitionKey);
+
+    /**
+     * Deletes an entity by its id and partition key.
+     * @param id must not be {@literal null}.
+     * @param partitionKey partition key value of the entity, must not be null.
+     * @throws IllegalArgumentException in case the given {@code id} is {@literal null}.
+     */
+    void deleteById(ID id, PartitionKey partitionKey);
 
 }
 

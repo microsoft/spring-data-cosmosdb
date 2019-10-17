@@ -106,7 +106,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse response = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .createItem(originalItem, options)
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (response == null) {
@@ -145,7 +145,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                             .stream()
                             .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
                             .findFirst()))
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .blockFirst();
 
         } catch (Exception e) {
@@ -170,7 +170,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .read()
                 .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
                     cosmosItemResponse.properties())))
-                .onErrorResume(Mono::error)
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .block();
 
         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .upsertItem(originalItem, options)
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (cosmosItemResponse == null) {
@@ -262,7 +262,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
                         .database()
                         .createContainerIfNotExists(information.getCollectionName(),
-                                "/" + information.getPartitionKeyFieldName())
+                                "/" + information.getPartitionKeyFieldName(),
+                            information.getRequestUnit())
                         .map(cosmosContainerResponse -> cosmosContainerResponse))
                 .block();
         if (response == null) {
@@ -288,7 +289,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             .getContainer(collectionName)
             .getItem(id.toString(), partitionKey)
             .delete(options)
-            .onErrorResume(Mono::error)
+            .onErrorResume(this::databaseAccessExceptionHandler)
             .then()
             .block();
         } catch (Exception e) {
