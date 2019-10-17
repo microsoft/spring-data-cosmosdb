@@ -39,6 +39,6 @@ public class PageTestUtils {
 
         final JSONObject jsonObject = new JSONObject(tokenJson);
 
-        return jsonObject.isNull("token");
+        return jsonObject.isNull("compositeToken");
     }
 }
