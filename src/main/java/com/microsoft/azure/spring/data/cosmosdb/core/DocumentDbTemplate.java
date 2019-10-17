@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils.fillAndProcessResponseDiagnostics;
+
 /**
  * 
  * @author Domenico Sibilio
@@ -62,6 +64,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
+    private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
 
     private final CosmosClient cosmosClient;
     private Function<Class<?>, DocumentDbEntityInformation<?, ?>> entityInfoCreator =
@@ -77,6 +80,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         this.databaseName = dbName;
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
+        this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -106,6 +110,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse response = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .createItem(originalItem, options)
+                    .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null))
                     .onErrorResume(Mono::error)
                     .block();
 
@@ -140,11 +146,15 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     .getDatabase(databaseName)
                     .getContainer(collectionName)
                     .queryItems(query, options)
-                    .flatMap(cosmosItemFeedResponse -> Mono.justOrEmpty(cosmosItemFeedResponse
+                    .flatMap(cosmosItemFeedResponse -> {
+                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            null, cosmosItemFeedResponse);
+                        return Mono.justOrEmpty(cosmosItemFeedResponse
                             .results()
                             .stream()
                             .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
-                            .findFirst()))
+                            .findFirst());
+                    })
                     .onErrorResume(Mono::error)
                     .blockFirst();
 
@@ -168,8 +178,12 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .getContainer(collectionName)
                 .getItem(id.toString(), pk)
                 .read()
-                .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
-                    cosmosItemResponse.properties())))
+                .flatMap(cosmosItemResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        cosmosItemResponse, null);
+                    return Mono.justOrEmpty(toDomainObject(entityClass,
+                        cosmosItemResponse.properties()));
+                })
                 .onErrorResume(Mono::error)
                 .block();
 
@@ -201,6 +215,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .upsertItem(originalItem, options)
+                    .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        response, null))
                     .onErrorResume(Mono::error)
                     .block();
 
@@ -242,7 +258,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     public void deleteCollection(@NonNull String collectionName) {
         Assert.hasText(collectionName, "collectionName should have text.");
         try {
-            cosmosClient.getDatabase(this.databaseName).getContainer(collectionName).delete().block();
+            cosmosClient
+                .getDatabase(this.databaseName)
+                .getContainer(collectionName)
+                .delete()
+                .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    response, null))
+                .block();
         } catch (Exception e) {
             throw new DocumentDBAccessException("failed to delete collection: " + collectionName,
                     e);
@@ -258,13 +280,19 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation<?, ?> information) {
         final CosmosContainerResponse response = cosmosClient
-                .createDatabaseIfNotExists(this.databaseName)
-                .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
-                        .database()
-                        .createContainerIfNotExists(information.getCollectionName(),
-                                "/" + information.getPartitionKeyFieldName())
-                        .map(cosmosContainerResponse -> cosmosContainerResponse))
-                .block();
+            .createDatabaseIfNotExists(this.databaseName)
+            .flatMap(cosmosDatabaseResponse -> {
+                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    cosmosDatabaseResponse, null);
+                return cosmosDatabaseResponse
+                    .database()
+                    .createContainerIfNotExists(information.getCollectionName(),
+                        "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
+                    .doOnNext(cosmosContainerResponse ->
+                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            cosmosContainerResponse, null));
+            })
+            .block();
         if (response == null) {
             throw new DocumentDBAccessException("Failed to create collection");
         }
@@ -285,12 +313,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
             options.partitionKey(pk);
             cosmosClient.getDatabase(this.databaseName)
-            .getContainer(collectionName)
-            .getItem(id.toString(), partitionKey)
-            .delete(options)
-            .onErrorResume(Mono::error)
-            .then()
-            .block();
+                        .getContainer(collectionName)
+                        .getItem(id.toString(), partitionKey)
+                        .delete(options)
+                        .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                            response, null))
+                        .onErrorResume(Mono::error)
+                        .block();
         } catch (Exception e) {
             throw new DocumentDBAccessException("deleteById exception", e);
         }
@@ -315,7 +344,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         try {
             return findDocuments(query, domainClass, collectionName)
                     .stream()
-                .map(cosmosItemProperties -> toDomainObject(domainClass, cosmosItemProperties))
+                    .map(cosmosItemProperties -> toDomainObject(domainClass, cosmosItemProperties))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new DocumentDBAccessException("Failed to execute find operation from " + collectionName, e);
@@ -381,10 +410,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final FeedResponse<CosmosItemProperties> feedResponse =
                 cosmosClient.getDatabase(this.databaseName)
-                .getContainer(collectionName)
-                .queryItems(sqlQuerySpec, feedOptions)
-                .next()
-                .block();
+                            .getContainer(collectionName)
+                            .queryItems(sqlQuerySpec, feedOptions)
+                            .doOnNext(propertiesFeedResponse ->
+                                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                null, propertiesFeedResponse))
+                            .next()
+                            .block();
 
         if (feedResponse == null) {
             throw new DocumentDBAccessException("Failed to query documents");
@@ -451,6 +483,8 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         return executeQuery(querySpec, containerName, options)
                 .onErrorResume(this::databaseAccessExceptionHandler)
+                .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    null, response))
                 .next()
                 .map(r -> r.results().get(0).getLong(COUNT_VALUE_KEY))
                 .block();
@@ -503,7 +537,11 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .getDatabase(this.databaseName)
                 .getContainer(containerName)
                 .queryItems(sqlQuerySpec, feedOptions)
-                .flatMap(cosmosItemFeedResponse -> Flux.fromIterable(cosmosItemFeedResponse.results()))
+                .flatMap(cosmosItemFeedResponse -> {
+                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                        null, cosmosItemFeedResponse);
+                    return Flux.fromIterable(cosmosItemFeedResponse.results());
+                })
                 .collectList()
                 .block();
     }
@@ -530,11 +568,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         applyVersioning(domainClass, cosmosItemProperties, options);
 
         return cosmosClient
-                .getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .getItem(cosmosItemProperties.id(), partitionKey)
-                .delete(options)
-                .block();
+            .getDatabase(this.databaseName)
+            .getContainer(containerName)
+            .getItem(cosmosItemProperties.id(), partitionKey)
+            .delete(options)
+            .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                response, null))
+            .block();
     }
 
     private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {

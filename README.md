@@ -41,7 +41,7 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
   - set name of this field to `id`, this field will be mapped to document `id` in Azure Cosmos DB.
 - Custom collection Name.
-  By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
+  By default, collection name will be class name of user domain class. To customize it, add the `@Document(collection="myCustomCollectionName")` annotation to the domain class. The collection field also supports SpEL expressions (eg. `collection = "${dynamic.collection.name}"` or `collection = "#{@someBean.getCollectionName()}"`) in order to provide collection names programmatically/via configuration properties.
 - Custom IndexingPolicy
   By default, IndexingPolicy will be set by azure service. To customize it add annotation `@DocumentIndexingPolicy` to domain class. This annotation has 4 attributes to customize, see following:
 ```java
@@ -50,6 +50,16 @@ This repository supports both Spring Data 1.x and 2.x. Please see [this document
    String[] includePaths; // Included paths for indexing
    String[] excludePaths; // Excluded paths for indexing
 ```
+- Supports Optimistic Locking for specific collections, which means upserts/deletes by document will fail with an exception in case the document was modified by another process in the meanwhile. To enable Optimistic Locking for a collection, just create a string `_etag` field and mark it with the `@Version` annotation. See the following:
+
+```java
+@Document(collection = "myCollection")
+class MyDocument {
+    String id;
+    String data;
+    @Version
+    String _etag;
+}
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/repository/integration/AddressRepositoryIT.java)
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField`
 - Supports [Spring Data pagable and sort](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.special-parameters).

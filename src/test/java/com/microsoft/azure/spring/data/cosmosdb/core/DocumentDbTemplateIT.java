@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.CosmosClientException;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.ResponseDiagnosticsTestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbMappingContext;
@@ -89,6 +90,7 @@ public class DocumentDbTemplateIT {
     private static String collectionName;
 
     private static boolean initialized;
+    private static ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
     
     private Person insertedPerson;
 
@@ -98,8 +100,10 @@ public class DocumentDbTemplateIT {
     @Before
     public void setup() throws ClassNotFoundException {
         if (!initialized) {
+            responseDiagnosticsTestUtils = new ResponseDiagnosticsTestUtils();
             final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri,
                     documentDbKey, DB_NAME).build();
+            dbConfig.setResponseDiagnosticsProcessor(responseDiagnosticsTestUtils.getResponseDiagnosticsProcessor());
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
@@ -134,6 +138,8 @@ public class DocumentDbTemplateIT {
         final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -141,6 +147,8 @@ public class DocumentDbTemplateIT {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class);
         assertEquals(result, TEST_PERSON);
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 NOT_EXIST_ID, Person.class);
@@ -153,6 +161,9 @@ public class DocumentDbTemplateIT {
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
         dbTemplate.insert(TEST_PERSON_3,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final List<Object> ids = Lists.newArrayList(ID_1, ID_2, ID_3);
         final List<Person> result = dbTemplate.findByIds(ids, Person.class, collectionName);
@@ -175,6 +186,9 @@ public class DocumentDbTemplateIT {
         dbTemplate.upsert(Person.class.getSimpleName(), newPerson,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final List<Person> result = dbTemplate.findAll(Person.class);
 
         assertThat(result.size()).isEqualTo(1);
@@ -189,8 +203,14 @@ public class DocumentDbTemplateIT {
 
         dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         assertEquals(result, updated);
     }
@@ -226,6 +246,9 @@ public class DocumentDbTemplateIT {
         dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(),
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final List<Person> result = dbTemplate.findAll(Person.class);
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_2);
@@ -236,11 +259,20 @@ public class DocumentDbTemplateIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         dbTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
     }
 
     @Test
@@ -248,12 +280,18 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
     }
 
     @Test
@@ -261,8 +299,14 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
@@ -271,12 +315,18 @@ public class DocumentDbTemplateIT {
                 collectionName);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
     }
 
     @Test
     public void testPaginationQuery() {
         dbTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(FIRST_NAME));
@@ -286,6 +336,9 @@ public class DocumentDbTemplateIT {
         final Page<Person> page = dbTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
     }
 
     @Test
@@ -294,6 +347,9 @@ public class DocumentDbTemplateIT {
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
         dbTemplate.insert(TEST_PERSON_3,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Sort sort = new Sort(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = DocumentDbPageRequest.of(0, PAGE_SIZE_3, null, sort);
@@ -307,6 +363,8 @@ public class DocumentDbTemplateIT {
         assertThat(result.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(result.get(2).getFirstName()).isEqualTo(FIRST_NAME);
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
     }
 
     @Test

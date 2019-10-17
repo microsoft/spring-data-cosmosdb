@@ -10,6 +10,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
@@ -163,6 +164,25 @@ public class AddressRepositoryIT {
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
+    }
+
+    @Test(expected = DocumentDBAccessException.class)
+    public void testDeleteByIdAndPartitionKey() {
+        final long count = repository.count();
+        assertThat(count).isEqualTo(4);
+
+        final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+        assertThat(addressById.isPresent()).isTrue();
+
+        repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+
+        final List<Address> result = TestUtils.toList(repository.findAll());
+        assertThat(result.size()).isEqualTo(3);
+
+        repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
     }
 
     @Test
