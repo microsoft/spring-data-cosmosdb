@@ -58,7 +58,7 @@
         <gson.version>2.8.4</gson.version>
         <project.reactor.test.version>3.2.5.RELEASE</project.reactor.test.version>
 
-        <azure.documentdb.version>1.16.2</azure.documentdb.version>
+        <azure.documentdb.version>2.4.2</azure.documentdb.version>
         <azure.cosmos.version>3.1.0</azure.cosmos.version>
         <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>

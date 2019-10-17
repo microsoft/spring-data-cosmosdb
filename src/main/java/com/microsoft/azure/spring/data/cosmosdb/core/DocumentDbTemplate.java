@@ -51,10 +51,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 
- * @author Domenico Sibilio
- *
+ * {@link DocumentDbTemplate} is deprecated.
+ * Instead use CosmosTemplate, which is introduced in 2.2.0 version.
  */
+@Deprecated
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
 

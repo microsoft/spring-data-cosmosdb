@@ -19,7 +19,11 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 
 import java.io.Serializable;
 
-
+/**
+ * {@link DocumentDbRepositoryFactoryBean} is deprecated.
+ * Instead use CosmosRepositoryFactoryBean, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
         extends RepositoryFactoryBeanSupport<T, S, ID>
         implements ApplicationContextAware {

@@ -17,6 +17,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/**
+ * {@link DocumentDbOperations} is deprecated.
+ * Instead use CosmosOperations, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbOperations {
 
     String getCollectionName(Class<?> entityClass);

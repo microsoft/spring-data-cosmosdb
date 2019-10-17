@@ -13,6 +13,11 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import java.io.Serializable;
 import java.util.Optional;
 
+/**
+ * {@link DocumentDbRepository} is deprecated.
+ * Instead use CosmosRepository, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 @NoRepositoryBean
 public interface DocumentDbRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
 

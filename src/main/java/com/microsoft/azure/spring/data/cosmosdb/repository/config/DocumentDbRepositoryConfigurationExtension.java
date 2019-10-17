@@ -21,7 +21,11 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 
-
+/**
+ * {@link DocumentDbRepositoryConfigurationExtension} is deprecated.
+ * Instead use CosmosRepositoryConfigurationExtension, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
     @Override

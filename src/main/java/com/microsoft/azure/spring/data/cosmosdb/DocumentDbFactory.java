@@ -19,6 +19,11 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
+/**
+ * {@link DocumentDbFactory} is deprecated.
+ * Instead use {@link CosmosDbFactory}
+ */
+@Deprecated
 public class DocumentDbFactory {
 
     @Getter

@@ -35,6 +35,11 @@ import java.util.Date;
 
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
+/**
+ * {@link MappingDocumentDbConverter} is deprecated.
+ * Instead use MappingCosmosConverter, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class MappingDocumentDbConverter
     implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty,
     Object, CosmosItemProperties>,

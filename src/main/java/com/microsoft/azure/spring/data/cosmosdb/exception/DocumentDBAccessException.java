@@ -8,6 +8,11 @@ package com.microsoft.azure.spring.data.cosmosdb.exception;
 import org.springframework.dao.DataAccessException;
 import org.springframework.lang.Nullable;
 
+/**
+ * {@link DocumentDBAccessException} is deprecated.
+ * Instead use CosmosDBAccessException, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDBAccessException extends DataAccessException {
     public DocumentDBAccessException(String msg) {
         super(msg);

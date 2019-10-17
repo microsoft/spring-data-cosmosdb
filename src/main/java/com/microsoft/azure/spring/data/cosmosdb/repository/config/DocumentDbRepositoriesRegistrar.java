@@ -11,7 +11,11 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 
 import java.lang.annotation.Annotation;
 
-
+/**
+ * {@link DocumentDbRepositoriesRegistrar} is deprecated.
+ * Instead use CosmosRepositoriesRegistrar, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
     @Override

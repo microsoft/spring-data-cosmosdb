@@ -15,7 +15,11 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 
 import java.lang.annotation.*;
 
-
+/**
+ * {@link EnableDocumentDbRepositories} is deprecated.
+ * Instead use EnableCosmosRepositories, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
