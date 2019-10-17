@@ -45,18 +45,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>MM-dd-HH-mm-ss</maven.build.timestamp.format>
 
-        <spring.springframework.version>5.2.0.RC2</spring.springframework.version>
-        <spring.data.version>2.2.0.RC3</spring.data.version>
+        <spring.springframework.version>5.2.0.RELEASE</spring.springframework.version>
+        <spring.data.version>2.2.0.RELEASE</spring.data.version>
         <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
 
         <mockito.core.version>2.8.9</mockito.core.version>
         <powermock.version>1.7.1</powermock.version>
-        <spring.boot.starter.test.version>1.5.11.RELEASE</spring.boot.starter.test.version>
+        <spring.boot.starter.test.version>2.2.0.RELEASE</spring.boot.starter.test.version>
         <org.projectlombok.version>1.16.18</org.projectlombok.version>
         <java.tuples.version>1.2</java.tuples.version>
         <slf4j.version>1.7.25</slf4j.version>
         <gson.version>2.8.4</gson.version>
-        <project.reactor.test.version>3.2.5.RELEASE</project.reactor.test.version>
+        <project.reactor.test.version>3.3.0.RELEASE</project.reactor.test.version>
 
         <azure.cosmos.version>3.3.0</azure.cosmos.version>
         <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
