@@ -7,6 +7,11 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import org.springframework.data.repository.core.EntityMetadata;
 
+/**
+ * {@link SimpleDocumentDbEntityMetadata} is deprecated.
+ * Instead use CosmosEntityMetadata, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbEntityMetadata<T> extends EntityMetadata {
     String getCollectionName();
 }

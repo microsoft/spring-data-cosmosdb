@@ -13,6 +13,11 @@ import org.springframework.data.repository.query.QueryMethod;
 
 import java.lang.reflect.Method;
 
+/**
+ * {@link DocumentDbQueryMethod} is deprecated.
+ * Instead use CosmosQueryMethod, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbQueryMethod extends QueryMethod {
 
     private DocumentDbEntityMetadata<?> metadata;

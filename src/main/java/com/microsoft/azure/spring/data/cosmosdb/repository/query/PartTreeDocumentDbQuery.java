@@ -13,6 +13,11 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
+/**
+ * {@link PartTreeDocumentDbQuery} is deprecated.
+ * Instead use PartTreeCosmosQuery, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class PartTreeDocumentDbQuery extends AbstractDocumentDbQuery {
 
     private final PartTree tree;

@@ -25,7 +25,11 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-
+/**
+ * {@link DocumentDbRepositoryFactory} is deprecated.
+ * Instead use CosmosRepositoryFactory, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
 
     private final ApplicationContext applicationContext;

@@ -53,10 +53,10 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils.fillAndProcessResponseDiagnostics;
 
 /**
- * 
- * @author Domenico Sibilio
- *
+ * {@link DocumentDbTemplate} is deprecated.
+ * Instead use CosmosTemplate, which is introduced in 2.2.0 version.
  */
+@Deprecated
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
 
@@ -112,7 +112,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     .createItem(originalItem, options)
                     .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                         cosmosItemResponse, null))
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (response == null) {
@@ -155,7 +155,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                             .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
                             .findFirst());
                     })
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .blockFirst();
 
         } catch (Exception e) {
@@ -184,7 +184,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     return Mono.justOrEmpty(toDomainObject(entityClass,
                         cosmosItemResponse.properties()));
                 })
-                .onErrorResume(Mono::error)
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .block();
 
         } catch (Exception e) {
@@ -217,7 +217,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     .upsertItem(originalItem, options)
                     .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                         response, null))
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (cosmosItemResponse == null) {
@@ -318,7 +318,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                         .delete(options)
                         .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                             response, null))
-                        .onErrorResume(Mono::error)
+                        .onErrorResume(this::databaseAccessExceptionHandler)
                         .block();
         } catch (Exception e) {
             throw new DocumentDBAccessException("deleteById exception", e);

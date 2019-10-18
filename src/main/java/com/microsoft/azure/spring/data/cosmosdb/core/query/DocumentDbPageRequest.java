@@ -14,7 +14,10 @@ import org.springframework.data.domain.Sort;
  * to help query next page.
  * <p>
  * The requestContinuation token should be saved after each request and reused in later queries.
+ *
+ * @Deprecated since 2.1.8, Instead use CosmosPageRequest which is introduced in 2.2.0 version.
  */
+@Deprecated
 public class DocumentDbPageRequest extends PageRequest {
     private static final long serialVersionUID = 6093304300037688375L;
 

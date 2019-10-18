@@ -15,7 +15,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.util.Assert;
-
+/**
+ * {@link DocumentDBConfig} is deprecated.
+ * Instead use CosmosDBConfig, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 @Getter
 @Builder(builderMethodName = "defaultBuilder")
 public class DocumentDBConfig {

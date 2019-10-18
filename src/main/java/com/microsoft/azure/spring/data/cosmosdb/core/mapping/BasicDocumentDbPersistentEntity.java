@@ -15,7 +15,11 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-
+/**
+ * {@link BasicDocumentDbPersistentEntity} is deprecated.
+ * Instead use BasicCosmosPersistentEntity, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class BasicDocumentDbPersistentEntity<T> extends BasicPersistentEntity<T, DocumentDbPersistentProperty>
         implements DocumentDbPersistentEntity<T>, ApplicationContextAware {
 

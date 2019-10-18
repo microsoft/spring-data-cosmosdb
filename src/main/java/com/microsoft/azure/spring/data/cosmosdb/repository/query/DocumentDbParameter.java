@@ -8,6 +8,11 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.repository.query.Parameter;
 
+/**
+ * {@link DocumentDbParameter} is deprecated.
+ * Instead use CosmosParameter, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbParameter extends Parameter {
 
     public DocumentDbParameter(MethodParameter parameter) {

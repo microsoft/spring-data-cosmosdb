@@ -8,6 +8,10 @@ package com.microsoft.azure.spring.data.cosmosdb.core.mapping;
 
 import org.springframework.data.mapping.PersistentProperty;
 
-
+/**
+ * {@link DocumentDbPersistentProperty} is deprecated.
+ * Instead use CosmosPersistentProperty, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbPersistentProperty extends PersistentProperty<DocumentDbPersistentProperty> {
 }

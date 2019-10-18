@@ -6,8 +6,10 @@
 
 package com.microsoft.azure.spring.data.cosmosdb;
 
+import com.azure.data.cosmos.ConnectionMode;
+import com.azure.data.cosmos.ConnectionPolicy;
+import com.azure.data.cosmos.ConsistencyLevel;
 import com.azure.data.cosmos.CosmosClient;
-import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.common.MacAddress;
 import com.microsoft.azure.spring.data.cosmosdb.common.PropertyLoader;
 import com.microsoft.azure.spring.data.cosmosdb.common.TelemetrySender;
@@ -18,6 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.util.Locale;
 
 public class CosmosDbFactory {
 
@@ -45,14 +48,29 @@ public class CosmosDbFactory {
     }
 
     public CosmosClient getCosmosClient() {
-        final ConnectionPolicy policy = config.getConnectionPolicy();
-        final String userAgent = getUserAgentSuffix() + ";" + policy.getUserAgentSuffix();
+        final ConnectionPolicy policy = ConnectionPolicy.defaultPolicy();
+        final String userAgent = getUserAgentSuffix() + ";" + config.getConnectionPolicy().getUserAgentSuffix();
 
-        policy.setUserAgentSuffix(userAgent);
+        policy.userAgentSuffix(userAgent);
+        policy.connectionMode(ConnectionMode.DIRECT);
+
+        String consistencyLevelString = null;
+        if (config.getConsistencyLevel() != null) {
+             consistencyLevelString = config.getConsistencyLevel()
+                                            .name()
+                                            .toUpperCase(Locale.getDefault());
+        }
+
+        //  Setting Direct Mode Protocol as Https
+        //  There is some version issue with Tcp protocol
+        System.setProperty(Constants.AZURE_COSMOS_DIRECT_MODE_PROTOCOL_PROPERTY, "Https");
         return CosmosClient.builder()
                            .endpoint(config.getUri())
                            .key(config.getKey())
                            .cosmosKeyCredential(config.getCosmosKeyCredential())
+                           .connectionPolicy(policy)
+                           .consistencyLevel(consistencyLevelString != null ?
+                               ConsistencyLevel.valueOf(consistencyLevelString) : ConsistencyLevel.SESSION)
                            .build();
     }
 

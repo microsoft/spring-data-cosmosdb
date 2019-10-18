@@ -7,9 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentEntity;
@@ -35,6 +33,11 @@ import java.util.Date;
 
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
+/**
+ * {@link MappingDocumentDbConverter} is deprecated.
+ * Instead use MappingCosmosConverter, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class MappingDocumentDbConverter
     implements EntityConverter<DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty,
     Object, CosmosItemProperties>,

@@ -29,7 +29,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-
+/**
+ * {@link DocumentDbEntityInformation} is deprecated.
+ * Instead use CosmosEntityInformation, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
 
     private static final String ETAG = "_etag";

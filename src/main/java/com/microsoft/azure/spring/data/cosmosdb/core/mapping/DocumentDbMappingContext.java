@@ -12,7 +12,11 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
-
+/**
+ * {@link DocumentDbMappingContext} is deprecated.
+ * Instead use CosmosMappingContext, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbMappingContext
         extends AbstractMappingContext<BasicDocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> {
 

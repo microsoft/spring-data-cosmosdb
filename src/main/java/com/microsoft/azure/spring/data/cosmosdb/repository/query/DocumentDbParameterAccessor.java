@@ -7,6 +7,11 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import org.springframework.data.repository.query.ParameterAccessor;
 
+/**
+ * {@link DocumentDbParameterAccessor} is deprecated.
+ * Instead use CosmosParameterAccessor, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbParameterAccessor extends ParameterAccessor {
     Object[] getValues();
 }

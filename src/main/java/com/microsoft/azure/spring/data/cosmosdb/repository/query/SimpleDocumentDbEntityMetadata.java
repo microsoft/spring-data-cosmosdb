@@ -8,6 +8,11 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
 import org.springframework.util.Assert;
 
+/**
+ * {@link SimpleDocumentDbEntityMetadata} is deprecated.
+ * Instead use SimpleCosmosEntityMetadata, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class SimpleDocumentDbEntityMetadata<T> implements DocumentDbEntityMetadata<T> {
 
     private final Class<T> type;

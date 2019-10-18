@@ -11,6 +11,11 @@ import org.springframework.data.repository.query.Parameters;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * {@link DocumentDbParameters} is deprecated.
+ * Instead use CosmosParameters, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbParameters extends Parameters<DocumentDbParameters, DocumentDbParameter> {
 
     public DocumentDbParameters(Method method) {
