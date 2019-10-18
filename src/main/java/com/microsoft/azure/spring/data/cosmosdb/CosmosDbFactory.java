@@ -52,7 +52,6 @@ public class CosmosDbFactory {
         final String userAgent = getUserAgentSuffix() + ";" + config.getConnectionPolicy().getUserAgentSuffix();
 
         policy.userAgentSuffix(userAgent);
-        policy.connectionMode(ConnectionMode.DIRECT);
 
         String consistencyLevelString = null;
         if (config.getConsistencyLevel() != null) {
