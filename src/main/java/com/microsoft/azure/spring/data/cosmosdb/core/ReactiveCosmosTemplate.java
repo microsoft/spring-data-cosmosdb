@@ -49,6 +49,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
     private final CosmosClient cosmosClient;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
+    private final boolean isPopulateQueryMetrics;
 
     private final List<String> collectionCache;
 
@@ -71,6 +72,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
         this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
+        this.isPopulateQueryMetrics = cosmosDbFactory.getConfig().isPopulateQueryMetrics();
     }
 
     /**
@@ -164,6 +166,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final String query = String.format("select * from root where root.id = '%s'", id.toString());
         final FeedOptions options = new FeedOptions();
         options.enableCrossPartitionQuery(true);
+        options.populateQueryMetrics(isPopulateQueryMetrics);
         return cosmosClient.getDatabase(databaseName)
                            .getContainer(containerName)
                            .queryItems(query, options)
@@ -353,6 +356,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final DocumentQuery query = new DocumentQuery(criteria);
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final FeedOptions options = new FeedOptions();
+        options.populateQueryMetrics(isPopulateQueryMetrics);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(Collections.singletonList(partitionKeyName));
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
         return cosmosClient.getDatabase(this.databaseName)
@@ -466,7 +470,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private Mono<Long> getCountValue(DocumentQuery query, boolean isCrossPartitionQuery, String containerName) {
         final SqlQuerySpec querySpec = new CountQueryGenerator().generateCosmos(query);
         final FeedOptions options = new FeedOptions();
-
+        options.populateQueryMetrics(isPopulateQueryMetrics);
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
 
         return executeQuery(querySpec, containerName, options)
@@ -527,6 +531,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.enableCrossPartitionQuery(isCrossPartitionQuery);
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
         return cosmosClient
                 .getDatabase(this.databaseName)
                 .getContainer(containerName)

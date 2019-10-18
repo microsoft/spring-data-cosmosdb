@@ -65,6 +65,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private final MappingDocumentDbConverter mappingDocumentDbConverter;
     private final String databaseName;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
+    private final boolean isPopulateQueryMetrics;
 
     private final CosmosClient cosmosClient;
     private Function<Class<?>, DocumentDbEntityInformation<?, ?>> entityInfoCreator =
@@ -81,6 +82,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         this.databaseName = dbName;
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
         this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
+        this.isPopulateQueryMetrics = cosmosDbFactory.getConfig().isPopulateQueryMetrics();
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -142,6 +144,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final String query = String.format("select * from root where root.id = '%s'", id.toString());
             final FeedOptions options = new FeedOptions();
             options.enableCrossPartitionQuery(true);
+            options.populateQueryMetrics(isPopulateQueryMetrics);
             return cosmosClient
                     .getDatabase(databaseName)
                     .getContainer(collectionName)
@@ -406,6 +409,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
         feedOptions.maxItemCount(pageable.getPageSize());
         feedOptions.enableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final FeedResponse<CosmosItemProperties> feedResponse =
@@ -480,6 +484,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         final FeedOptions options = new FeedOptions();
 
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
+        options.populateQueryMetrics(isPopulateQueryMetrics);
 
         return executeQuery(querySpec, containerName, options)
                 .onErrorResume(this::databaseAccessExceptionHandler)
@@ -533,6 +538,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.enableCrossPartitionQuery(isCrossPartitionQuery);
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
         return cosmosClient
                 .getDatabase(this.databaseName)
                 .getContainer(containerName)

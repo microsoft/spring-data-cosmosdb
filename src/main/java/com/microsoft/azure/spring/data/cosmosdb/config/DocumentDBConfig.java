@@ -42,6 +42,9 @@ public class DocumentDBConfig {
     @Setter
     private ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
 
+    @Setter
+    private boolean populateQueryMetrics;
+
     public static DocumentDBConfigBuilder builder(String uri, CosmosKeyCredential cosmosKeyCredential,
                                                   String database) {
         return defaultBuilder()

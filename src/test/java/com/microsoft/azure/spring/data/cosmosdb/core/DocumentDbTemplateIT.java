@@ -84,6 +84,8 @@ public class DocumentDbTemplateIT {
     private String documentDbUri;
     @Value("${cosmosdb.key}")
     private String documentDbKey;
+    @Value("${cosmosdb.populateQueryMetrics}")
+    private boolean populateQueryMetrics;
 
     private static DocumentDbTemplate dbTemplate;
     private static DocumentDbEntityInformation<Person, String> personInfo;
@@ -104,6 +106,7 @@ public class DocumentDbTemplateIT {
             final DocumentDBConfig dbConfig = DocumentDBConfig.builder(documentDbUri,
                     documentDbKey, DB_NAME).build();
             dbConfig.setResponseDiagnosticsProcessor(responseDiagnosticsTestUtils.getResponseDiagnosticsProcessor());
+            dbConfig.setPopulateQueryMetrics(populateQueryMetrics);
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             final DocumentDbMappingContext mappingContext = new DocumentDbMappingContext();
@@ -138,8 +141,7 @@ public class DocumentDbTemplateIT {
         final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(), Person.class);
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -147,8 +149,7 @@ public class DocumentDbTemplateIT {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class);
         assertEquals(result, TEST_PERSON);
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
                 NOT_EXIST_ID, Person.class);
@@ -209,8 +210,7 @@ public class DocumentDbTemplateIT {
         final Person result = dbTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         assertEquals(result, updated);
     }
@@ -259,8 +259,7 @@ public class DocumentDbTemplateIT {
         final long prevCount = dbTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         dbTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
@@ -271,8 +270,7 @@ public class DocumentDbTemplateIT {
         final long newCount = dbTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -290,8 +288,7 @@ public class DocumentDbTemplateIT {
         final long count = dbTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -305,8 +302,7 @@ public class DocumentDbTemplateIT {
         final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = dbTemplate.findAll(pageRequest, Person.class, collectionName);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
@@ -316,8 +312,7 @@ public class DocumentDbTemplateIT {
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -337,8 +332,7 @@ public class DocumentDbTemplateIT {
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -363,8 +357,7 @@ public class DocumentDbTemplateIT {
         assertThat(result.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(result.get(2).getFirstName()).isEqualTo(FIRST_NAME);
 
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test

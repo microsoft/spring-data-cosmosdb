@@ -31,4 +31,6 @@ public class DocumentDbProperties {
     private String secondaryKey;
 
     private String database;
+
+    private boolean populateQueryMetrics;
 }

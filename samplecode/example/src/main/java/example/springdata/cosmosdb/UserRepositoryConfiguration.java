@@ -18,18 +18,24 @@ package example.springdata.cosmosdb;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnostics;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.annotation.Nullable;
+
 
 @Configuration
 @EnableDocumentDbRepositories
 @EnableConfigurationProperties(DocumentDbProperties.class)
 @PropertySource("classpath:application.properties")
+@Slf4j
 public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration {
 
     @Autowired
@@ -40,7 +46,11 @@ public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration
     @Bean
     public DocumentDBConfig documentDBConfig() {
         this.cosmosKeyCredential = new CosmosKeyCredential(properties.getKey());
-        return DocumentDBConfig.builder(properties.getUri(), cosmosKeyCredential, properties.getDatabase()).build();
+        DocumentDBConfig dbConfig = DocumentDBConfig.builder(properties.getUri(),
+            cosmosKeyCredential, properties.getDatabase()).build();
+        dbConfig.setPopulateQueryMetrics(properties.isPopulateQueryMetrics());
+        dbConfig.setResponseDiagnosticsProcessor(new ResponseDiagnosticsProcessorImplementation());
+        return dbConfig;
     }
 
     public void switchToSecondaryKey() {
@@ -53,5 +63,14 @@ public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration
 
     public void switchKey(String key) {
         this.cosmosKeyCredential.key(key);
+    }
+
+
+    private static class ResponseDiagnosticsProcessorImplementation implements ResponseDiagnosticsProcessor {
+
+        @Override
+        public void processResponseDiagnostics(@Nullable ResponseDiagnostics responseDiagnostics) {
+            log.info("Response Diagnostics {}", responseDiagnostics);
+        }
     }
 }
