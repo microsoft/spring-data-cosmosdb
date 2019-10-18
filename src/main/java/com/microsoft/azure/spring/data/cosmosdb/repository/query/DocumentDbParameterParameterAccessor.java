@@ -10,6 +10,11 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * {@link DocumentDbParameterParameterAccessor} is deprecated.
+ * Instead use CosmosParameterParameterAccessor, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbParameterParameterAccessor extends ParametersParameterAccessor
         implements DocumentDbParameterAccessor {
 

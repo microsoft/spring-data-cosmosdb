@@ -10,6 +10,11 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 
+/**
+ * {@link AbstractDocumentDbQuery} is deprecated.
+ * Instead use AbstractCosmosQuery, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public abstract class AbstractDocumentDbQuery implements RepositoryQuery {
 
     private final DocumentDbQueryMethod method;

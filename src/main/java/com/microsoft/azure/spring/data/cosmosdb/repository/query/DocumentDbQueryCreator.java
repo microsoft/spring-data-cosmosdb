@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * {@link DocumentDbQueryCreator} is deprecated.
+ * Instead use CosmosQueryCreator, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class DocumentDbQueryCreator extends AbstractQueryCreator<DocumentQuery, Criteria> {
 
     private final MappingContext<?, DocumentDbPersistentProperty> mappingContext;

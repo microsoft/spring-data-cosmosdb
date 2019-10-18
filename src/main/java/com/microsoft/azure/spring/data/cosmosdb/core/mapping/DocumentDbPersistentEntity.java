@@ -8,7 +8,11 @@ package com.microsoft.azure.spring.data.cosmosdb.core.mapping;
 
 import org.springframework.data.mapping.PersistentEntity;
 
-
+/**
+ * {@link DocumentDbPersistentEntity} is deprecated.
+ * Instead use CosmosPersistentEntity, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbPersistentEntity<T> extends PersistentEntity<T, DocumentDbPersistentProperty> {
 
     String getCollection();

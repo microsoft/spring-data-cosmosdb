@@ -19,6 +19,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * {@link AbstractDocumentDbConfiguration} is deprecated.
+ * Instead use AbstractCosmosConfiguration, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 @Configuration
 public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigurationSupport {
     @Bean

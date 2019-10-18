@@ -10,6 +10,11 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * {@link DocumentDbQueryExecution} is deprecated.
+ * Instead use CosmosQueryExecution, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public interface DocumentDbQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String collection);
 

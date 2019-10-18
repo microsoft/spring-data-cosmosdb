@@ -51,10 +51,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 
- * @author Domenico Sibilio
- *
+ * {@link DocumentDbTemplate} is deprecated.
+ * Instead use CosmosTemplate, which is introduced in 2.2.0 version.
  */
+@Deprecated
 @Slf4j
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
 
@@ -106,7 +106,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse response = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .createItem(originalItem, options)
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (response == null) {
@@ -145,7 +145,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                             .stream()
                             .map(cosmosItem -> mappingDocumentDbConverter.read(domainClass, cosmosItem))
                             .findFirst()))
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .blockFirst();
 
         } catch (Exception e) {
@@ -170,7 +170,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .read()
                 .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
                     cosmosItemResponse.properties())))
-                .onErrorResume(Mono::error)
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .block();
 
         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .upsertItem(originalItem, options)
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(this::databaseAccessExceptionHandler)
                     .block();
 
             if (cosmosItemResponse == null) {
@@ -258,13 +258,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     @Override
     public DocumentCollection createCollectionIfNotExists(@NonNull DocumentDbEntityInformation<?, ?> information) {
         final CosmosContainerResponse response = cosmosClient
-                .createDatabaseIfNotExists(this.databaseName)
-                .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
-                        .database()
-                        .createContainerIfNotExists(information.getCollectionName(),
-                                "/" + information.getPartitionKeyFieldName())
-                        .map(cosmosContainerResponse -> cosmosContainerResponse))
-                .block();
+            .createDatabaseIfNotExists(this.databaseName)
+            .flatMap(cosmosDatabaseResponse -> cosmosDatabaseResponse
+                .database()
+                .createContainerIfNotExists(information.getCollectionName(),
+                    "/" + information.getPartitionKeyFieldName(),
+                    information.getRequestUnit()))
+            .block();
         if (response == null) {
             throw new DocumentDBAccessException("Failed to create collection");
         }
@@ -288,7 +288,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             .getContainer(collectionName)
             .getItem(id.toString(), partitionKey)
             .delete(options)
-            .onErrorResume(Mono::error)
+            .onErrorResume(this::databaseAccessExceptionHandler)
             .then()
             .block();
         } catch (Exception e) {

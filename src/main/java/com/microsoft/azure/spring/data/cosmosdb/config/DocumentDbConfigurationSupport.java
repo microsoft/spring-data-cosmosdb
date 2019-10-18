@@ -29,7 +29,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
+/**
+ * {@link DocumentDbConfigurationSupport} is deprecated.
+ * Instead use CosmosConfigurationSupport, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public abstract class DocumentDbConfigurationSupport {
 
     @Bean

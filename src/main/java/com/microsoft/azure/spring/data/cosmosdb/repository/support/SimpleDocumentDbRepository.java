@@ -27,6 +27,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+/**
+ * {@link SimpleDocumentDbRepository} is deprecated.
+ * Instead use SimpleCosmosRepository, which is introduced in 2.2.0 version.
+ */
+@Deprecated
 public class SimpleDocumentDbRepository<T, ID extends Serializable> implements DocumentDbRepository<T, ID> {
 
     private final DocumentDbOperations operation;
@@ -179,6 +184,14 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         Assert.notNull(id, "id to be deleted should not be null");
 
         operation.deleteById(information.getCollectionName(), id, null);
+    }
+
+    @Override
+    public void deleteById(ID id, PartitionKey partitionKey) {
+        Assert.notNull(id, "id to be deleted should not be null");
+        Assert.notNull(partitionKey, "partitionKey to be deleted should not be null");
+
+        operation.deleteById(information.getCollectionName(), id, partitionKey);
     }
 
     /**

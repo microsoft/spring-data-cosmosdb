@@ -295,7 +295,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(TEST_PERSON_3,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
 
-        final Sort sort = new Sort(Sort.Direction.DESC, "firstName");
+        final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = DocumentDbPageRequest.of(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> page = dbTemplate.findAll(pageRequest, Person.class, collectionName);
@@ -323,7 +323,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(testPerson5,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(testPerson5)));
 
-        final Sort sort = new Sort(Sort.Direction.ASC, "firstName");
+        final Sort sort = Sort.by(Sort.Direction.ASC, "firstName");
         final PageRequest pageRequest = DocumentDbPageRequest.of(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> firstPage = dbTemplate.findAll(pageRequest, Person.class,
