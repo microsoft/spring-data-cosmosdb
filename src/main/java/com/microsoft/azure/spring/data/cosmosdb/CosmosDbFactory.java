@@ -60,9 +60,6 @@ public class CosmosDbFactory {
                                             .toUpperCase(Locale.getDefault());
         }
 
-        //  Setting Direct Mode Protocol as Https
-        //  There is some version issue with Tcp protocol
-        System.setProperty(Constants.AZURE_COSMOS_DIRECT_MODE_PROTOCOL_PROPERTY, "Https");
         return CosmosClient.builder()
                            .endpoint(config.getUri())
                            .key(config.getKey())
