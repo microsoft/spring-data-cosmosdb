@@ -59,6 +59,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     private final MappingCosmosConverter mappingCosmosConverter;
     private final String databaseName;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
+    private final boolean isPopulateQueryMetrics;
 
     private final CosmosClient cosmosClient;
     private Function<Class<?>, CosmosEntityInformation<?, ?>> entityInfoCreator =
@@ -75,6 +76,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         this.databaseName = dbName;
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
         this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
+        this.isPopulateQueryMetrics = cosmosDbFactory.getConfig().isPopulateQueryMetrics();
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -163,6 +165,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             final String query = String.format("select * from root where root.id = '%s'", id.toString());
             final FeedOptions options = new FeedOptions();
             options.enableCrossPartitionQuery(true);
+            options.populateQueryMetrics(isPopulateQueryMetrics);
             return cosmosClient
                     .getDatabase(databaseName)
                     .getContainer(collectionName)
@@ -398,6 +401,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
 
         feedOptions.maxItemCount(pageable.getPageSize());
         feedOptions.enableCrossPartitionQuery(query.isCrossPartitionQuery(getPartitionKeyNames(domainClass)));
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
 
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final FeedResponse<CosmosItemProperties> feedResponse =
@@ -471,6 +475,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         final FeedOptions options = new FeedOptions();
 
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
+        options.populateQueryMetrics(isPopulateQueryMetrics);
 
         return executeQuery(querySpec, containerName, options)
                 .onErrorResume(this::databaseAccessExceptionHandler)
@@ -517,6 +522,8 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
                 query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.enableCrossPartitionQuery(isCrossPartitionQuery);
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
+
         return cosmosClient
                 .getDatabase(this.databaseName)
                 .getContainer(containerName)

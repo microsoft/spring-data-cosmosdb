@@ -38,6 +38,9 @@ public class CosmosDBConfig {
     @Setter
     private ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
 
+    @Setter
+    private boolean populateQueryMetrics;
+
     public static CosmosDBConfigBuilder builder(String uri, CosmosKeyCredential cosmosKeyCredential,
                                                   String database) {
         return defaultBuilder()
