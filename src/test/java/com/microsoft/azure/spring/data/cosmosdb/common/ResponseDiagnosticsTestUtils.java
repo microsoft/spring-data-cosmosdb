@@ -22,7 +22,6 @@ public class ResponseDiagnosticsTestUtils {
 
     public ResponseDiagnosticsTestUtils() {
         responseDiagnosticsProcessor = responseDiagnostics -> {
-            log.info("response diagnostics {}", responseDiagnostics);
             diagnostics = responseDiagnostics;
         };
     }
