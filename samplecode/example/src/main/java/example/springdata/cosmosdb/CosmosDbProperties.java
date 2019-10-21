@@ -31,4 +31,6 @@ public class CosmosDbProperties {
     private String secondaryKey;
 
     private String database;
+
+    private boolean populateQueryMetrics;
 }

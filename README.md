@@ -101,9 +101,15 @@ Use `@EnableCosmosRepositories` to enable sync repository support.
 
 For reactive repository support, use `@EnableReactiveCosmosRepositories`
 
+### Response Diagnostics String and Query Metrics
+2.2.x supports Response Diagnostics String and Query Metrics. 
+Set `populateQueryMetrics` flag to true in application.properties to enable query metrics.
+In addition to setting the flag, implement `ResponseDiagnosticsProcessor` to log diagnostics information. 
+
 ```java
 @Configuration
 @EnableCosmosRepositories
+@Slf4j
 public class AppConfiguration extends AbstractCosmosConfiguration {
 
     @Value("${azure.cosmosdb.uri}")
@@ -117,17 +123,33 @@ public class AppConfiguration extends AbstractCosmosConfiguration {
 
     @Value("${azure.cosmosdb.database}")
     private String dbName;
+
+    @Value("${azure.cosmosdb.populateQueryMetrics}")
+    private boolean populateQueryMetrics;
     
     private CosmosKeyCredential cosmosKeyCredential;
 
     public CosmosDBConfig getConfig() {
         this.cosmosKeyCredential = new CosmosKeyCredential(key);
-        return CosmosDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
+        CosmosDbConfig cosmosdbConfig = CosmosDBConfig.builder(uri, 
+            this.cosmosKeyCredential, dbName).build();
+        cosmosdbConfig.setPopulateQueryMetrics(populateQueryMetrics);
+        cosmosdbConfig.setResponseDiagnosticsProcessor(new ResponseDiagnosticsProcessorImplementation());
+        return cosmosdbConfig;
     }
     
     public void switchToSecondaryKey() {
         this.cosmosKeyCredential.key(secondaryKey);
     }
+    
+    private static class ResponseDiagnosticsProcessorImplementation implements ResponseDiagnosticsProcessor {
+    
+        @Override
+        public void processResponseDiagnostics(@Nullable ResponseDiagnostics responseDiagnostics) {
+            log.info("Response Diagnostics {}", responseDiagnostics);
+        }
+    }
+
 }
 ```
 Or if you want to customize your config:
