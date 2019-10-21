@@ -199,7 +199,7 @@ public class User {
 
     @Override
     public String toString() {
-        return String.format("User: %s %s, %s", firstName, lastName);
+        return String.format("User: %s %s, %s", firstName, lastName, id);
     }
 }
 ```
