@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.ResponseDiagnosticsTestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
@@ -24,7 +25,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
@@ -35,6 +35,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
@@ -56,10 +60,6 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.UPDA
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = { "classpath:application.properties" })
@@ -83,11 +83,14 @@ public class CosmosTemplateIT {
     private String cosmosDbUri;
     @Value("${cosmosdb.key}")
     private String cosmosDbKey;
+    @Value("${cosmosdb.populateQueryMetrics}")
+    private boolean populateQueryMetrics;
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosEntityInformation<Person, String> personInfo;
     private static String collectionName;
     private static boolean initialized;
+    private static ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
 
     private Person insertedPerson;
 
@@ -97,8 +100,11 @@ public class CosmosTemplateIT {
     @Before
     public void setup() throws ClassNotFoundException {
         if (!initialized) {
+            responseDiagnosticsTestUtils = new ResponseDiagnosticsTestUtils();
             final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri,
                     cosmosDbKey, DB_NAME).build();
+            dbConfig.setResponseDiagnosticsProcessor(responseDiagnosticsTestUtils.getResponseDiagnosticsProcessor());
+            dbConfig.setPopulateQueryMetrics(populateQueryMetrics);
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
@@ -133,6 +139,7 @@ public class CosmosTemplateIT {
         final List<Person> result = cosmosTemplate.findAll(Person.class.getSimpleName(), Person.class);
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -140,6 +147,7 @@ public class CosmosTemplateIT {
         final Person result = cosmosTemplate.findById(Person.class.getSimpleName(),
                 TEST_PERSON.getId(), Person.class);
         assertEquals(result, TEST_PERSON);
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         final Person nullResult = cosmosTemplate.findById(Person.class.getSimpleName(),
                 NOT_EXIST_ID, Person.class);
@@ -155,6 +163,8 @@ public class CosmosTemplateIT {
 
         final List<Object> ids = Lists.newArrayList(ID_1, ID_2, ID_3);
         final List<Person> result = cosmosTemplate.findByIds(ids, Person.class, collectionName);
+
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         final List<Person> expected = Lists.newArrayList(TEST_PERSON, TEST_PERSON_2, TEST_PERSON_3);
         assertThat(result.size()).isEqualTo(expected.size());
@@ -174,7 +184,12 @@ public class CosmosTemplateIT {
         cosmosTemplate.upsert(Person.class.getSimpleName(), newPerson,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final List<Person> result = cosmosTemplate.findAll(Person.class);
+
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0).getFirstName(), firstName);
@@ -188,8 +203,13 @@ public class CosmosTemplateIT {
 
         cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null);
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final Person result = cosmosTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
+
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
         assertEquals(result, updated);
     }
@@ -225,7 +245,12 @@ public class CosmosTemplateIT {
         cosmosTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(),
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final List<Person> result = cosmosTemplate.findAll(Person.class);
+
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_2);
     }
@@ -235,11 +260,18 @@ public class CosmosTemplateIT {
         final long prevCount = cosmosTemplate.count(collectionName);
         assertThat(prevCount).isEqualTo(1);
 
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+
         cosmosTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+
         final long newCount = cosmosTemplate.count(collectionName);
         assertThat(newCount).isEqualTo(2);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -247,12 +279,17 @@ public class CosmosTemplateIT {
         cosmosTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
         final long count = cosmosTemplate.count(query, Person.class, collectionName);
         assertThat(count).isEqualTo(1);
+
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -260,22 +297,34 @@ public class CosmosTemplateIT {
         cosmosTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
 
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+
         final Page<Person> page2 = cosmosTemplate.findAll(page1.getPageable(), Person.class,
                 collectionName);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
     public void testPaginationQuery() {
         cosmosTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(FIRST_NAME));
@@ -285,6 +334,9 @@ public class CosmosTemplateIT {
         final Page<Person> page = cosmosTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, PAGE_SIZE_2);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
     }
 
     @Test
@@ -293,6 +345,9 @@ public class CosmosTemplateIT {
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
         cosmosTemplate.insert(TEST_PERSON_3,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = CosmosPageRequest.of(0, PAGE_SIZE_3, null, sort);
@@ -305,6 +360,9 @@ public class CosmosTemplateIT {
         assertThat(result.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(result.get(1).getFirstName()).isEqualTo(NEW_FIRST_NAME);
         assertThat(result.get(2).getFirstName()).isEqualTo(FIRST_NAME);
+
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
 
     }
 
