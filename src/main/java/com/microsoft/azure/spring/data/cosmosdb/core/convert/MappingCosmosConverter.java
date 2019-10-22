@@ -8,7 +8,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.internal.Utils;
 import com.azure.data.cosmos.internal.query.QueryItem;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
@@ -16,7 +15,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentEnt
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -54,11 +52,6 @@ public class MappingCosmosConverter
         this.conversionService = new GenericConversionService();
         this.objectMapper = objectMapper == null ? ObjectMapperFactory.getObjectMapper() :
             objectMapper;
-
-        // CosmosDB SDK serializes and deserializes logger, which causes this issue:
-        // https://github.com/microsoft/spring-data-cosmosdb/issues/423
-        //  This is a temporary fix while CosmosDB fixes this problem.
-        Utils.getSimpleObjectMapper().addMixIn(QueryItem.class, QueryItemMixIn.class);
     }
 
     @Override
@@ -184,10 +177,5 @@ public class MappingCosmosConverter
         }
 
         return fromPropertyValue;
-    }
-
-    interface QueryItemMixIn {
-        @JsonIgnore
-        Logger getLogger();
     }
 }
