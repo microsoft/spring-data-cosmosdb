@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 public class PageablePersonRepositoryIT {
 
-    private static final int TOTAL_CONTENT_SIZE = 40;
+    private static final int TOTAL_CONTENT_SIZE = 50;
 
     private final CosmosEntityInformation<Person, String> entityInformation =
         new CosmosEntityInformation<>(Person.class);
@@ -91,28 +91,33 @@ public class PageablePersonRepositoryIT {
     //  This test covers the case where page size is greater than returned documents
     @Test
     public void testFindAllWithPageSizeGreaterThanReturned() {
-        final Set<Person> outputSet = findAllWithPageSize(20);
+        final Set<Person> outputSet = findAllWithPageSize(30, false);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
     //  This test covers the case where page size is less than returned documents
     @Test
     public void testFindAllWithPageSizeLessThanReturned() {
-        final Set<Person> outputSet = findAllWithPageSize(5);
+        final Set<Person> outputSet = findAllWithPageSize(5, false);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
     //  This test covers the case where page size is greater than total number of documents
     @Test
     public void testFindAllWithPageSizeGreaterThanTotal() {
-        final Set<Person> outputSet = findAllWithPageSize(120);
+        final Set<Person> outputSet = findAllWithPageSize(120, true);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
-    private Set<Person> findAllWithPageSize(int pageSize) {
+    private Set<Person> findAllWithPageSize(int pageSize, boolean checkContentLimit) {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
         Page<Person> page = repository.findAll(pageRequest);
         final Set<Person> outputSet = new HashSet<>(page.getContent());
+        if (checkContentLimit) {
+            //  Make sure CosmosDB returns less number of documents than requested
+            //  This will verify the functionality of new pagination implementation
+            assertThat(page.getContent().size()).isLessThan(pageSize);
+        }
         while (page.hasNext()) {
             final Pageable pageable = page.nextPageable();
             page = repository.findAll(pageable);
