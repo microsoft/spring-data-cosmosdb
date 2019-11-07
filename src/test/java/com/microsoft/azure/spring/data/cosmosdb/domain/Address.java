@@ -11,7 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-@Document(ru = "1000")
+import java.util.Objects;
+
+@Document(ru = "400")
 @Data
 @AllArgsConstructor
 public class Address {
@@ -20,4 +22,23 @@ public class Address {
     String street;
     @PartitionKey
     String city;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final Address address = (Address) o;
+        return Objects.equals(postalCode, address.postalCode) &&
+            Objects.equals(street, address.street) &&
+            Objects.equals(city, address.city);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(postalCode, street, city);
+    }
 }

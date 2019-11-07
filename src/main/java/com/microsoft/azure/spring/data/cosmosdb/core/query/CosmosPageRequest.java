@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core.query;
 
 import com.azure.data.cosmos.FeedResponse;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Sort;
 public class CosmosPageRequest extends PageRequest {
     private static final long serialVersionUID = 6093304300037688375L;
 
+    private long offset;
+
     // Request continuation token used to resume query
     private String requestContinuation;
 
@@ -27,17 +30,41 @@ public class CosmosPageRequest extends PageRequest {
         this.requestContinuation = requestContinuation;
     }
 
-    public static CosmosPageRequest of(int page, int size, String requestContinuation) {
-        return new CosmosPageRequest(page, size, requestContinuation);
-    }
-
     public CosmosPageRequest(int page, int size, String requestContinuation, Sort sort) {
         super(page, size, sort);
         this.requestContinuation = requestContinuation;
     }
 
+    private CosmosPageRequest(long offset, int page, int size, String requestContinuation) {
+        super(page, size, Sort.unsorted());
+        this.offset = offset;
+        this.requestContinuation = requestContinuation;
+    }
+
+    private CosmosPageRequest(long offset, int page, int size, String requestContinuation,
+                              Sort sort) {
+        super(page, size, sort);
+        this.offset = offset;
+        this.requestContinuation = requestContinuation;
+    }
+
     public static CosmosPageRequest of(int page, int size, String requestContinuation, Sort sort) {
-        return new CosmosPageRequest(page, size, requestContinuation, sort);
+        return new CosmosPageRequest(0, page, size, requestContinuation, sort);
+    }
+
+    public static CosmosPageRequest of(long offset, int page, int size, String requestContinuation, Sort sort) {
+        return new CosmosPageRequest(offset, page, size, requestContinuation, sort);
+    }
+
+    @Override
+    public Pageable next() {
+        return new CosmosPageRequest(this.offset + (long) this.getPageSize(),
+            this.getPageNumber() + 1, getPageSize(), this.requestContinuation);
+    }
+
+    @Override
+    public long getOffset() {
+        return offset;
     }
 
     public String getRequestContinuation() {

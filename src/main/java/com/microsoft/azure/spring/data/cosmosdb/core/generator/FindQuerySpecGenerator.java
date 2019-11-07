@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
+import com.azure.data.cosmos.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class FindQuerySpecGenerator extends AbstractQueryGenerator implements QuerySpecGenerator {
 
     @Override
-    public com.azure.data.cosmos.SqlQuerySpec generateCosmos(DocumentQuery query) {
+    public SqlQuerySpec generateCosmos(DocumentQuery query) {
         return super.generateCosmosQuery(query, "SELECT * FROM ROOT r");
     }
 }

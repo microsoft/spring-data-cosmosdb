@@ -23,6 +23,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.Memoizer;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.CountQueryGenerator;
 import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGenerator;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageImpl;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
@@ -34,7 +35,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
@@ -431,12 +431,29 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             result.add(entity);
         }
 
-        final CosmosPageRequest pageRequest = CosmosPageRequest.of(pageable.getPageNumber(),
-                pageable.getPageSize(),
-                feedResponse.continuationToken(),
-                query.getSort());
+        final long total = count(query, domainClass, collectionName);
+        final int contentSize = result.size();
 
-        return new PageImpl<>(result, pageRequest, count(query, domainClass, collectionName));
+        int pageSize;
+
+        if (contentSize < pageable.getPageSize() && contentSize > 0) {
+            //  If the content size is less than page size,
+            //  this means, cosmosDB is returning less documents than page size,
+            //  because of either RU limit, or payload limit
+
+            //  Set the page size to content size.
+            pageSize = contentSize;
+        } else {
+            pageSize = pageable.getPageSize();
+        }
+
+        final CosmosPageRequest pageRequest = CosmosPageRequest.of(pageable.getOffset(),
+            pageable.getPageNumber(),
+            pageSize,
+            feedResponse.continuationToken(),
+            query.getSort());
+
+        return new CosmosPageImpl<>(result, pageRequest, total);
     }
 
     @Override

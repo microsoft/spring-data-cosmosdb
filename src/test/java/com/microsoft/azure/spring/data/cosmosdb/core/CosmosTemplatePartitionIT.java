@@ -241,6 +241,6 @@ public class CosmosTemplatePartitionIT {
 
         final Page<PartitionPerson> page = cosmosTemplate.paginationQuery(query, PartitionPerson.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
-        validateLastPage(page, PAGE_SIZE_2);
+        validateLastPage(page, page.getContent().size());
     }
 }
