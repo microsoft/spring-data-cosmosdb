@@ -131,7 +131,6 @@ public class PageableMemoRepositoryIT {
     }
 
     private Flux<FeedResponse<CosmosItemProperties>> getItemsWithOffsetAndLimit(int skipCount, int takeCount) {
-        final List<CosmosItemProperties> results = new ArrayList<>();
         final FeedOptions options = new FeedOptions();
         options.enableCrossPartitionQuery(true);
         options.maxDegreeOfParallelism(2);
