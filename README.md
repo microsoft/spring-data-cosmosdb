@@ -65,7 +65,7 @@ class MyDocument {
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField`
 - Supports [Spring Data pagable and sort](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.special-parameters).
   - Based on available RUs on the database account, cosmosDB can return documents less than or equal to the requested size.
-  - Due to this variable number of returned documents, iterating over pageable should be done in this way.  
+  - Due to this variable number of returned documents in every iteration, user should not rely on the totalPageSize, and instead iterating over pageable should be done in this way.  
 ```java
     final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
     Page<T> page = tRepository.findAll(pageRequest);
