@@ -36,7 +36,7 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     private RequestOptions getRequestOptions() {
         final RequestOptions options = new RequestOptions();
 
-        options.setConsistencyLevel(ConsistencyLevel.CONSISTENT_PREFIX);
+        options.setConsistencyLevel(ConsistencyLevel.SESSION);
 //        options.setDisableRUPerMinuteUsage(true);
         options.setScriptLoggingEnabled(true);
 

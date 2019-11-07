@@ -333,7 +333,7 @@ public class CosmosTemplateIT {
 
         final Page<Person> page = cosmosTemplate.paginationQuery(query, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(1);
-        validateLastPage(page, PAGE_SIZE_2);
+        validateLastPage(page, page.getContent().size());
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
@@ -350,7 +350,7 @@ public class CosmosTemplateIT {
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
 
         final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
-        final PageRequest pageRequest = CosmosPageRequest.of(0, PAGE_SIZE_3, null, sort);
+        final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> page = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
         assertThat(page.getContent().size()).isEqualTo(3);
@@ -381,13 +381,13 @@ public class CosmosTemplateIT {
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(testPerson5)));
 
         final Sort sort = Sort.by(Sort.Direction.ASC, "firstName");
-        final PageRequest pageRequest = CosmosPageRequest.of(0, PAGE_SIZE_3, null, sort);
+        final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> firstPage = cosmosTemplate.findAll(pageRequest, Person.class,
                 collectionName);
 
         assertThat(firstPage.getContent().size()).isEqualTo(3);
-        validateNonLastPage(firstPage, PAGE_SIZE_3);
+        validateNonLastPage(firstPage, firstPage.getContent().size());
 
         final List<Person> firstPageResults = firstPage.getContent();
         assertThat(firstPageResults.get(0).getFirstName()).isEqualTo(testPerson4.getFirstName());
@@ -398,7 +398,7 @@ public class CosmosTemplateIT {
                 collectionName);
 
         assertThat(secondPage.getContent().size()).isEqualTo(2);
-        validateLastPage(secondPage, PAGE_SIZE_3);
+        validateLastPage(secondPage, secondPage.getContent().size());
 
         final List<Person> secondPageResults = secondPage.getContent();
         assertThat(secondPageResults.get(0).getFirstName()).isEqualTo(NEW_FIRST_NAME);

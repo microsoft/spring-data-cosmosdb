@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
+import com.azure.data.cosmos.SqlParameterList;
 import com.azure.data.cosmos.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
@@ -204,8 +205,8 @@ public abstract class AbstractQueryGenerator {
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
         final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
         final List<Pair<String, Object>> parameters = queryBody.getValue1();
-        final com.azure.data.cosmos.SqlParameterList sqlParameters =
-                new com.azure.data.cosmos.SqlParameterList();
+        final SqlParameterList sqlParameters =
+                new SqlParameterList();
 
         sqlParameters.addAll(
                 parameters.stream()
@@ -214,6 +215,6 @@ public abstract class AbstractQueryGenerator {
                         .collect(Collectors.toList())
         );
 
-        return new com.azure.data.cosmos.SqlQuerySpec(queryString, sqlParameters);
+        return new SqlQuerySpec(queryString, sqlParameters);
     }
 }

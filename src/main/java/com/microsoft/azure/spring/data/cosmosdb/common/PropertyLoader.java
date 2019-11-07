@@ -39,8 +39,9 @@ public class PropertyLoader {
             allowed = getPropertyByName("telemetryAllowed", APPLICATION_YML_FILE);
         }
 
+        //  Default, no telemetry
         if (allowed == null) {
-            return true;
+            return false;
         } else {
             return !allowed.equalsIgnoreCase("false");
         }

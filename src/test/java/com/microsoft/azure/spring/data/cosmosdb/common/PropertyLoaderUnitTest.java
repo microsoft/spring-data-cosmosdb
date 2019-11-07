@@ -22,6 +22,6 @@ public class PropertyLoaderUnitTest {
     public void testGetApplicationTelemetryAllowed() {
         final boolean isAllowed = PropertyLoader.isApplicationTelemetryAllowed();
 
-        Assert.assertTrue(isAllowed);
+        Assert.assertFalse(isAllowed);
     }
 }
