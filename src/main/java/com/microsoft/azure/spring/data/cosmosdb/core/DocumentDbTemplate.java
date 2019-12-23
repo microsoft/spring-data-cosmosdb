@@ -174,7 +174,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                     cosmosItemResponse.properties())))
                 .onErrorResume(e -> {
                     if (e instanceof CosmosClientException) {
-                        CosmosClientException cosmosClientException = (CosmosClientException) e;
+                        final CosmosClientException cosmosClientException = (CosmosClientException) e;
                         if (cosmosClientException.statusCode() == HttpConstants.StatusCodes.NOTFOUND) {
                             return Mono.empty();
                         }
