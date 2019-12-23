@@ -43,7 +43,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         this.operation = applicationContext.getBean(DocumentDbOperations.class);
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            collection = createCollectionIfNotExists();
+        } else {
+            collection = null;
+        }
     }
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
@@ -51,7 +55,11 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         this.operation = dbOperations;
         this.information = metadata;
 
-        collection = createCollectionIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            collection = createCollectionIfNotExists();
+        } else {
+            collection = null;
+        }
     }
 
     private DocumentCollection createCollectionIfNotExists() {
