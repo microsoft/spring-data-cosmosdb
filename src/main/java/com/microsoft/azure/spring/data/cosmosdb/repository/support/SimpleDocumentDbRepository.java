@@ -36,7 +36,6 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
 
     private final DocumentDbOperations operation;
     private final DocumentDbEntityInformation<T, ID> information;
-    private final DocumentCollection collection;
 
     public SimpleDocumentDbRepository(DocumentDbEntityInformation<T, ID> metadata,
                                       ApplicationContext applicationContext) {
@@ -44,9 +43,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         this.information = metadata;
 
         if (this.information.isAutoCreateCollection()) {
-            collection = createCollectionIfNotExists();
-        } else {
-            collection = null;
+            createCollectionIfNotExists();
         }
     }
 
@@ -56,9 +53,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
         this.information = metadata;
 
         if (this.information.isAutoCreateCollection()) {
-            collection = createCollectionIfNotExists();
-        } else {
-            collection = null;
+            createCollectionIfNotExists();
         }
     }
 
