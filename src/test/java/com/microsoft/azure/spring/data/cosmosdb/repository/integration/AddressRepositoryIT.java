@@ -166,12 +166,12 @@ public class AddressRepositoryIT {
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
     }
 
-    @Test
+    @Test(expected = DocumentDBAccessException.class)
     public void testDeleteByIdAndPartitionKey() {
         final long count = repository.count();
         assertThat(count).isEqualTo(4);
 
-        Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+        final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
             new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
         assertThat(addressById.isPresent()).isTrue();
 
@@ -181,10 +181,8 @@ public class AddressRepositoryIT {
         final List<Address> result = TestUtils.toList(repository.findAll());
         assertThat(result.size()).isEqualTo(3);
 
-        addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+        repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
             new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
-
-        assertThat(addressById.isPresent()).isFalse();
     }
 
     @Test

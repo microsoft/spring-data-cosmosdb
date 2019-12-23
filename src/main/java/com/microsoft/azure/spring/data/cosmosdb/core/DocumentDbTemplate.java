@@ -9,7 +9,6 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.AccessCondition;
 import com.azure.data.cosmos.AccessConditionType;
 import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
@@ -17,7 +16,6 @@ import com.azure.data.cosmos.CosmosItemResponse;
 import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.SqlQuerySpec;
-import com.azure.data.cosmos.internal.HttpConstants;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
@@ -172,15 +170,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                 .read()
                 .flatMap(cosmosItemResponse -> Mono.justOrEmpty(toDomainObject(entityClass,
                     cosmosItemResponse.properties())))
-                .onErrorResume(e -> {
-                    if (e instanceof CosmosClientException) {
-                        final CosmosClientException cosmosClientException = (CosmosClientException) e;
-                        if (cosmosClientException.statusCode() == HttpConstants.StatusCodes.NOTFOUND) {
-                            return Mono.empty();
-                        }
-                    }
-                    return Mono.error(e);
-                })
+                .onErrorResume(this::databaseAccessExceptionHandler)
                 .block();
 
         } catch (Exception e) {
