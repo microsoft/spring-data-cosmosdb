@@ -36,7 +36,9 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         this.operation = applicationContext.getBean(CosmosOperations.class);
         this.information = metadata;
 
-        createCollectionIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            createCollectionIfNotExists();
+        }
     }
 
     public SimpleCosmosRepository(CosmosEntityInformation<T, ID> metadata,
@@ -44,7 +46,9 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         this.operation = dbOperations;
         this.information = metadata;
 
-        createCollectionIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            createCollectionIfNotExists();
+        }
     }
 
     private CosmosContainerProperties createCollectionIfNotExists() {

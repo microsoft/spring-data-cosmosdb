@@ -85,6 +85,15 @@ public class CosmosAnnotationUnitTest {
     }
 
     @Test
+    public void testAutoCreateCollectionAnnotation() {
+        final boolean autoCreateCollectionRoleInfo = roleInfo.isAutoCreateCollection();
+        final boolean autoCreateCollectionPersonInfo = personInfo.isAutoCreateCollection();
+
+        Assert.isTrue(!autoCreateCollectionRoleInfo, "autoCreateCollection in role should be false");
+        Assert.isTrue(autoCreateCollectionPersonInfo, "autoCreateCollection in person should be true");
+    }
+
+    @Test
     public void testDefaultDocumentAnnotationTimeToLive() {
         final Integer timeToLive = personInfo.getTimeToLive();
 

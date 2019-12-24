@@ -40,6 +40,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
     private boolean isVersioned;
+    private boolean autoCreateCollection;
 
     public CosmosEntityInformation(Class<T> domainClass) {
         super(domainClass);
@@ -57,6 +58,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
         this.isVersioned = getIsVersioned(domainClass);
+        this.autoCreateCollection = getIsAutoCreateCollection(domainClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -105,6 +107,10 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
 
     public String getPartitionKeyFieldValue(T entity) {
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
+    }
+
+    public boolean isAutoCreateCollection() {
+        return autoCreateCollection;
     }
 
     private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {
@@ -253,6 +259,17 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return findField != null 
                 && findField.getType() == String.class
                 && findField.isAnnotationPresent(Version.class);
+    }
+
+    private boolean getIsAutoCreateCollection(Class<T> domainClass) {
+        final Document annotation = domainClass.getAnnotation(Document.class);
+
+        boolean autoCreateCollection = Constants.DEFAULT_AUTO_CREATE_COLLECTION;
+        if (annotation != null) {
+            autoCreateCollection = annotation.autoCreateCollection();
+        }
+
+        return autoCreateCollection;
     }
 
 }
