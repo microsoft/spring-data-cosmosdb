@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.AccessCondition;
 import com.azure.data.cosmos.AccessConditionType;
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
@@ -18,6 +19,7 @@ import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.PartitionKey;
 import com.azure.data.cosmos.SqlQuerySpec;
+import com.azure.data.cosmos.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.Memoizer;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
@@ -147,7 +149,15 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
                     return Mono.justOrEmpty(toDomainObject(entityClass,
                         cosmosItemResponse.properties()));
                 })
-                .onErrorResume(Mono::error)
+                .onErrorResume(e -> {
+                    if (e instanceof CosmosClientException) {
+                        final CosmosClientException cosmosClientException = (CosmosClientException) e;
+                        if (cosmosClientException.statusCode() == HttpConstants.StatusCodes.NOTFOUND) {
+                            return Mono.empty();
+                        }
+                    }
+                    return Mono.error(e);
+                })
                 .block();
 
         } catch (Exception e) {
@@ -179,7 +189,15 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
                             .map(cosmosItem -> mappingCosmosConverter.read(domainClass, cosmosItem))
                             .findFirst());
                     })
-                    .onErrorResume(Mono::error)
+                    .onErrorResume(e -> {
+                        if (e instanceof CosmosClientException) {
+                            final CosmosClientException cosmosClientException = (CosmosClientException) e;
+                            if (cosmosClientException.statusCode() == HttpConstants.StatusCodes.NOTFOUND) {
+                                return Mono.empty();
+                            }
+                        }
+                        return Mono.error(e);
+                    })
                     .blockFirst();
 
         } catch (Exception e) {
