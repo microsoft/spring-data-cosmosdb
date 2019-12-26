@@ -359,6 +359,14 @@ public class ProjectRepositoryIT {
     }
 
     @Test
+    public void findByIdWithPartitionKeyNotFound() {
+        final Optional<Project> project = repository.findById("unknown-id",
+            new PartitionKey("unknown-partition-key"));
+
+        Assert.assertFalse(project.isPresent());
+    }
+
+    @Test
     public void testFindByIn() {
         List<Project> projects = repository.findByCreatorIn(Collections.singleton(FAKE_CREATOR));
 
