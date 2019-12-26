@@ -174,4 +174,11 @@ public class ContactRepositoryIT {
         Assert.assertEquals(TEST_CONTACT, optional.get());
         Assert.assertFalse(this.repository.findById("").isPresent());
     }
+
+    @Test
+    public void testFindByIdNotFound() {
+        final Optional<Contact> optional = this.repository.findById("unknown-id");
+
+        Assert.assertFalse(optional.isPresent());
+    }
 }
