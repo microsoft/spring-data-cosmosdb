@@ -28,7 +28,9 @@ import org.springframework.data.annotation.Id;
                 TestConstants.EXCLUDEDPATH_0,
                 TestConstants.EXCLUDEDPATH_1,
         })
-@Document(collection = TestConstants.ROLE_COLLECTION_NAME, ru = TestConstants.REQUEST_UNIT_STRING)
+@Document(collection = TestConstants.ROLE_COLLECTION_NAME,
+    ru = TestConstants.REQUEST_UNIT_STRING,
+    autoCreateCollection = false)
 public class Role {
     @Id
     String id;
