@@ -136,7 +136,7 @@ public class ProjectRepositorySortIT {
         this.repository.findAll(sort);
     }
 
-    @Test(expected = CosmosDBAccessException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testFindAllSortIgnoreCaseException() {
         final Sort.Order order = Sort.Order.by("name").ignoreCase();
         final Sort sort = Sort.by(order);

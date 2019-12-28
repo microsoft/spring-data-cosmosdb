@@ -9,6 +9,7 @@ import com.azure.data.cosmos.CosmosResponse;
 import com.azure.data.cosmos.CosmosResponseDiagnostics;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.FeedResponseDiagnostics;
+import com.azure.data.cosmos.Resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnostics;
 import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
@@ -34,8 +35,9 @@ public class CosmosdbUtils {
         }
     }
 
-    public static void fillAndProcessResponseDiagnostics(ResponseDiagnosticsProcessor responseDiagnosticsProcessor,
-                                                         CosmosResponse cosmosResponse, FeedResponse feedResponse) {
+    public static <T extends Resource> void fillAndProcessResponseDiagnostics(
+        ResponseDiagnosticsProcessor responseDiagnosticsProcessor,
+        CosmosResponse<T> cosmosResponse, FeedResponse<T> feedResponse) {
         if (responseDiagnosticsProcessor == null) {
             return;
         }
