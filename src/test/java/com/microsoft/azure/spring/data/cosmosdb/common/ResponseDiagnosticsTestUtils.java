@@ -33,4 +33,8 @@ public class ResponseDiagnosticsTestUtils {
     public FeedResponseDiagnostics getFeedResponseDiagnostics() {
         return diagnostics == null ? null : diagnostics.getFeedResponseDiagnostics();
     }
+
+    public ResponseDiagnostics.CosmosResponseStatistics getCosmosResponseStatistics() {
+        return diagnostics == null ? null : diagnostics.getCosmosResponseStatistics();
+    }
 }
