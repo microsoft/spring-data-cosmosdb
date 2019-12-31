@@ -21,7 +21,6 @@ import com.microsoft.azure.spring.data.cosmosdb.core.generator.FindQuerySpecGene
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
-import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -38,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils.fillAndProcessResponseDiagnostics;
+import static com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBExceptionUtils.exceptionHandler;
+import static com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBExceptionUtils.findAPIExceptionHandler;
 
 @Slf4j
 public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, ApplicationContextAware {
@@ -93,6 +94,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         return cosmosClient
             .createDatabaseIfNotExists(this.databaseName)
+            .onErrorResume(throwable ->
+                exceptionHandler("Failed to create database", throwable))
             .flatMap(cosmosDatabaseResponse -> {
                 fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                     cosmosDatabaseResponse, null);
@@ -105,7 +108,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                             cosmosContainerResponse, null);
                         this.collectionCache.add(information.getCollectionName());
                         return cosmosContainerResponse;
-                    });
+                    })
+                    .onErrorResume(throwable ->
+                        exceptionHandler("Failed to create collection", throwable));
             });
 
     }
@@ -179,7 +184,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                                     .map(cosmosItem -> toDomainObject(entityClass, cosmosItem))
                                     .findFirst());
                            })
-                           .onErrorResume(this::databaseAccessExceptionHandler)
+                           .onErrorResume(throwable ->
+                               findAPIExceptionHandler("Failed to find item", throwable))
                            .next();
     }
 
@@ -207,7 +213,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                                return Mono.justOrEmpty(toDomainObject(entityClass,
                                    cosmosItemResponse.properties()));
                            })
-                           .onErrorResume(this::databaseAccessExceptionHandler);
+                           .onErrorResume(throwable ->
+                               findAPIExceptionHandler("Failed to find item", throwable));
     }
 
     /**
@@ -233,15 +240,17 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
         final Class<T> domainClass = (Class<T>) objectToSave.getClass();
+        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(objectToSave);
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(getContainerName(objectToSave.getClass()))
-                .createItem(objectToSave, new CosmosItemRequestOptions())
-                .onErrorResume(this::databaseAccessExceptionHandler)
-                .flatMap(cosmosItemResponse -> {
-                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                        cosmosItemResponse, null);
-                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
-                });
+                           .getContainer(getContainerName(objectToSave.getClass()))
+                           .createItem(originalItem, new CosmosItemRequestOptions())
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to insert item", throwable))
+                           .flatMap(cosmosItemResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                   cosmosItemResponse, null);
+                               return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                           });
     }
 
     /**
@@ -256,21 +265,22 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
+        final Class<T> domainClass = (Class<T>) objectToSave.getClass();
+        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(objectToSave);
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         if (partitionKey != null) {
             options.partitionKey(partitionKey);
         }
-
-        final Class<T> domainClass = (Class<T>) objectToSave.getClass();
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .createItem(objectToSave, options)
-                .onErrorResume(this::databaseAccessExceptionHandler)
-                .flatMap(cosmosItemResponse -> {
-                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                        cosmosItemResponse, null);
-                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
-                });
+                           .getContainer(containerName)
+                           .createItem(originalItem, options)
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to insert item", throwable))
+                           .flatMap(cosmosItemResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                   cosmosItemResponse, null);
+                               return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                           });
     }
 
     /**
@@ -296,20 +306,22 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public <T> Mono<T> upsert(String containerName, T object, PartitionKey partitionKey) {
         final Class<T> domainClass = (Class<T>) object.getClass();
+        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(object);
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         if (partitionKey != null) {
             options.partitionKey(partitionKey);
         }
 
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .upsertItem(object, options)
-                .flatMap(cosmosItemResponse -> {
-                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                        cosmosItemResponse, null);
-                    return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
-                })
-                .onErrorResume(this::databaseAccessExceptionHandler);
+                           .getContainer(containerName)
+                           .upsertItem(originalItem, options)
+                           .flatMap(cosmosItemResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                   cosmosItemResponse, null);
+                               return Mono.just(toDomainObject(domainClass, cosmosItemResponse.properties()));
+                           })
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to upsert item", throwable));
     }
 
     /**
@@ -324,7 +336,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public Mono<Void> deleteById(String containerName, Object id, PartitionKey partitionKey) {
         Assert.hasText(containerName, "container name should not be null, empty or only whitespaces");
         assertValidId(id);
-        Assert.notNull(partitionKey, "partitionKey should not be null");
+
+        if (partitionKey == null) {
+            partitionKey = PartitionKey.None;
+        }
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         options.partitionKey(partitionKey);
@@ -335,7 +350,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                            .doOnNext(cosmosItemResponse ->
                                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                                cosmosItemResponse, null))
-                           .onErrorResume(this::databaseAccessExceptionHandler)
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to delete item", throwable))
                            .then();
     }
 
@@ -359,22 +375,26 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         options.enableCrossPartitionQuery(isCrossPartitionQuery);
         options.populateQueryMetrics(isPopulateQueryMetrics);
         return cosmosClient.getDatabase(this.databaseName)
-                    .getContainer(containerName)
-                    .queryItems(sqlQuerySpec, options)
-                    .flatMap(cosmosItemFeedResponse -> {
-                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                            null, cosmosItemFeedResponse);
-                        return Flux.fromIterable(cosmosItemFeedResponse.results());
-                    })
-                    .flatMap(cosmosItemProperties -> cosmosClient
-                        .getDatabase(this.databaseName)
-                        .getContainer(containerName)
-                        .getItem(cosmosItemProperties.id(), cosmosItemProperties.get(partitionKeyName))
-                        .delete()
-                        .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                            cosmosItemResponse, null)))
-                    .onErrorResume(this::databaseAccessExceptionHandler)
-                    .then();
+                           .getContainer(containerName)
+                           .queryItems(sqlQuerySpec, options)
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to query items", throwable))
+                           .flatMap(cosmosItemFeedResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                    null, cosmosItemFeedResponse);
+                               return Flux.fromIterable(cosmosItemFeedResponse.results());
+                           })
+                           .flatMap(cosmosItemProperties -> cosmosClient
+                               .getDatabase(this.databaseName)
+                               .getContainer(containerName)
+                               .getItem(cosmosItemProperties.id(), cosmosItemProperties.get(partitionKeyName))
+                               .delete()
+                               .doOnNext(cosmosItemResponse ->
+                                   fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                       cosmosItemResponse, null))
+                               .onErrorResume(throwable ->
+                                   exceptionHandler("Failed to delete items", throwable)))
+                           .then();
     }
 
     /**
@@ -391,10 +411,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(entityClass, "domainClass should not be null.");
         Assert.hasText(containerName, "container name should not be null, empty or only whitespaces");
 
-        final Flux<CosmosItemProperties> results = findDocuments(query, entityClass, containerName);
+        final Flux<CosmosItemProperties> results = findItems(query, entityClass, containerName);
         final List<String> partitionKeyName = getPartitionKeyNames(entityClass);
 
-        return results.flatMap(d -> deleteDocument(d, partitionKeyName, containerName))
+        return results.flatMap(d -> deleteItem(d, partitionKeyName, containerName))
                       .flatMap(cosmosItemProperties -> Mono.just(toDomainObject(entityClass, cosmosItemProperties)));
     }
 
@@ -408,7 +428,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      */
     @Override
     public <T> Flux<T> find(DocumentQuery query, Class<T> entityClass, String containerName) {
-        return findDocuments(query, entityClass, containerName)
+        return findItems(query, entityClass, containerName)
                 .map(cosmosItemProperties -> toDomainObject(entityClass, cosmosItemProperties));
     }
 
@@ -480,7 +500,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return executeQuery(querySpec, containerName, options)
                 .doOnNext(feedResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                     null, feedResponse))
-                .onErrorResume(this::databaseAccessExceptionHandler)
+                .onErrorResume(throwable ->
+                    exceptionHandler("Failed to get count value", throwable))
                 .next()
                 .map(r -> r.results().get(0).getLong(COUNT_VALUE_KEY));
     }
@@ -489,12 +510,10 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                                                         FeedOptions options) {
 
         return cosmosClient.getDatabase(this.databaseName)
-                .getContainer(collectionName)
-                .queryItems(sqlQuerySpec, options);
-    }
-
-    private <T> Mono<T> databaseAccessExceptionHandler(Throwable e) {
-        throw new CosmosDBAccessException("failed to access cosmosdb database", e);
+                           .getContainer(collectionName)
+                           .queryItems(sqlQuerySpec, options)
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to execute query", throwable));
     }
 
     /**
@@ -505,18 +524,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public void deleteContainer(@NonNull String containerName) {
         Assert.hasText(containerName, "containerName should have text.");
-        try {
-            cosmosClient.getDatabase(this.databaseName)
-                        .getContainer(containerName)
-                        .delete()
-                        .doOnNext(cosmosContainerResponse ->
-                            fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+        cosmosClient.getDatabase(this.databaseName)
+                    .getContainer(containerName)
+                    .delete()
+                    .doOnNext(cosmosContainerResponse ->
+                        fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                             cosmosContainerResponse, null))
-                        .block();
-            this.collectionCache.remove(containerName);
-        } catch (Exception e) {
-            throw new CosmosDBAccessException("failed to delete collection: " + containerName, e);
-        }
+                    .onErrorResume(throwable ->
+                        exceptionHandler("Failed to delete container", throwable))
+                    .block();
+        this.collectionCache.remove(containerName);
     }
 
     /**
@@ -529,8 +546,8 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return new CosmosEntityInformation<>(domainClass).getCollectionName();
     }
 
-    private Flux<CosmosItemProperties> findDocuments(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
-                                           @NonNull String containerName) {
+    private Flux<CosmosItemProperties> findItems(@NonNull DocumentQuery query, @NonNull Class<?> domainClass,
+                                                 @NonNull String containerName) {
         final SqlQuerySpec sqlQuerySpec = new FindQuerySpecGenerator().generateCosmos(query);
         final boolean isCrossPartitionQuery = query.isCrossPartitionQuery(getPartitionKeyNames(domainClass));
         final FeedOptions feedOptions = new FeedOptions();
@@ -545,7 +562,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                     fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                         null, cosmosItemFeedResponse);
                     return Flux.fromIterable(cosmosItemFeedResponse.results());
-                });
+                })
+                .onErrorResume(throwable ->
+                    exceptionHandler("Failed to query items", throwable));
     }
 
     private void assertValidId(Object id) {
@@ -565,9 +584,9 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return Collections.singletonList(entityInfo.getPartitionKeyFieldName());
     }
 
-    private Mono<CosmosItemProperties> deleteDocument(@NonNull CosmosItemProperties cosmosItemProperties,
-                                                    @NonNull List<String> partitionKeyNames,
-                                                    String containerName) {
+    private Mono<CosmosItemProperties> deleteItem(@NonNull CosmosItemProperties cosmosItemProperties,
+                                                  @NonNull List<String> partitionKeyNames,
+                                                  String containerName) {
         Assert.isTrue(partitionKeyNames.size() <= 1, "Only one Partition is supported.");
 
         PartitionKey partitionKey = null;
@@ -578,16 +597,17 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions(partitionKey);
 
-        return cosmosClient
-                .getDatabase(this.databaseName)
-                .getContainer(containerName)
-                .getItem(cosmosItemProperties.id(), partitionKey)
-                .delete(options)
-                .map(cosmosItemResponse -> {
-                    fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                        cosmosItemResponse, null);
-                    return cosmosItemProperties;
-                });
+        return cosmosClient.getDatabase(this.databaseName)
+                           .getContainer(containerName)
+                           .getItem(cosmosItemProperties.id(), partitionKey)
+                           .delete(options)
+                           .map(cosmosItemResponse -> {
+                               fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                                   cosmosItemResponse, null);
+                               return cosmosItemProperties;
+                           })
+                           .onErrorResume(throwable ->
+                               exceptionHandler("Failed to delete item", throwable));
     }
 
     private <T> T toDomainObject(@NonNull Class<T> domainClass, CosmosItemProperties cosmosItemProperties) {

@@ -11,6 +11,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableCosmosRepositories;
+import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableReactiveCosmosRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
 @EnableCosmosRepositories
+@EnableReactiveCosmosRepositories
 public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
     private String cosmosDbUri;
