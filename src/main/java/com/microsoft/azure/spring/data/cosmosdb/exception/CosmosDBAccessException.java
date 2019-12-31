@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.exception;
 
+import com.azure.data.cosmos.CosmosClientException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.lang.Nullable;
 
@@ -19,28 +20,30 @@ import org.springframework.lang.Nullable;
  */
 public class CosmosDBAccessException extends DataAccessException {
 
-    protected final Exception innerException;
+    protected final CosmosClientException cosmosClientException;
 
     public CosmosDBAccessException(String msg) {
         super(msg);
-        this.innerException = null;
+        this.cosmosClientException = null;
     }
 
     public CosmosDBAccessException(@Nullable String msg, @Nullable Throwable cause) {
         super(msg, cause);
-        if (cause instanceof Exception) {
-            this.innerException = (Exception) cause;
+        if (cause instanceof CosmosClientException) {
+            this.cosmosClientException = (CosmosClientException) cause;
         } else {
-            this.innerException = null;
+            this.cosmosClientException = null;
         }
     }
 
     public CosmosDBAccessException(@Nullable String msg, @Nullable Exception cause) {
         super(msg, cause);
-        this.innerException = cause;
+        this.cosmosClientException = cause instanceof CosmosClientException
+            ? (CosmosClientException) cause
+            : null;
     }
 
-    public Exception getInnerException() {
-        return innerException;
+    public CosmosClientException getCosmosClientException() {
+        return cosmosClientException;
     }
 }

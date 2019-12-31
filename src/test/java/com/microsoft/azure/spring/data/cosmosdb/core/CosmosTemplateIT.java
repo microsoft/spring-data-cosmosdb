@@ -235,8 +235,8 @@ public class CosmosTemplateIT {
         try {
             cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null);
         } catch (CosmosDBAccessException e) {
-            assertThat(e.getInnerException()).isNotNull();
-            final Throwable cosmosClientException = e.getInnerException();
+            assertThat(e.getCosmosClientException()).isNotNull();
+            final Throwable cosmosClientException = e.getCosmosClientException();
             assertThat(cosmosClientException).isInstanceOf(CosmosClientException.class);
             assertThat(cosmosClientException.getMessage()).contains(PRECONDITION_IS_NOT_MET);
 
