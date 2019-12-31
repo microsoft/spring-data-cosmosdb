@@ -46,16 +46,19 @@ public class CosmosdbUtils {
             cosmosResponseDiagnostics = cosmosResponse.cosmosResponseDiagnosticsString();
         }
         FeedResponseDiagnostics feedResponseDiagnostics = null;
+        ResponseDiagnostics.CosmosResponseStatistics cosmosResponseStatistics = null;
         if (feedResponse != null) {
             feedResponseDiagnostics = feedResponse.feedResponseDiagnostics();
+            cosmosResponseStatistics = new ResponseDiagnostics.CosmosResponseStatistics(feedResponse);
         }
         if (cosmosResponseDiagnostics == null &&
-            (feedResponseDiagnostics == null || feedResponseDiagnostics.toString().isEmpty())) {
+            (feedResponseDiagnostics == null || feedResponseDiagnostics.toString().isEmpty()) &&
+            cosmosResponseStatistics == null) {
             log.debug("Empty response diagnostics");
             return;
         }
         final ResponseDiagnostics responseDiagnostics =
-            new ResponseDiagnostics(cosmosResponseDiagnostics, feedResponseDiagnostics);
+            new ResponseDiagnostics(cosmosResponseDiagnostics, feedResponseDiagnostics, cosmosResponseStatistics);
 
         //  Process response diagnostics
         responseDiagnosticsProcessor.processResponseDiagnostics(responseDiagnostics);

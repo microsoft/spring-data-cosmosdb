@@ -140,6 +140,8 @@ public class CosmosTemplateIT {
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
     }
 
     @Test
@@ -148,6 +150,8 @@ public class CosmosTemplateIT {
                 TEST_PERSON.getId(), Person.class);
         assertEquals(result, TEST_PERSON);
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         final Person nullResult = cosmosTemplate.findById(Person.class.getSimpleName(),
                 NOT_EXIST_ID, Person.class);
@@ -165,6 +169,8 @@ public class CosmosTemplateIT {
         final List<Person> result = cosmosTemplate.findByIds(ids, Person.class, collectionName);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         final List<Person> expected = Lists.newArrayList(TEST_PERSON, TEST_PERSON_2, TEST_PERSON_3);
         assertThat(result.size()).isEqualTo(expected.size());
@@ -186,10 +192,13 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final List<Person> result = cosmosTemplate.findAll(Person.class);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0).getFirstName(), firstName);
@@ -205,11 +214,14 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final Person result = cosmosTemplate.findById(Person.class.getSimpleName(),
                 updated.getId(), Person.class);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         assertEquals(result, updated);
     }
@@ -247,10 +259,13 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final List<Person> result = cosmosTemplate.findAll(Person.class);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
         assertThat(result.size()).isEqualTo(1);
         assertEquals(result.get(0), TEST_PERSON_2);
     }
@@ -261,6 +276,8 @@ public class CosmosTemplateIT {
         assertThat(prevCount).isEqualTo(1);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         cosmosTemplate.insert(TEST_PERSON_2,
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2)));
@@ -272,6 +289,8 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
     }
 
     @Test
@@ -281,6 +300,7 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(TEST_PERSON_2.getFirstName()));
@@ -290,6 +310,8 @@ public class CosmosTemplateIT {
         assertThat(count).isEqualTo(1);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
     }
 
     @Test
@@ -299,6 +321,7 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Person> page1 = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
@@ -308,6 +331,8 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         final Page<Person> page2 = cosmosTemplate.findAll(page1.getPageable(), Person.class,
                 collectionName);
@@ -316,6 +341,8 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
     }
 
     @Test
@@ -325,6 +352,7 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final Criteria criteria = Criteria.getInstance(CriteriaType.IS_EQUAL, "firstName",
                 Collections.singletonList(FIRST_NAME));
@@ -337,6 +365,8 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
     }
 
     @Test
@@ -348,6 +378,7 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null, sort);
@@ -363,6 +394,8 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
+        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
     }
 
