@@ -65,8 +65,8 @@ public class ResponseDiagnostics {
     @Getter
     public static class CosmosResponseStatistics {
 
-        private double requestCharge;
-        private String activityId;
+        private final double requestCharge;
+        private final String activityId;
 
         public <T extends Resource> CosmosResponseStatistics(FeedResponse<T> feedResponse) {
             this.requestCharge = feedResponse.requestCharge();
