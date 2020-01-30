@@ -18,6 +18,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.After;
@@ -29,8 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,13 +41,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = { "classpath:application.properties" })
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class ReactiveCosmosTemplateIT {
     private static final Person TEST_PERSON = new Person(TestConstants.ID_1,
         TestConstants.FIRST_NAME,
@@ -64,14 +64,8 @@ public class ReactiveCosmosTemplateIT {
         TestConstants.NEW_FIRST_NAME,
         TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
-    @Value("${cosmosdb.uri}")
-    private String cosmosDbUri;
-    @Value("${cosmosdb.key}")
-    private String cosmosDbKey;
     @Value("${cosmosdb.secondaryKey}")
     private String cosmosDbSecondaryKey;
-    @Value("${cosmosdb.populateQueryMetrics}")
-    private boolean populateQueryMetrics;
 
     private static ReactiveCosmosTemplate cosmosTemplate;
     private static String containerName;
@@ -79,20 +73,18 @@ public class ReactiveCosmosTemplateIT {
     private static CosmosKeyCredential cosmosKeyCredential;
 
     private static boolean initialized;
-    private static ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
 
     @Autowired
     private ApplicationContext applicationContext;
-
+    @Autowired
+    private CosmosDBConfig dbConfig;
+    @Autowired
+    private ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
+    
     @Before
     public void setUp() throws ClassNotFoundException {
         if (!initialized) {
-            responseDiagnosticsTestUtils = new ResponseDiagnosticsTestUtils();
-            cosmosKeyCredential = new CosmosKeyCredential(cosmosDbKey);
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri,
-                cosmosKeyCredential, DB_NAME).build();
-            dbConfig.setResponseDiagnosticsProcessor(responseDiagnosticsTestUtils.getResponseDiagnosticsProcessor());
-            dbConfig.setPopulateQueryMetrics(populateQueryMetrics);
+            cosmosKeyCredential = new CosmosKeyCredential(dbConfig.getKey());
             final CosmosDbFactory dbFactory = new CosmosDbFactory(dbConfig);
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
@@ -103,7 +95,7 @@ public class ReactiveCosmosTemplateIT {
 
             final MappingCosmosConverter dbConverter =
                 new MappingCosmosConverter(mappingContext, null);
-            cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, DB_NAME);
+            cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, dbConfig.getDatabase());
             cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
             initialized = true;
         }
@@ -115,7 +107,7 @@ public class ReactiveCosmosTemplateIT {
     @After
     public void cleanup() {
         //  Reset master key
-        cosmosKeyCredential.key(cosmosDbKey);
+        cosmosKeyCredential.key(dbConfig.getKey());
         cosmosTemplate.deleteAll(Person.class.getSimpleName(),
             personInfo.getPartitionKeyFieldName()).block();
     }

@@ -143,7 +143,7 @@ public class RoleRepositoryCollectionIT {
                 .stream(this.repository.findAll(ascSort).spliterator(), false)
                 .collect(Collectors.toList());
         Assert.assertEquals(2, ascending.size());
-        Assert.assertEquals(0, DOMAIN.equals(ascending.get(0)));
+        Assert.assertEquals(DOMAIN, ascending.get(0));
         Assert.assertEquals(other, ascending.get(1));
 
         final Sort descSort = Sort.by(Sort.Direction.DESC, "number");

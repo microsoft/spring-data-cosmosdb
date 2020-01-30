@@ -7,10 +7,12 @@ package com.microsoft.azure.spring.data.cosmosdb;
 
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSMOSDB_FAKE_CONNECTION_STRING;
@@ -20,8 +22,8 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.COSM
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@PropertySource(value = {"classpath:application.properties"})
 @RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class CosmosDbFactoryTestIT {
 
     @Value("${cosmosdb.uri:}")

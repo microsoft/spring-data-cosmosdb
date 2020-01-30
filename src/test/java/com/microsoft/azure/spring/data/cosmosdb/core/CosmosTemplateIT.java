@@ -19,6 +19,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -26,14 +27,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collections;
@@ -43,7 +43,6 @@ import java.util.UUID;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ADDRESSES;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.FIRST_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.HOBBIES;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_1;
@@ -62,7 +61,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = { "classpath:application.properties" })
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class CosmosTemplateIT {
     private static final Person TEST_PERSON = new Person(ID_1, FIRST_NAME, LAST_NAME, HOBBIES,
             ADDRESSES);
@@ -79,32 +78,23 @@ public class CosmosTemplateIT {
 
     private static final String WRONG_ETAG = "WRONG_ETAG";
 
-    @Value("${cosmosdb.uri}")
-    private String cosmosDbUri;
-    @Value("${cosmosdb.key}")
-    private String cosmosDbKey;
-    @Value("${cosmosdb.populateQueryMetrics}")
-    private boolean populateQueryMetrics;
-
     private static CosmosTemplate cosmosTemplate;
     private static CosmosEntityInformation<Person, String> personInfo;
     private static String collectionName;
     private static boolean initialized;
-    private static ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
 
     private Person insertedPerson;
 
     @Autowired
     private ApplicationContext applicationContext;
+    @Autowired
+    private CosmosDBConfig dbConfig;
+    @Autowired
+    private ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils;
 
     @Before
     public void setup() throws ClassNotFoundException {
         if (!initialized) {
-            responseDiagnosticsTestUtils = new ResponseDiagnosticsTestUtils();
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri,
-                    cosmosDbKey, DB_NAME).build();
-            dbConfig.setResponseDiagnosticsProcessor(responseDiagnosticsTestUtils.getResponseDiagnosticsProcessor());
-            dbConfig.setPopulateQueryMetrics(populateQueryMetrics);
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
@@ -115,7 +105,7 @@ public class CosmosTemplateIT {
 
             final MappingCosmosConverter cosmosConverter = new MappingCosmosConverter(mappingContext,
                 null);
-            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, cosmosConverter, DB_NAME);
+            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, cosmosConverter, dbConfig.getDatabase());
             cosmosTemplate.createCollectionIfNotExists(personInfo);
             initialized = true;
         }

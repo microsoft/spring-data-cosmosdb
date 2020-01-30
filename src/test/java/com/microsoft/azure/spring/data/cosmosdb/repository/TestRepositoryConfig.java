@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 
 import com.azure.data.cosmos.ConsistencyLevel;
 import com.azure.data.cosmos.internal.RequestOptions;
+import com.microsoft.azure.spring.data.cosmosdb.common.ResponseDiagnosticsTestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
@@ -35,6 +36,9 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.database:}")
     private String database;
 
+    @Value("${cosmosdb.populateQueryMetrics}")
+    private boolean populateQueryMetrics;
+
     private RequestOptions getRequestOptions() {
         final RequestOptions options = new RequestOptions();
 
@@ -46,15 +50,25 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     }
 
     @Bean
+    public ResponseDiagnosticsTestUtils responseDiagnosticsTestUtils() {
+        return new ResponseDiagnosticsTestUtils();
+    }
+
+    @Bean
     public CosmosDBConfig getConfig() {
         final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
         final RequestOptions options = getRequestOptions();
+        final CosmosDBConfig.CosmosDBConfigBuilder builder;
 
         if (StringUtils.hasText(this.cosmosDbUri) && StringUtils.hasText(this.cosmosDbKey)) {
-            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, dbName).requestOptions(options).build();
+            builder = CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, dbName);
+        } else {
+            builder = CosmosDBConfig.builder(connectionString, dbName);
         }
-
-        return CosmosDBConfig.builder(connectionString, dbName).requestOptions(options).build();
+        return builder.requestOptions(options)
+                .populateQueryMetrics(populateQueryMetrics)
+                .responseDiagnosticsProcessor(responseDiagnosticsTestUtils().getResponseDiagnosticsProcessor())
+                .build();
     }
     
     @Bean
