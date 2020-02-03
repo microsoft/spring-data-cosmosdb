@@ -198,7 +198,8 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         final String partitionKeyValue = information.getPartitionKeyFieldValue(entity);
 
-        operation.deleteById(information.getContainerName(),
+        operation.deleteEntityById(information.getContainerName(),
+                entity,
                 information.getId(entity),
                 partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue));
     }

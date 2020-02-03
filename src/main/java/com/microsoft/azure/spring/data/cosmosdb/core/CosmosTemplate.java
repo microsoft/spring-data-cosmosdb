@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.CosmosdbUtils.fillAndProcessResponseDiagnostics;
@@ -327,6 +328,22 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     }
 
     public void deleteById(String containerName, Object id, PartitionKey partitionKey) {
+        deleteById(containerName, id, partitionKey, CosmosItemRequestOptions::new);
+    }
+
+    public void deleteEntityById(String containerName, Object entity, Object id, PartitionKey partitionKey) {
+        Assert.notNull(entity, "entity to be deleted should not be null");
+
+        deleteById(containerName, id, partitionKey, (key) -> {
+            final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(entity);
+            final CosmosItemRequestOptions options = new CosmosItemRequestOptions(key);
+            applyVersioning(entity.getClass(), originalItem, options);
+            return options;
+        });
+    }
+
+    private void deleteById(String containerName, Object id, PartitionKey partitionKey,
+                            Function<PartitionKey, CosmosItemRequestOptions> optionsFactory) {
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         assertValidId(id);
 
@@ -335,8 +352,9 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         if (partitionKey == null) {
             partitionKey = PartitionKey.None;
         }
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.partitionKey(partitionKey);
+
+        final CosmosItemRequestOptions options = optionsFactory.apply(partitionKey);
+
         cosmosClient.getDatabase(this.databaseName)
                     .getContainer(containerName)
                     .getItem(id.toString(), partitionKey)
