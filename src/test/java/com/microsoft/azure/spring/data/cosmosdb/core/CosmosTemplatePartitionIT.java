@@ -16,6 +16,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -44,18 +46,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = {"classpath:application.properties"})
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class CosmosTemplatePartitionIT {
     private static final PartitionPerson TEST_PERSON = new PartitionPerson(ID_1, FIRST_NAME, LAST_NAME,
             HOBBIES, ADDRESSES);
 
     private static final PartitionPerson TEST_PERSON_2 = new PartitionPerson(ID_2, NEW_FIRST_NAME,
             TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
-
-    @Value("${cosmosdb.uri}")
-    private String cosmosDbUri;
-    @Value("${cosmosdb.key}")
-    private String cosmosDbKey;
 
     private static CosmosTemplate cosmosTemplate;
     private static String collectionName;
@@ -64,11 +61,12 @@ public class CosmosTemplatePartitionIT {
 
     @Autowired
     private ApplicationContext applicationContext;
+    @Autowired
+    private CosmosDBConfig dbConfig;
 
     @Before
     public void setup() throws ClassNotFoundException {
         if (!initialized) {
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, DB_NAME).build();
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
 
@@ -77,7 +75,7 @@ public class CosmosTemplatePartitionIT {
 
             final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext, null);
 
-            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, dbConverter, DB_NAME);
+            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, dbConverter, dbConfig.getDatabase());
             collectionName = personInfo.getCollectionName();
 
             cosmosTemplate.createCollectionIfNotExists(personInfo);

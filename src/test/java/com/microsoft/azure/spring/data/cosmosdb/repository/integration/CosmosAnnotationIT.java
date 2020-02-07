@@ -16,6 +16,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConver
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosMappingContext;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
+import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -28,23 +29,20 @@ import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@PropertySource(value = {"classpath:application.properties"})
+@ContextConfiguration(classes = TestRepositoryConfig.class)
 public class CosmosAnnotationIT {
     private static final Role TEST_ROLE = new Role(TestConstants.ID_1, TestConstants.LEVEL,
             TestConstants.ROLE_NAME);
 
-    @Value("${cosmosdb.uri}")
-    private String dbUri;
-
-    @Value("${cosmosdb.key}")
-    private String dbKey;
-
     @Autowired
     private ApplicationContext applicationContext;
+    @Autowired
+    private CosmosDBConfig dbConfig;
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosContainerProperties collectionRole;
@@ -56,7 +54,6 @@ public class CosmosAnnotationIT {
     @Before
     public void setUp() throws ClassNotFoundException {
         if (!initialized) {
-            final CosmosDBConfig dbConfig = CosmosDBConfig.builder(dbUri, dbKey, TestConstants.DB_NAME).build();
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
 
             roleInfo = new CosmosEntityInformation<>(Role.class);
@@ -67,7 +64,7 @@ public class CosmosAnnotationIT {
 
             final MappingCosmosConverter mappingConverter = new MappingCosmosConverter(dbContext, null);
 
-            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, TestConstants.DB_NAME);
+            cosmosTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, dbConfig.getDatabase());
             initialized = true;
         }
         collectionRole = cosmosTemplate.createCollectionIfNotExists(roleInfo);
