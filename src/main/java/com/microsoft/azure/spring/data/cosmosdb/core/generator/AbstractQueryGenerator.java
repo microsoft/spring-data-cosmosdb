@@ -5,9 +5,8 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.documentdb.SqlParameter;
-import com.microsoft.azure.documentdb.SqlParameterCollection;
-import com.microsoft.azure.documentdb.SqlQuerySpec;
+import com.azure.data.cosmos.SqlParameterList;
+import com.azure.data.cosmos.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
@@ -25,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingDocumentDbConverter.toDocumentDBValue;
+import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter.toCosmosDbValue;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQueryGenerator {
@@ -51,7 +50,7 @@ public abstract class AbstractQueryGenerator {
         Assert.isTrue(CriteriaType.isBinary(criteria.getType()), "Criteria type should be binary operation");
 
         final String subject = criteria.getSubject();
-        final Object subjectValue = toDocumentDBValue(criteria.getSubjectValues().get(0));
+        final Object subjectValue = toCosmosDbValue(criteria.getSubjectValues().get(0));
         final String parameter = generateQueryParameter(subject);
 
         parameters.add(Pair.with(parameter, subjectValue));
@@ -65,8 +64,8 @@ public abstract class AbstractQueryGenerator {
 
     private String generateBetween(@NonNull Criteria criteria, @NonNull List<Pair<String, Object>> parameters) {
         final String subject = criteria.getSubject();
-        final Object value1 = toDocumentDBValue(criteria.getSubjectValues().get(0));
-        final Object value2 = toDocumentDBValue(criteria.getSubjectValues().get(1));
+        final Object value1 = toCosmosDbValue(criteria.getSubjectValues().get(0));
+        final Object value2 = toCosmosDbValue(criteria.getSubjectValues().get(1));
         final String subject1 = "start";
         final String subject2 = "end";
         final String parameter1 = generateQueryParameter(subject1);
@@ -200,24 +199,19 @@ public abstract class AbstractQueryGenerator {
         return String.join(" ", queryTails.stream().filter(StringUtils::hasText).collect(Collectors.toList()));
     }
 
-    /**
-     * Generate SqlQuerySpec with given DocumentQuery and query head.
-     *
-     * @param query     DocumentQuery represent one query method.
-     * @param queryHead
-     * @return The SqlQuerySpec for DocumentClient.
-     */
-    protected SqlQuerySpec generateQuery(@NonNull DocumentQuery query, @NonNull String queryHead) {
-        Assert.hasText(queryHead, "query head should have text.");
 
+    protected SqlQuerySpec generateCosmosQuery(@NonNull DocumentQuery query,
+                                                                            @NonNull String queryHead) {
         final Pair<String, List<Pair<String, Object>>> queryBody = generateQueryBody(query);
         final String queryString = String.join(" ", queryHead, queryBody.getValue0(), generateQueryTail(query));
         final List<Pair<String, Object>> parameters = queryBody.getValue1();
-        final SqlParameterCollection sqlParameters = new SqlParameterCollection();
+        final SqlParameterList sqlParameters =
+                new SqlParameterList();
 
         sqlParameters.addAll(
                 parameters.stream()
-                        .map(p -> new SqlParameter("@" + p.getValue0(), toDocumentDBValue(p.getValue1())))
+                        .map(p -> new com.azure.data.cosmos.SqlParameter("@" + p.getValue0(),
+                                toCosmosDbValue(p.getValue1())))
                         .collect(Collectors.toList())
         );
 

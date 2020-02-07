@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.azure.data.cosmos.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -29,7 +29,7 @@ public class TestConstants {
     public static final String DEFAULT_COLLECTION_NAME = "Person";
     public static final int DEFAULT_REQUEST_UNIT = 4000;
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
-    public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.Consistent;
+    public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.CONSISTENT;
     public static final String[] DEFAULT_EXCLUDEDPATHS = {};
     public static final String[] DEFAULT_INCLUDEDPATHS = {
             "{\"path\":\"/*\",\"indexes\":[" +
@@ -43,7 +43,7 @@ public class TestConstants {
     public static final int TIME_TO_LIVE = 5;
     public static final String REQUEST_UNIT_STRING = "1000";
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
-    public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.Lazy;
+    public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.LAZY;
     public static final String INCLUDEDPATH_0 = "{\"path\":\"/*\",\"indexes\":[" +
             "{\"kind\":\"Range\",\"dataType\":\"Number\",\"precision\":2}," +
             "{\"kind\":\"Hash\",\"dataType\":\"String\",\"precision\":2}," +
@@ -91,6 +91,7 @@ public class TestConstants {
     public static final String ID_1 = "id-1";
     public static final String ID_2 = "id-2";
     public static final String ID_3 = "id-3";
+    public static final String ID_4 = "id-4";
     public static final String NEW_FIRST_NAME = "new_first_name";
     public static final String NEW_LAST_NAME = "new_last_name";
     public static final String UPDATED_FIRST_NAME = "updated_first_name";
@@ -129,11 +130,11 @@ public class TestConstants {
     public static final String CRITERIA_FAKE_KEY = "CriteriaFakeKey";
     public static final String CRITERIA_OBJECT = "CriteriaTestObject";
 
-    public static final String DOCUMENTDB_FAKE_HOST = "https://fakeuri";
-    public static final String DOCUMENTDB_FAKE_KEY = "fakekey";
-    public static final String DOCUMENTDB_FAKE_CONNECTION_STRING =
+    public static final String COSMOSDB_FAKE_HOST = "https://fakeuri";
+    public static final String COSMOSDB_FAKE_KEY = "fakekey";
+    public static final String COSMOSDB_FAKE_CONNECTION_STRING =
             "AccountEndpoint=https://fakeuri/;AccountKey=fakekey;";
-    public static final String DOCUMENTDB_INVALID_FAKE_CONNECTION_STRING = "invalid connection string";
+    public static final String COSMOSDB_INVALID_FAKE_CONNECTION_STRING = "invalid connection string";
 
     public static final String PROPERTY_ID = "id";
     public static final String PROPERTY_FIRST_NAME = "firstName";
@@ -150,5 +151,9 @@ public class TestConstants {
     public static final int PAGE_SIZE_1 = 1;
     public static final int PAGE_SIZE_2 = 2;
     public static final int PAGE_SIZE_3 = 3;
+    
+    public static final String DYNAMIC_PROPERTY_COLLECTION_NAME = "spel-property-collection";
+    public static final String DYNAMIC_BEAN_COLLECTION_NAME = "spel-bean-collection";
+
 }
 

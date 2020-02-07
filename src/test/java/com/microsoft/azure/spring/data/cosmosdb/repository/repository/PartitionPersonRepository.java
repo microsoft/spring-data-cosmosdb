@@ -6,9 +6,9 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PartitionPersonRepository extends DocumentDbRepository<PartitionPerson, String> {
+public interface PartitionPersonRepository extends CosmosRepository<PartitionPerson, String> {
 }

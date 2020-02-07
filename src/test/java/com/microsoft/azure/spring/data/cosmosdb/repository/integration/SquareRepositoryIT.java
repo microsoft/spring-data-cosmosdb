@@ -6,11 +6,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.inheritance.Square;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SquareRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,11 +31,11 @@ public class SquareRepositoryIT {
     private Square square1 = new Square("id_1", 1, 1);
     private Square square2 = new Square("id_2", 2, 4);
 
-    private final DocumentDbEntityInformation<Square, String> entityInformation =
-            new DocumentDbEntityInformation<>(Square.class);
+    private final CosmosEntityInformation<Square, String> entityInformation =
+            new CosmosEntityInformation<>(Square.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private SquareRepository repository;

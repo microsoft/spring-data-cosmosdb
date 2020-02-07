@@ -5,13 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
+import org.assertj.core.util.Lists;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,14 +42,14 @@ public class AddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_2, TestConstants.CITY_1);
 
-    private final DocumentDbEntityInformation<Address, String> entityInformation
-            = new DocumentDbEntityInformation<>(Address.class);
+    private final CosmosEntityInformation<Address, String> entityInformation
+            = new CosmosEntityInformation<>(Address.class);
 
     @Autowired
     AddressRepository repository;
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -59,9 +62,8 @@ public class AddressRepositoryIT {
     @Before
     public void setup() {
         repository.save(TEST_ADDRESS1_PARTITION1);
-        repository.save(TEST_ADDRESS1_PARTITION2);
-        repository.save(TEST_ADDRESS2_PARTITION1);
-        repository.save(TEST_ADDRESS4_PARTITION3);
+        repository.saveAll(Lists.newArrayList(TEST_ADDRESS1_PARTITION2,
+            TEST_ADDRESS2_PARTITION1, TEST_ADDRESS4_PARTITION3));
     }
 
     @After
@@ -75,6 +77,14 @@ public class AddressRepositoryIT {
         final List<Address> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void testFindByIdWithPartitionKey() {
+        final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(entityInformation.getPartitionKeyFieldValue(TEST_ADDRESS1_PARTITION1)));
+
+        assertThat(addressById.equals(TEST_ADDRESS1_PARTITION1));
     }
 
     @Test
@@ -124,8 +134,7 @@ public class AddressRepositoryIT {
 
     @Test
     public void deleteWithoutPartitionedColumnShouldFail() {
-        expectedException.expect(UnsupportedOperationException.class);
-        expectedException.expectMessage("PartitionKey value must be supplied for this operation.");
+        expectedException.expect(Exception.class);
 
         repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode());
     }
@@ -154,6 +163,27 @@ public class AddressRepositoryIT {
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getCity()).isNotEqualTo(TEST_ADDRESS1_PARTITION1.getCity());
+    }
+
+    @Test
+    public void testDeleteByIdAndPartitionKey() {
+        final long count = repository.count();
+        assertThat(count).isEqualTo(4);
+
+        Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+        assertThat(addressById.isPresent()).isTrue();
+
+        repository.deleteById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+
+        final List<Address> result = TestUtils.toList(repository.findAll());
+        assertThat(result.size()).isEqualTo(3);
+
+        addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
+            new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+
+        assertThat(addressById.isPresent()).isFalse();
     }
 
     @Test

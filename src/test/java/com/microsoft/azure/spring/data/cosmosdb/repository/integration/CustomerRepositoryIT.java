@@ -5,11 +5,11 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Customer;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.CustomerRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.NonNull;
 import org.junit.After;
 import org.junit.Assert;
@@ -51,14 +51,14 @@ public class CustomerRepositoryIT {
     private static final Customer CUSTOMER_1 = new Customer(CUSTOMER_ID_1, CUSTOMER_LEVEL_1, USER_1);
     private static final Customer CUSTOMER_2 = new Customer(CUSTOMER_ID_2, CUSTOMER_LEVEL_1, USER_2);
 
-    private final DocumentDbEntityInformation<Customer, String> entityInformation =
-            new DocumentDbEntityInformation<>(Customer.class);
+    private final CosmosEntityInformation<Customer, String> entityInformation =
+            new CosmosEntityInformation<>(Customer.class);
 
     @Autowired
     private CustomerRepository repository;
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @PreDestroy
     public void cleanUpCollection() {

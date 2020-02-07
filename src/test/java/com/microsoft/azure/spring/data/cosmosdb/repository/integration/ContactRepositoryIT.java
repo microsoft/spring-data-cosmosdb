@@ -6,15 +6,16 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,14 @@ public class ContactRepositoryIT {
 
     private static final Contact TEST_CONTACT = new Contact("testId", "faketitle");
 
-    private final DocumentDbEntityInformation<Contact, String> entityInformation =
-            new DocumentDbEntityInformation<>(Contact.class);
+    private final CosmosEntityInformation<Contact, String> entityInformation =
+            new CosmosEntityInformation<>(Contact.class);
 
     @Autowired
     ContactRepository repository;
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @PreDestroy
     public void cleanUpCollection() {
@@ -156,9 +157,10 @@ public class ContactRepositoryIT {
     }
 
     @Test
+    @Ignore //  TODO(kuthapar): v3 doesn't support creation of items without id.
     public void testNullIdContact() {
         final Contact nullIdContact = new Contact(null, "testTitile");
-        final Contact savedContact = this.repository.save(nullIdContact);
+        final Contact savedContact = repository.save(nullIdContact);
 
         Assert.assertNotNull(savedContact.getLogicId());
         Assert.assertEquals(nullIdContact.getTitle(), savedContact.getTitle());
@@ -166,10 +168,17 @@ public class ContactRepositoryIT {
 
     @Test
     public void testFindById() {
-        final Optional<Contact> optional = this.repository.findById(TEST_CONTACT.getLogicId());
+        final Optional<Contact> optional = repository.findById(TEST_CONTACT.getLogicId());
 
         Assert.assertTrue(optional.isPresent());
         Assert.assertEquals(TEST_CONTACT, optional.get());
-        Assert.assertFalse(this.repository.findById("").isPresent());
+        Assert.assertFalse(repository.findById("").isPresent());
+    }
+
+    @Test
+    public void testFindByIdNotFound() {
+        final Optional<Contact> optional = repository.findById("unknown-id");
+
+        Assert.assertFalse(optional.isPresent());
     }
 }

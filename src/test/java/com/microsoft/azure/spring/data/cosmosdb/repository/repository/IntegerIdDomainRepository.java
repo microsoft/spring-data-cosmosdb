@@ -6,12 +6,10 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.IntegerIdDomain;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
-public interface IntegerIdDomainRepository extends DocumentDbRepository<IntegerIdDomain, Integer> {
+public interface IntegerIdDomainRepository extends CosmosRepository<IntegerIdDomain, Integer> {
 
 }

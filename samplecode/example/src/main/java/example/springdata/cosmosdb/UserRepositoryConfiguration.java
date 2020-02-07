@@ -15,26 +15,61 @@
  */
 package example.springdata.cosmosdb;
 
-import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
-import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
+import com.azure.data.cosmos.CosmosKeyCredential;
+import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnostics;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
+import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableReactiveCosmosRepositories;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.annotation.Nullable;
+
 
 @Configuration
-@EnableDocumentDbRepositories
-@EnableConfigurationProperties(DocumentDbProperties.class)
+@EnableConfigurationProperties(CosmosDbProperties.class)
+@EnableReactiveCosmosRepositories
 @PropertySource("classpath:application.properties")
-public class UserRepositoryConfiguration extends AbstractDocumentDbConfiguration {
+@Slf4j
+public class UserRepositoryConfiguration extends AbstractCosmosConfiguration {
 
     @Autowired
-    private DocumentDbProperties properties;
+    private CosmosDbProperties properties;
 
-    @Override
-    public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(properties.getUri(), properties.getKey(), properties.getDatabase()).build();
+    private CosmosKeyCredential cosmosKeyCredential;
+
+    @Bean
+    public CosmosDBConfig cosmosDbConfig() {
+        this.cosmosKeyCredential = new CosmosKeyCredential(properties.getKey());
+        CosmosDBConfig cosmosDBConfig = CosmosDBConfig.builder(properties.getUri(), cosmosKeyCredential,
+            properties.getDatabase()).build();
+        cosmosDBConfig.setPopulateQueryMetrics(properties.isPopulateQueryMetrics());
+        cosmosDBConfig.setResponseDiagnosticsProcessor(new ResponseDiagnosticsProcessorImplementation());
+        return cosmosDBConfig;
+    }
+
+    public void switchToSecondaryKey() {
+        this.cosmosKeyCredential.key(properties.getSecondaryKey());
+    }
+
+    public void switchToPrimaryKey() {
+        this.cosmosKeyCredential.key(properties.getKey());
+    }
+
+    public void switchKey(String key) {
+        this.cosmosKeyCredential.key(key);
+    }
+
+    private static class ResponseDiagnosticsProcessorImplementation implements ResponseDiagnosticsProcessor {
+
+        @Override
+        public void processResponseDiagnostics(@Nullable ResponseDiagnostics responseDiagnostics) {
+            log.info("Response Diagnostics {}", responseDiagnostics);
+        }
     }
 }

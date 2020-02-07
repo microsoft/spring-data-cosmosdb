@@ -5,11 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
+import com.azure.data.cosmos.PartitionKey;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -70,11 +72,11 @@ public class ProjectRepositoryIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
 
-    private final DocumentDbEntityInformation<Project, String> entityInformation =
-            new DocumentDbEntityInformation<>(Project.class);
+    private final CosmosEntityInformation<Project, String> entityInformation =
+            new CosmosEntityInformation<>(Project.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private ProjectRepository repository;
@@ -345,6 +347,25 @@ public class ProjectRepositoryIT {
         projects = repository.findByHasReleasedFalseOrCreator(CREATOR_3);
         assertProjectListEquals(projects, Arrays.asList(PROJECT_3, PROJECT_4));
     }
+
+    @Test
+    public void findByIdWithPartitionKey() {
+        final Optional<Project> project = repository.findById(PROJECT_0.getId(),
+            new PartitionKey(entityInformation.getPartitionKeyFieldValue(PROJECT_0)));
+
+        Assert.assertTrue(project.isPresent());
+
+        Assert.assertEquals(project.get(), PROJECT_0);
+    }
+
+    @Test
+    public void findByIdWithPartitionKeyNotFound() {
+        final Optional<Project> project = repository.findById("unknown-id",
+            new PartitionKey("unknown-partition-key"));
+
+        Assert.assertFalse(project.isPresent());
+    }
+
 
     @Test
     public void testFindByIn() {

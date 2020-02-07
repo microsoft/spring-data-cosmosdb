@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.mapping;
 
-import com.microsoft.azure.documentdb.IndexingMode;
+import com.azure.data.cosmos.IndexingMode;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import org.springframework.data.annotation.Persistent;
 
@@ -18,7 +18,7 @@ import java.lang.annotation.*;
 public @interface DocumentIndexingPolicy {
     boolean automatic() default Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC;
 
-    IndexingMode mode() default IndexingMode.Consistent; // Enum is not really compile time constant
+    IndexingMode mode() default IndexingMode.CONSISTENT; // Enum is not really compile time constant
 
     String[] includePaths() default {};
 

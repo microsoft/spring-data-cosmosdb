@@ -33,7 +33,7 @@ Name | Version for Spring Boot 2.1.x | Version for Spring Boot 2.0.x
 spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Link] | [![Maven Central][Branch 2.0.x Badge]][Branch 2.0.x Link]
 
 ## Feature List
-- Spring Data CRUDRepository basic CRUD functionality
+- Spring Data ReactiveCrudRepository CrudRepository basic CRUD functionality
     - save
     - findAll
     - findOne by Id
@@ -45,7 +45,7 @@ spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Lin
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
   - set name of this field to `id`, this field will be mapped to document `id` in Azure Cosmos DB.
 - Custom collection Name.
-  By default, collection name will be class name of user domain class. To customize it, add annotation `@Document(collection="myCustomCollectionName")` to domain class, that's all.
+  By default, collection name will be class name of user domain class. To customize it, add the `@Document(collection="myCustomCollectionName")` annotation to the domain class. The collection field also supports SpEL expressions (eg. `collection = "${dynamic.collection.name}"` or `collection = "#{@someBean.getCollectionName()}"`) in order to provide collection names programmatically/via configuration properties.
 - Custom IndexingPolicy
   By default, IndexingPolicy will be set by azure service. To customize it add annotation `@DocumentIndexingPolicy` to domain class. This annotation has 4 attributes to customize, see following:
 ```java
@@ -54,9 +54,32 @@ spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Lin
    String[] includePaths; // Included paths for indexing
    String[] excludePaths; // Excluded paths for indexing
 ```
+- Supports Optimistic Locking for specific collections, which means upserts/deletes by document will fail with an exception in case the document was modified by another process in the meanwhile. To enable Optimistic Locking for a collection, just create a string `_etag` field and mark it with the `@Version` annotation. See the following:
+
+```java
+@Document(collection = "myCollection")
+class MyDocument {
+    String id;
+    String data;
+    @Version
+    String _etag;
+}
+```
 - Supports [Azure Cosmos DB partition](https://docs.microsoft.com/en-us/azure/cosmos-db/partition-data). To specify a field of domain class to be partition key field, just annotate it with `@PartitionKey`. When you do CRUD operation, pls specify your partition value. For more sample on partition CRUD, pls refer to [test here](./src/test/java/com/microsoft/azure/spring/data/cosmosdb/repository/integration/AddressRepositoryIT.java)
 - Supports [Spring Data custom query](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.query-methods.details) find operation, e.g., `findByAFieldAndBField`
 - Supports [Spring Data pagable and sort](https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.special-parameters).
+  - Based on available RUs on the database account, cosmosDB can return documents less than or equal to the requested size.
+  - Due to this variable number of returned documents in every iteration, user should not rely on the totalPageSize, and instead iterating over pageable should be done in this way.  
+```java
+    final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
+    Page<T> page = tRepository.findAll(pageRequest);
+    List<T> pageContent = page.getContent();
+    while(page.hasNext()) {
+        Pageable nextPageable = page.nextPageable();
+        page = repository.findAll(nextPageable);
+        pageContent = page.getContent();
+    }
+```
 - Supports [spring-boot-starter-data-rest](https://projects.spring.io/spring-data-rest/).
 - Supports List and nested type in domain class.
 - Configurable ObjectMapper bean with unique name `cosmosdbObjectMapper`, only configure customized ObjectMapper if you really need to. e.g.,
@@ -66,7 +89,7 @@ spring-data-cosmosdb | [![Maven Central][Branch Master Badge]][Branch Master Lin
       return new ObjectMapper(); // Do configuration to the ObjectMapper if required
    }
 ```
-  
+
 ## Quick Start
 
 ### Add the dependency
@@ -77,17 +100,33 @@ If you are using Maven, add the following dependency.
 <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.0.3</version>
+    <version>2.2.2</version>
 </dependency>
 ```
 
 ### Setup Configuration
 Setup configuration class.
 
+CosmosKeyCredential feature provides capability to rotate keys on the fly. You can switch keys using switchToSecondaryKey(). 
+For more information on this, see the Sample Application code.
+
+### Sync and Reactive Repository support
+2.2.x supports both sync and reactive repository support. 
+
+Use `@EnableCosmosRepositories` to enable sync repository support. 
+
+For reactive repository support, use `@EnableReactiveCosmosRepositories`
+
+### Response Diagnostics String and Query Metrics
+2.2.x supports Response Diagnostics String and Query Metrics. 
+Set `populateQueryMetrics` flag to true in application.properties to enable query metrics.
+In addition to setting the flag, implement `ResponseDiagnosticsProcessor` to log diagnostics information. 
+
 ```java
 @Configuration
-@EnableDocumentDbRepositories
-public class AppConfiguration extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories
+@Slf4j
+public class AppConfiguration extends AbstractCosmosConfiguration {
 
     @Value("${azure.cosmosdb.uri}")
     private String uri;
@@ -95,19 +134,55 @@ public class AppConfiguration extends AbstractDocumentDbConfiguration {
     @Value("${azure.cosmosdb.key}")
     private String key;
 
+    @Value("${azure.cosmosdb.secondaryKey}")
+    private String secondaryKey;
+
     @Value("${azure.cosmosdb.database}")
     private String dbName;
 
-    public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(uri, key, dbName).build();
+    @Value("${azure.cosmosdb.populateQueryMetrics}")
+    private boolean populateQueryMetrics;
+    
+    private CosmosKeyCredential cosmosKeyCredential;
+
+    public CosmosDBConfig getConfig() {
+        this.cosmosKeyCredential = new CosmosKeyCredential(key);
+        CosmosDbConfig cosmosdbConfig = CosmosDBConfig.builder(uri, 
+            this.cosmosKeyCredential, dbName).build();
+        cosmosdbConfig.setPopulateQueryMetrics(populateQueryMetrics);
+        cosmosdbConfig.setResponseDiagnosticsProcessor(new ResponseDiagnosticsProcessorImplementation());
+        return cosmosdbConfig;
     }
+    
+    public void switchToSecondaryKey() {
+        this.cosmosKeyCredential.key(secondaryKey);
+    }
+    
+    private static class ResponseDiagnosticsProcessorImplementation implements ResponseDiagnosticsProcessor {
+    
+        @Override
+        public void processResponseDiagnostics(@Nullable ResponseDiagnostics responseDiagnostics) {
+            log.info("Response Diagnostics {}", responseDiagnostics);
+        }
+    }
+
 }
 ```
-By default, `@EnableDocumentDbRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
+Or if you want to customize your config:
+```java
+public CosmosDBConfig getConfig() {
+    this.cosmosKeyCredential = new CosmosKeyCredential(key);
+    CosmosDBConfig cosmosDbConfig = CosmosDBConfig.builder(uri, this.cosmosKeyCredential, dbName).build();
+    cosmosDbConfig.getConnectionPolicy().setConnectionMode(ConnectionMode.DIRECT);
+    cosmosDbConfig.getConnectionPolicy().setMaxPoolSize(1000);
+    return cosmosDbConfig;
+}
+```
+By default, `@EnableCosmosRepositories` will scan the current package for any interfaces that extend one of Spring Data's repository interfaces. Using it to annotate your Configuration class to scan a different root package by type if your project layout has multiple projects and it's not finding your repositories.
 ```java
 @Configuration
-@EnableDocumentDbRepositories(basePackageClass=UserRepository.class)
-public class AppConfiguration extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories(basePackageClass=UserRepository.class)
+public class AppConfiguration extends AbstractCosmosConfiguration {
     // configuration code
 }
 ```
@@ -121,6 +196,7 @@ Define a simple entity as Document in Azure Cosmos DB.
 public class User {
     private String id;
     private String firstName;
+
     @PartitionKey
     private String lastName;
  
@@ -139,7 +215,7 @@ public class User {
 
     @Override
     public String toString() {
-        return String.format("User: %s %s, %s", firstName, lastName);
+        return String.format("User: %s %s, %s", firstName, lastName, id);
     }
 }
 ```
@@ -159,14 +235,14 @@ public class User {
 ```
 
 ### Create repositories
-Extends DocumentDbRepository interface, which provides Spring Data repository support.
+Extends CosmosRepository interface, which provides Spring Data repository support.
 
 ```java
-import DocumentDbRepository;
+import CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends DocumentDbRepository<User, String> {
+public interface UserRepository extends CosmosRepository<User, String> {
     List<User> findByFirstName(String firstName); 
 }
 ```
@@ -182,6 +258,9 @@ public class SampleApplication implements CommandLineRunner {
 
     @Autowired
     private UserRepository repository;
+    
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public static void main(String[] args) {
         SpringApplication.run(SampleApplication.class, args);
@@ -198,10 +277,19 @@ public class SampleApplication implements CommandLineRunner {
         final User result = repository.findOne(testUser.getId(), testUser.getLastName);
         // if emailAddress is mapped to id, then 
         // final User result = respository.findOne(testUser.getEmailAddress(), testUser.getLastName());
+        
+        //  Switch to secondary key
+        UserRepositoryConfiguration bean = 
+            applicationContext.getBean(UserRepositoryConfiguration.class);
+        bean.switchToSecondaryKey();
+        
+        //  Now repository will use secondary key
+        repository.save(testUser);
+
     }
 }
 ```
-Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the DocumentTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
+Autowired UserRepository interface, then can do save, delete and find operations. Spring Data Azure Cosmos DB uses the CosmosTemplate to execute the queries behind *find*, *save* methods. You can use the template yourself for more complex queries.
 
 ## Snapshots
 [![Nexus OSS](https://img.shields.io/nexus/snapshots/https/oss.sonatype.org/com.microsoft.azure/spring-data-cosmosdb.svg)](https://oss.sonatype.org/content/repositories/snapshots/com/microsoft/azure/spring-data-cosmosdb/)

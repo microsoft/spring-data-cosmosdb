@@ -5,16 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core.generator;
 
-import com.microsoft.azure.documentdb.SqlQuerySpec;
+import com.azure.data.cosmos.SqlQuerySpec;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 
 public interface QuerySpecGenerator {
 
     /**
-     * Generate find/delete/update SqlQuerySpec for documentDb client.
-     *
+     * Generate the SqlQuerySpec for cosmosDB client.
      * @param query tree structured query condition.
-     * @return SqlQuerySpec executed by documentDb client.
+     * @return SqlQuerySpec executed by cosmos client.
      */
-    SqlQuerySpec generate(DocumentQuery query);
+    SqlQuerySpec generateCosmos(DocumentQuery query);
 }

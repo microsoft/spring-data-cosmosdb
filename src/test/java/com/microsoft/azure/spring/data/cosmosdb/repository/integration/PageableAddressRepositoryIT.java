@@ -5,29 +5,37 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
+import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosItemProperties;
+import com.azure.data.cosmos.FeedOptions;
+import com.azure.data.cosmos.FeedResponse;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
-import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbTemplate;
-import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentDbPageRequest;
+import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableAddressRepository;
-import com.microsoft.azure.spring.data.cosmosdb.repository.support.DocumentDbEntityInformation;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,14 +52,17 @@ public class PageableAddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
 
-    private final DocumentDbEntityInformation<Address, String> entityInformation =
-            new DocumentDbEntityInformation<>(Address.class);
+    private final CosmosEntityInformation<Address, String> entityInformation =
+            new CosmosEntityInformation<>(Address.class);
 
     @Autowired
-    private DocumentDbTemplate template;
+    private CosmosTemplate template;
 
     @Autowired
     private PageableAddressRepository repository;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Before
     public void setup() {
@@ -80,7 +91,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindAllByPage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findAll(pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
@@ -88,22 +99,22 @@ public class PageableAddressRepositoryIT {
 
         final Page<Address> nextPage = repository.findAll(page.getPageable());
         assertThat(nextPage.getContent().size()).isEqualTo(1);
-        validateLastPage(nextPage, PAGE_SIZE_3);
+        validateLastPage(nextPage, nextPage.getContent().size());
     }
 
     @Test
     public void testFindWithParitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultCityMatch(page, TestConstants.CITY);
-        validateLastPage(page, PAGE_SIZE_3);
+        validateLastPage(page, page.getContent().size());
     }
 
     @Test
     public void testFindWithParitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_1);
@@ -119,17 +130,17 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindWithoutPartitionKeySinglePage() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_3, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultStreetMatch(page, TestConstants.STREET);
-        validateLastPage(page, PAGE_SIZE_3);
+        validateLastPage(page, page.getContent().size());
     }
 
     @Test
     public void testFindWithoutPartitionKeyMultiPages() {
-        final DocumentDbPageRequest pageRequest = new DocumentDbPageRequest(0, PAGE_SIZE_1, null);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(1);
@@ -143,13 +154,41 @@ public class PageableAddressRepositoryIT {
         validateLastPage(nextPage, PAGE_SIZE_1);
     }
 
+    @Test
+    public void testOffsetAndLimit() {
+        final int skipCount = 2;
+        final int takeCount = 2;
+        final List<CosmosItemProperties> results = new ArrayList<>();
+        final FeedOptions options = new FeedOptions();
+        options.enableCrossPartitionQuery(true);
+        options.maxDegreeOfParallelism(2);
+
+        final String query = "SELECT * from c OFFSET " + skipCount + " LIMIT " + takeCount;
+
+        final CosmosClient cosmosClient = applicationContext.getBean(CosmosClient.class);
+        final Flux<FeedResponse<CosmosItemProperties>> feedResponseFlux =
+            cosmosClient.getDatabase(DB_NAME)
+                        .getContainer(entityInformation.getCollectionName())
+                        .queryItems(query, options);
+
+        StepVerifier.create(feedResponseFlux)
+                    .consumeNextWith(cosmosItemPropertiesFeedResponse ->
+                        results.addAll(cosmosItemPropertiesFeedResponse.results()))
+                    .verifyComplete();
+        assertThat(results.size()).isEqualTo(takeCount);
+    }
+
     private void validateResultCityMatch(Page<Address> page, String city) {
-        assertThat(page.getContent().stream().filter(address -> address.getCity().equals(city))
-                .collect(Collectors.toList()).size()).isEqualTo(page.getContent().size());
+        assertThat((int) page.getContent()
+                            .stream()
+                            .filter(address -> address.getCity().equals(city))
+                            .count()).isEqualTo(page.getContent().size());
     }
 
     private void validateResultStreetMatch(Page<Address> page, String street) {
-        assertThat(page.getContent().stream().filter(address -> address.getStreet().equals(street))
-                .collect(Collectors.toList()).size()).isEqualTo(page.getContent().size());
+        assertThat((int) page.getContent()
+                            .stream()
+                            .filter(address -> address.getStreet().equals(street))
+                            .count()).isEqualTo(page.getContent().size());
     }
 }

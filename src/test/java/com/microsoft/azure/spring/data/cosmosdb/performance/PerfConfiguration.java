@@ -5,10 +5,10 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.performance;
 
-import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
-import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.performance.utils.Constants;
-import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
+import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableCosmosRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,16 +16,16 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
-@EnableDocumentDbRepositories
-public class PerfConfiguration extends AbstractDocumentDbConfiguration {
+@EnableCosmosRepositories
+public class PerfConfiguration extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
-    private String documentDbUri;
+    private String cosmosDbUri;
 
     @Value("${cosmosdb.key:}")
-    private String documentDbKey;
+    private String cosmosDbKey;
 
     @Bean
-    public DocumentDBConfig getConfig() {
-        return DocumentDBConfig.builder(documentDbUri, documentDbKey, Constants.PERF_DATABASE_NAME).build();
+    public CosmosDBConfig getConfig() {
+        return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, Constants.PERF_DATABASE_NAME).build();
     }
 }

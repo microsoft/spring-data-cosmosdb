@@ -5,13 +5,22 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.common;
 
+import com.azure.data.cosmos.CosmosResponse;
+import com.azure.data.cosmos.CosmosResponseDiagnostics;
+import com.azure.data.cosmos.FeedResponse;
+import com.azure.data.cosmos.FeedResponseDiagnostics;
+import com.azure.data.cosmos.Resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnostics;
+import com.microsoft.azure.spring.data.cosmosdb.core.ResponseDiagnosticsProcessor;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.ObjectMapperFactory;
 import com.microsoft.azure.spring.data.cosmosdb.exception.ConfigurationException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+@Slf4j
 public class CosmosdbUtils {
 
     @SuppressWarnings("unchecked")
@@ -24,5 +33,34 @@ public class CosmosdbUtils {
         } catch (IOException e) {
             throw new ConfigurationException("failed to get copy from " + instance.getClass().getName(), e);
         }
+    }
+
+    public static <T extends Resource> void fillAndProcessResponseDiagnostics(
+        ResponseDiagnosticsProcessor responseDiagnosticsProcessor,
+        CosmosResponse<T> cosmosResponse, FeedResponse<T> feedResponse) {
+        if (responseDiagnosticsProcessor == null) {
+            return;
+        }
+        CosmosResponseDiagnostics cosmosResponseDiagnostics = null;
+        if (cosmosResponse != null) {
+            cosmosResponseDiagnostics = cosmosResponse.cosmosResponseDiagnosticsString();
+        }
+        FeedResponseDiagnostics feedResponseDiagnostics = null;
+        ResponseDiagnostics.CosmosResponseStatistics cosmosResponseStatistics = null;
+        if (feedResponse != null) {
+            feedResponseDiagnostics = feedResponse.feedResponseDiagnostics();
+            cosmosResponseStatistics = new ResponseDiagnostics.CosmosResponseStatistics(feedResponse);
+        }
+        if (cosmosResponseDiagnostics == null &&
+            (feedResponseDiagnostics == null || feedResponseDiagnostics.toString().isEmpty()) &&
+            cosmosResponseStatistics == null) {
+            log.debug("Empty response diagnostics");
+            return;
+        }
+        final ResponseDiagnostics responseDiagnostics =
+            new ResponseDiagnostics(cosmosResponseDiagnostics, feedResponseDiagnostics, cosmosResponseStatistics);
+
+        //  Process response diagnostics
+        responseDiagnosticsProcessor.processResponseDiagnostics(responseDiagnostics);
     }
 }
