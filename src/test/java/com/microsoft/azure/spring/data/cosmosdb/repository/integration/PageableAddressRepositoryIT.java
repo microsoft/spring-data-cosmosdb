@@ -11,6 +11,7 @@ import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
@@ -35,7 +36,6 @@ import java.util.List;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateLastPage;
 import static com.microsoft.azure.spring.data.cosmosdb.common.PageTestUtils.validateNonLastPage;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_1;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.PAGE_SIZE_3;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +63,9 @@ public class PageableAddressRepositoryIT {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private CosmosDBConfig dbConfig;
 
     @Before
     public void setup() {
@@ -167,7 +170,7 @@ public class PageableAddressRepositoryIT {
 
         final CosmosClient cosmosClient = applicationContext.getBean(CosmosClient.class);
         final Flux<FeedResponse<CosmosItemProperties>> feedResponseFlux =
-            cosmosClient.getDatabase(DB_NAME)
+            cosmosClient.getDatabase(dbConfig.getDatabase())
                         .getContainer(entityInformation.getCollectionName())
                         .queryItems(query, options);
 

@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.util.StringUtils;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -94,12 +95,16 @@ public class AbstractCosmosConfigurationIT {
         @Value("${cosmosdb.key:}")
         private String cosmosDbKey;
 
+        @Value("${cosmosdb.database:}")
+        private String database;
+
         @Mock
         private CosmosClient mockClient;
 
         @Bean
         public CosmosDBConfig getConfig() {
-            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, TestConstants.DB_NAME).build();
+            final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
+            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, dbName).build();
         }
 
         @Override
@@ -126,6 +131,9 @@ public class AbstractCosmosConfigurationIT {
         @Value("${cosmosdb.key:}")
         private String cosmosDbKey;
 
+        @Value("${cosmosdb.database:}")
+        private String database;
+
         private RequestOptions getRequestOptions() {
             final RequestOptions options = new RequestOptions();
 
@@ -137,8 +145,9 @@ public class AbstractCosmosConfigurationIT {
 
         @Bean
         public CosmosDBConfig getConfig() {
+            final String dbName = StringUtils.hasText(this.database) ? this.database : TestConstants.DB_NAME;
             final RequestOptions options = getRequestOptions();
-            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, TestConstants.DB_NAME)
+            return CosmosDBConfig.builder(cosmosDbUri, cosmosDbKey, dbName)
                     .requestOptions(options)
                     .build();
         }

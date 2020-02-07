@@ -9,6 +9,7 @@ import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
+import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
@@ -38,7 +39,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -59,6 +59,9 @@ public class PageableMemoRepositoryIT {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private CosmosDBConfig dbConfig;
 
     private static Set<Memo> memoSet;
 
@@ -138,7 +141,7 @@ public class PageableMemoRepositoryIT {
         final String query = "SELECT * from c OFFSET " + skipCount + " LIMIT " + takeCount;
 
         final CosmosClient cosmosClient = applicationContext.getBean(CosmosClient.class);
-        return cosmosClient.getDatabase(DB_NAME)
+        return cosmosClient.getDatabase(dbConfig.getDatabase())
                     .getContainer(entityInformation.getCollectionName())
                     .queryItems(query, options);
     }
