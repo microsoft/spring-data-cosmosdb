@@ -10,8 +10,15 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.CosmosRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ContactRepository extends CosmosRepository<Contact, String> {
     List<Contact> findByTitle(String title);
+    Iterable<Contact> findByLogicId(String title);
+
+    Contact findOneByTitle(String title);
+
+    Optional<Contact> findOptionallyByTitle(String title);
+
 }
