@@ -7,9 +7,11 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Contact;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Course;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ReactiveCourseRepository;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +20,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Iterator;
 import java.util.List;
@@ -28,9 +32,13 @@ import java.util.Optional;
 public class SingleResponseRepositoryIT {
 
     private static final Contact TEST_CONTACT = new Contact("testId", "faketitle");
+    private static final Course TEST_COURSE = new Course("1", "Course 1", "Department 1");
 
     @Autowired
     private ContactRepository repository;
+
+    @Autowired
+    private ReactiveCourseRepository reactiveRepository;
 
     @Before
     public void setUp() {
@@ -75,6 +83,15 @@ public class SingleResponseRepositoryIT {
         Assert.assertTrue(contactIterator.hasNext());
         Assert.assertEquals(TEST_CONTACT, contactIterator.next());
         Assert.assertFalse(contactIterator.hasNext());
+    }
+
+    @Test
+    public void testShouldFindSingleEntityReactive() {
+        final Mono<Course> save = reactiveRepository.save(TEST_COURSE);
+        StepVerifier.create(save).expectNext(TEST_COURSE).verifyComplete();
+
+        final Mono<Course> find = reactiveRepository.findByName(TEST_COURSE.getName());
+        StepVerifier.create(find).expectNext(TEST_COURSE).expectComplete().verify();
     }
 
 }
