@@ -8,7 +8,12 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.ReturnedType;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface CosmosQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String container);
@@ -38,6 +43,38 @@ public interface CosmosQueryExecution {
         @Override
         public Object execute(DocumentQuery query, Class<?> type, String container) {
             return operations.find(query, type, container);
+        }
+    }
+
+    final class SingleEntityExecution implements CosmosQueryExecution {
+
+        private final CosmosOperations operations;
+        private final ReturnedType returnedType;
+
+        public SingleEntityExecution(CosmosOperations operations, ReturnedType returnedType) {
+            this.operations = operations;
+            this.returnedType = returnedType;
+        }
+
+        @Override
+        public Object execute(DocumentQuery query, Class<?> type, String collection) {
+            final List results = operations.find(query, type, collection);
+            final Object result;
+            if (results == null || results.isEmpty()) {
+                result = null;
+            } else if (results.size() == 1) {
+                result = results.get(0);
+            } else {
+                throw new CosmosDBAccessException("Too many results - return type " + returnedType.getReturnedType() +
+                                                  " is not of type Iterable but find returned " + results.size() +
+                                                  " results");
+            }
+
+            if (returnedType.getReturnedType() == Optional.class) {
+                return result == null ? Optional.empty() : Optional.of(result);
+            } else {
+                return result;
+            }
         }
     }
 
