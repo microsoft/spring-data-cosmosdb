@@ -1,6 +1,5 @@
 [![Travis CI](https://travis-ci.org/Microsoft/spring-data-cosmosdb.svg?branch=master)](https://travis-ci.org/Microsoft/spring-data-cosmosdb)
 [![codecov](https://codecov.io/gh/Microsoft/spring-data-cosmosdb/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/spring-data-cosmosdb)
-[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22spring-data-cosmosdb%22)
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/spring-data-cosmosdb/blob/master/LICENSE)
 
 
@@ -26,7 +25,12 @@
 Please refer to [sample project here](./samplecode).
 
 ## Spring data version support
-This repository supports both Spring Data 1.x and 2.x. Please see [this document](https://github.com/Microsoft/spring-data-cosmosdb/wiki/Spring-Data-dependency-version-management) about more details and corresponding branch mapping. 
+This repository supports both Spring Data 1.x, 2.0.x, 2.1.x and 2.2.x. Below packages are available with latest release version.
+We recommend users to leverage latest version for bug fix and new features.
+
+Name | Version for Spring Boot 2.2.x | Version for Spring Boot 2.1.x | Version for Spring Boot 2.0.x
+:---:|:---:|:---:|:---:|
+spring-data-cosmosdb | [![Maven Central][Branch master Badge]][Branch master Link] | [![Maven Central][Branch 2.1.x Badge]][Branch 2.1.x Link] | [![Maven Central][Branch 2.0.x Badge]][Branch 2.0.x Link]
 
 ## Feature List
 - Spring Data ReactiveCrudRepository CrudRepository basic CRUD functionality
@@ -321,3 +325,12 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ### Data/Telemetry
 
  This project collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy](https://privacy.microsoft.com/en-us/privacystatement) statement to learn more.
+
+<!-- URL List -->
+[Branch Master Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.2.svg
+[Branch 2.1.x Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.1.svg
+[Branch 2.0.x Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.0.svg
+
+[Branch Master Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.2.*
+[Branch 2.1.x Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.1.*
+[Branch 2.0.x Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.0.*
