@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import com.microsoft.azure.spring.data.cosmosdb.annotation.GeneratedValue;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
@@ -18,6 +19,7 @@ import org.springframework.data.annotation.Id;
 public class Project {
 
     @Id
+    @GeneratedValue
     private String id;
 
     private String name;

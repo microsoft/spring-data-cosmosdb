@@ -11,6 +11,7 @@ import com.azure.data.cosmos.IncludedPath;
 import com.azure.data.cosmos.IndexingMode;
 import com.azure.data.cosmos.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
+import com.microsoft.azure.spring.data.cosmosdb.annotation.GeneratedValue;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
@@ -41,12 +42,14 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     private IndexingPolicy indexingPolicy;
     private boolean isVersioned;
     private boolean autoCreateCollection;
+    private boolean autoGenerateId;
 
     public CosmosEntityInformation(Class<T> domainClass) {
         super(domainClass);
 
         this.id = getIdField(domainClass);
         ReflectionUtils.makeAccessible(this.id);
+        this.autoGenerateId = isIdFieldAnnotatedWithGeneratedValue(this.id);
 
         this.collectionName = getCollectionName(domainClass);
         this.partitionKeyField = getPartitionKeyField(domainClass);
@@ -66,8 +69,16 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return (ID) ReflectionUtils.getField(id, entity);
     }
 
+    public boolean shouldGenerateId() {
+        return autoGenerateId;
+    }
+
     public Field getIdField() {
         return this.id;
+    }
+
+    public String getIdFieldName() {
+        return id.getName();
     }
 
     @SuppressWarnings("unchecked")
@@ -144,6 +155,17 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         }
 
         return idField;
+    }
+
+    private boolean isIdFieldAnnotatedWithGeneratedValue(Field idField) {
+        if (id.getAnnotation(GeneratedValue.class) != null) {
+            if (idField.getType() == String.class) {
+                return true;
+            } else {
+                throw new IllegalArgumentException("id field must be of type String if GeneratedValue annotation is present");
+            }
+        }
+        return false;
     }
 
     private String getCollectionName(Class<?> domainClass) {

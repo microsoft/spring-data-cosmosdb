@@ -28,6 +28,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -103,6 +105,11 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         @SuppressWarnings("unchecked")
         final Class<T> domainClass = (Class<T>) objectToSave.getClass();
 
+        generateIdIfNullAndAutoGenerationEnabled(originalItem, domainClass);
+        if (originalItem.id() == null) {
+            throw new CosmosDBAccessException("Null not allowed for id property");
+        }
+
         final CosmosItemResponse response = cosmosClient
             .getDatabase(this.databaseName)
             .getContainer(collectionName)
@@ -115,6 +122,14 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
 
         assert response != null;
         return mappingCosmosConverter.read(domainClass, response.properties());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void generateIdIfNullAndAutoGenerationEnabled(CosmosItemProperties properties, Class type) {
+        CosmosEntityInformation entityInfo = entityInfoCreator.apply(type);
+        if (properties.id() == null && entityInfo.shouldGenerateId()) {
+            properties.id(UUID.randomUUID().toString());
+        }
     }
 
     public <T> T findById(Object id, Class<T> entityClass) {

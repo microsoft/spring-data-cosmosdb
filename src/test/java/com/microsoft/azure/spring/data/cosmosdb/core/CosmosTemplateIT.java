@@ -18,6 +18,7 @@ import com.microsoft.azure.spring.data.cosmosdb.core.query.Criteria;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
@@ -116,6 +117,21 @@ public class CosmosTemplateIT {
     @After
     public void cleanup() {
         cosmosTemplate.deleteAll(Person.class.getSimpleName(), Person.class);
+    }
+
+    @Test(expected = CosmosDBAccessException.class)
+    public void testInsertShouldFailIfColumnNotAnnotatedWithAutoGenerate() {
+        final Person person = new Person(null, FIRST_NAME, LAST_NAME, HOBBIES, ADDRESSES);
+        cosmosTemplate.insert(Person.class.getSimpleName(), person, new PartitionKey(person.getLastName()));
+    }
+
+    @Test
+    public void testInsertShouldGenerateIdIfColumnAnnotatedWithAutoGenerate() {
+        final Project project = new Project(null, "project", "creator",
+                                            true, 0L, 0L);
+        final Project insertedProject = cosmosTemplate.insert(Project.class.getSimpleName(),
+                                                              project, new PartitionKey(project.getCreator()));
+        assertThat(insertedProject.getId()).isNotNull();
     }
 
     @Test(expected = CosmosDBAccessException.class)
