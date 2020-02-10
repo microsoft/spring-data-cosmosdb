@@ -89,7 +89,7 @@ public class AddressRepositoryIT {
             fail("address not found");
             return;
         }
-        assertThat(addressById.get().equals(TEST_ADDRESS1_PARTITION1));
+        assertThat(addressById.get()).isEqualTo(TEST_ADDRESS1_PARTITION1);
     }
 
     @Test
@@ -97,8 +97,8 @@ public class AddressRepositoryIT {
         final List<Address> addresses = repository.findByPostalCode(TestConstants.POSTAL_CODE);
 
         assertThat(addresses.size()).isEqualTo(2);
-        assertThat(addresses.get(0).getPostalCode().equals(TestConstants.POSTAL_CODE));
-        assertThat(addresses.get(1).getPostalCode().equals(TestConstants.POSTAL_CODE));
+        assertThat(addresses.get(0).getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
+        assertThat(addresses.get(1).getPostalCode()).isEqualTo(TestConstants.POSTAL_CODE);
     }
 
     @Test
