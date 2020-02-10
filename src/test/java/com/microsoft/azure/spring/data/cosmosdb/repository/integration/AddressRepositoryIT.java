@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -84,7 +85,11 @@ public class AddressRepositoryIT {
         final Optional<Address> addressById = repository.findById(TEST_ADDRESS1_PARTITION1.getPostalCode(),
             new PartitionKey(entityInformation.getPartitionKeyFieldValue(TEST_ADDRESS1_PARTITION1)));
 
-        assertThat(addressById.equals(TEST_ADDRESS1_PARTITION1));
+        if (!addressById.isPresent()) {
+            fail("address not found");
+            return;
+        }
+        assertThat(addressById.get().equals(TEST_ADDRESS1_PARTITION1));
     }
 
     @Test
