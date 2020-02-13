@@ -38,7 +38,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +46,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.UPDA
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -242,12 +242,11 @@ public class ReactiveCosmosTemplateIT {
             TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         updated.set_etag(WRONG_ETAG);
 
-        final Mono<Person> updatedPerson = cosmosTemplate.upsert(updated,
-            new PartitionKey(personInfo.getPartitionKeyFieldValue(updated)));
-        StepVerifier.create(updatedPerson).expectErrorMatches(throwable -> {
-            final CosmosDBAccessException cosmosDBAccessException = (CosmosDBAccessException) throwable;
-            assertThat(cosmosDBAccessException.getCosmosClientException()).isNotNull();
-            final Throwable cosmosClientException = cosmosDBAccessException.getCosmosClientException();
+        try {
+            cosmosTemplate.upsert(updated, new PartitionKey(personInfo.getPartitionKeyFieldValue(updated))).block();
+        } catch (CosmosDBAccessException cosmosDbAccessException) {
+            assertThat(cosmosDbAccessException.getCosmosClientException()).isNotNull();
+            final Throwable cosmosClientException = cosmosDbAccessException.getCosmosClientException();
             assertThat(cosmosClientException).isInstanceOf(CosmosClientException.class);
             assertThat(cosmosClientException.getMessage()).contains(PRECONDITION_IS_NOT_MET);
 
@@ -255,8 +254,9 @@ public class ReactiveCosmosTemplateIT {
                 TEST_PERSON.getId(), Person.class);
             StepVerifier.create(unmodifiedPerson).expectNextMatches(person ->
                 person.getFirstName().equals(insertedPerson.getFirstName())).verifyComplete();
-            return true;
-        }).verify(Duration.ofSeconds(5));
+            return;
+        }
+        fail();
     }
 
     @Test
