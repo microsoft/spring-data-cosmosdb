@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.core;
 
+import com.azure.data.cosmos.CosmosClientException;
 import com.azure.data.cosmos.CosmosKeyCredential;
 import com.azure.data.cosmos.PartitionKey;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
@@ -41,9 +42,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.UPDATED_FIRST_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -64,6 +67,9 @@ public class ReactiveCosmosTemplateIT {
         TestConstants.NEW_FIRST_NAME,
         TestConstants.NEW_LAST_NAME, TestConstants.HOBBIES, TestConstants.ADDRESSES);
 
+    private static final String PRECONDITION_IS_NOT_MET = "is not met";
+    private static final String WRONG_ETAG = "WRONG_ETAG";
+
     @Value("${cosmosdb.secondaryKey}")
     private String cosmosDbSecondaryKey;
 
@@ -73,6 +79,8 @@ public class ReactiveCosmosTemplateIT {
     private static CosmosKeyCredential cosmosKeyCredential;
 
     private static boolean initialized;
+
+    private Person insertedPerson;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -100,7 +108,7 @@ public class ReactiveCosmosTemplateIT {
             initialized = true;
         }
 
-        cosmosTemplate.insert(TEST_PERSON,
+        insertedPerson = cosmosTemplate.insert(TEST_PERSON,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON))).block();
     }
 
@@ -215,6 +223,7 @@ public class ReactiveCosmosTemplateIT {
     @Test
     public void testUpsert() {
         final Person p = TEST_PERSON_2;
+        p.set_etag(insertedPerson.get_etag());
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");
         p.setHobbies(hobbies);
@@ -225,6 +234,29 @@ public class ReactiveCosmosTemplateIT {
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
+    }
+
+    @Test
+    public void testOptimisticLockWhenUpdatingWithWrongEtag() {
+        final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
+            TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+        updated.set_etag(WRONG_ETAG);
+
+        try {
+            cosmosTemplate.upsert(updated, new PartitionKey(personInfo.getPartitionKeyFieldValue(updated))).block();
+        } catch (CosmosDBAccessException cosmosDbAccessException) {
+            assertThat(cosmosDbAccessException.getCosmosClientException()).isNotNull();
+            final Throwable cosmosClientException = cosmosDbAccessException.getCosmosClientException();
+            assertThat(cosmosClientException).isInstanceOf(CosmosClientException.class);
+            assertThat(cosmosClientException.getMessage()).contains(PRECONDITION_IS_NOT_MET);
+
+            final Mono<Person> unmodifiedPerson = cosmosTemplate.findById(Person.class.getSimpleName(),
+                TEST_PERSON.getId(), Person.class);
+            StepVerifier.create(unmodifiedPerson).expectNextMatches(person ->
+                person.getFirstName().equals(insertedPerson.getFirstName())).verifyComplete();
+            return;
+        }
+        fail();
     }
 
     @Test
