@@ -18,19 +18,19 @@ import java.util.List;
 
 public interface CosmosOperations {
 
-    String getCollectionName(Class<?> entityClass);
+    String getCollectionName(Class<?> domainType);
 
     CosmosContainerProperties createCollectionIfNotExists(CosmosEntityInformation<?, ?> information);
 
-    <T> List<T> findAll(Class<T> entityClass);
+    <T> List<T> findAll(Class<T> domainType);
 
-    <T> List<T> findAll(String collectionName, Class<T> entityClass);
+    <T> List<T> findAll(String collectionName, Class<T> domainType);
 
-    <T> T findById(Object id, Class<T> entityClass);
+    <T> T findById(Object id, Class<T> domainType);
 
-    <T> T findById(String collectionName, Object id, Class<T> entityClass);
+    <T> T findById(String collectionName, Object id, Class<T> domainType);
 
-    <T> T findById(Object id, Class<T> entityClass, PartitionKey partitionKey);
+    <T> T findById(Object id, Class<T> domainType, PartitionKey partitionKey);
 
     <T> T insert(T objectToSave, PartitionKey partitionKey);
 
@@ -42,25 +42,25 @@ public interface CosmosOperations {
 
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName, Class<?> domainClass);
+    void deleteAll(String collectionName, Class<?> domainType);
 
     void deleteCollection(String collectionName);
 
-    <T> List<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> List<T> delete(DocumentQuery query, Class<T> domainType, String collectionName);
 
-    <T> List<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> List<T> find(DocumentQuery query, Class<T> domainType, String collectionName);
 
-    <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> entityClass, String collectionName);
+    <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> domainType, String collectionName);
 
-    <T> Boolean exists(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> Boolean exists(DocumentQuery query, Class<T> domainType, String collectionName);
 
-    <T> Page<T> findAll(Pageable pageable, Class<T> domainClass, String collectionName);
+    <T> Page<T> findAll(Pageable pageable, Class<T> domainType, String collectionName);
 
-    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainClass, String collectionName);
+    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainType, String collectionName);
 
     long count(String collectionName);
 
-    <T> long count(DocumentQuery query, Class<T> domainClass, String collectionName);
+    <T> long count(DocumentQuery query, Class<T> domainType, String collectionName);
 
     MappingCosmosConverter getConverter();
 }

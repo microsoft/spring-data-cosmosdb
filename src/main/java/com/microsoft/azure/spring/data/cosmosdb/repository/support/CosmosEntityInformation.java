@@ -42,23 +42,23 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     private boolean isVersioned;
     private boolean autoCreateCollection;
 
-    public CosmosEntityInformation(Class<T> domainClass) {
-        super(domainClass);
+    public CosmosEntityInformation(Class<T> domainType) {
+        super(domainType);
 
-        this.id = getIdField(domainClass);
+        this.id = getIdField(domainType);
         ReflectionUtils.makeAccessible(this.id);
 
-        this.collectionName = getCollectionName(domainClass);
-        this.partitionKeyField = getPartitionKeyField(domainClass);
+        this.collectionName = getCollectionName(domainType);
+        this.partitionKeyField = getPartitionKeyField(domainType);
         if (this.partitionKeyField != null) {
             ReflectionUtils.makeAccessible(this.partitionKeyField);
         }
 
-        this.requestUnit = getRequestUnit(domainClass);
-        this.timeToLive = getTimeToLive(domainClass);
-        this.indexingPolicy = getIndexingPolicy(domainClass);
-        this.isVersioned = getIsVersioned(domainClass);
-        this.autoCreateCollection = getIsAutoCreateCollection(domainClass);
+        this.requestUnit = getRequestUnit(domainType);
+        this.timeToLive = getTimeToLive(domainType);
+        this.indexingPolicy = getIndexingPolicy(domainType);
+        this.isVersioned = getIsVersioned(domainType);
+        this.autoCreateCollection = getIsAutoCreateCollection(domainType);
     }
 
     @SuppressWarnings("unchecked")
@@ -113,20 +113,20 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return autoCreateCollection;
     }
 
-    private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {
+    private IndexingPolicy getIndexingPolicy(Class<?> domainType) {
         final IndexingPolicy policy = new IndexingPolicy();
 
-        policy.automatic(this.getIndexingPolicyAutomatic(domainClass));
-        policy.indexingMode(this.getIndexingPolicyMode(domainClass));
-        policy.setIncludedPaths(this.getIndexingPolicyIncludePaths(domainClass));
-        policy.excludedPaths(this.getIndexingPolicyExcludePaths(domainClass));
+        policy.automatic(this.getIndexingPolicyAutomatic(domainType));
+        policy.indexingMode(this.getIndexingPolicyMode(domainType));
+        policy.setIncludedPaths(this.getIndexingPolicyIncludePaths(domainType));
+        policy.excludedPaths(this.getIndexingPolicyExcludePaths(domainType));
 
         return policy;
     }
 
-    private Field getIdField(Class<?> domainClass) {
+    private Field getIdField(Class<?> domainType) {
         final Field idField;
-        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, Id.class);
+        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainType, Id.class);
 
         if (fields.isEmpty()) {
             idField = ReflectionUtils.findField(getJavaType(), Constants.ID_PROPERTY_NAME);
@@ -146,10 +146,10 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return idField;
     }
 
-    private String getCollectionName(Class<?> domainClass) {
-        String customCollectionName = domainClass.getSimpleName();
+    private String getCollectionName(Class<?> domainType) {
+        String customCollectionName = domainType.getSimpleName();
 
-        final Document annotation = domainClass.getAnnotation(Document.class);
+        final Document annotation = domainType.getAnnotation(Document.class);
 
         if (annotation != null && annotation.collection() != null && !annotation.collection().isEmpty()) {
             customCollectionName = resolveExpression(annotation.collection());
@@ -158,10 +158,10 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return customCollectionName;
     }
 
-    private Field getPartitionKeyField(Class<?> domainClass) {
+    private Field getPartitionKeyField(Class<?> domainType) {
         Field partitionKey = null;
 
-        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, PartitionKey.class);
+        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainType, PartitionKey.class);
 
         if (fields.size() == 1) {
             partitionKey = fields.get(0);
@@ -176,9 +176,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return partitionKey;
     }
 
-    private Integer getRequestUnit(Class<?> domainClass) {
+    private Integer getRequestUnit(Class<?> domainType) {
         Integer ru = Integer.parseInt(Constants.DEFAULT_REQUEST_UNIT);
-        final Document annotation = domainClass.getAnnotation(Document.class);
+        final Document annotation = domainType.getAnnotation(Document.class);
 
         if (annotation != null && annotation.ru() != null && !annotation.ru().isEmpty()) {
             ru = Integer.parseInt(annotation.ru());
@@ -186,9 +186,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return ru;
     }
 
-    private Integer getTimeToLive(Class<T> domainClass) {
+    private Integer getTimeToLive(Class<T> domainType) {
         Integer ttl = Constants.DEFAULT_TIME_TO_LIVE;
-        final Document annotation = domainClass.getAnnotation(Document.class);
+        final Document annotation = domainType.getAnnotation(Document.class);
 
         if (annotation != null) {
             ttl = annotation.timeToLive();
@@ -198,9 +198,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     }
 
 
-    private Boolean getIndexingPolicyAutomatic(Class<?> domainClass) {
+    private Boolean getIndexingPolicyAutomatic(Class<?> domainType) {
         Boolean isAutomatic = Boolean.valueOf(Constants.DEFAULT_INDEXINGPOLICY_AUTOMATIC);
-        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainType.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
             isAutomatic = Boolean.valueOf(annotation.automatic());
@@ -209,9 +209,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return isAutomatic;
     }
 
-    private IndexingMode getIndexingPolicyMode(Class<?> domainClass) {
+    private IndexingMode getIndexingPolicyMode(Class<?> domainType) {
         IndexingMode mode = Constants.DEFAULT_INDEXINGPOLICY_MODE;
-        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainType.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation != null) {
             mode = annotation.mode();
@@ -220,9 +220,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return mode;
     }
 
-    private List<IncludedPath> getIndexingPolicyIncludePaths(Class<?> domainClass) {
+    private List<IncludedPath> getIndexingPolicyIncludePaths(Class<?> domainType) {
         final List<IncludedPath> pathArrayList = new ArrayList<>();
-        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainType.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation == null || annotation.includePaths() == null || annotation.includePaths().length == 0) {
             return null; // Align the default value of IndexingPolicy
@@ -237,9 +237,9 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return pathArrayList;
     }
 
-    private List<ExcludedPath> getIndexingPolicyExcludePaths(Class<?> domainClass) {
+    private List<ExcludedPath> getIndexingPolicyExcludePaths(Class<?> domainType) {
         final List<ExcludedPath> pathArrayList = new ArrayList<>();
-        final DocumentIndexingPolicy annotation = domainClass.getAnnotation(DocumentIndexingPolicy.class);
+        final DocumentIndexingPolicy annotation = domainType.getAnnotation(DocumentIndexingPolicy.class);
 
         if (annotation == null || annotation.excludePaths().length == 0) {
             return null; // Align the default value of IndexingPolicy
@@ -254,15 +254,15 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return pathArrayList;
     }
 
-    private boolean getIsVersioned(Class<T> domainClass) {
-        final Field findField = ReflectionUtils.findField(domainClass, ETAG);
+    private boolean getIsVersioned(Class<T> domainType) {
+        final Field findField = ReflectionUtils.findField(domainType, ETAG);
         return findField != null 
                 && findField.getType() == String.class
                 && findField.isAnnotationPresent(Version.class);
     }
 
-    private boolean getIsAutoCreateCollection(Class<T> domainClass) {
-        final Document annotation = domainClass.getAnnotation(Document.class);
+    private boolean getIsAutoCreateCollection(Class<T> domainType) {
+        final Document annotation = domainType.getAnnotation(Document.class);
 
         boolean autoCreateCollection = Constants.DEFAULT_AUTO_CREATE_COLLECTION;
         if (annotation != null) {
