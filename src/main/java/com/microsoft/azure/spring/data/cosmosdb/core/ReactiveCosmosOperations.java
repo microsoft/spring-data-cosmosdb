@@ -32,6 +32,8 @@ public interface ReactiveCosmosOperations {
 
     <T> Flux<T> findAll(Class<T> domainType);
 
+    <T> Flux<T> findAll(PartitionKey partitionKey, Class<T> domainType);
+
     <T> Mono<T> findById(Object id, Class<T> domainType);
 
     <T> Mono<T> findById(String containerName, Object id, Class<T> domainType);

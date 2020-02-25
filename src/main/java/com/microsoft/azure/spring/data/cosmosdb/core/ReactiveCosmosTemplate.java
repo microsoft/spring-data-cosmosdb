@@ -158,6 +158,31 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         return findAll(domainType.getSimpleName(), domainType);
     }
 
+    @Override
+    public <T> Flux<T> findAll(PartitionKey partitionKey, Class<T> domainType) {
+        Assert.notNull(partitionKey, "partitionKey should not be null");
+        Assert.notNull(domainType, "domainType should not be null");
+
+        final String containerName = getContainerName(domainType);
+
+        final FeedOptions feedOptions = new FeedOptions();
+        feedOptions.partitionKey(partitionKey);
+        feedOptions.populateQueryMetrics(isPopulateQueryMetrics);
+
+        return cosmosClient
+            .getDatabase(this.databaseName)
+            .getContainer(containerName)
+            .readAllItems(feedOptions)
+            .flatMap(cosmosItemFeedResponse -> {
+                fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                    null, cosmosItemFeedResponse);
+                return Flux.fromIterable(cosmosItemFeedResponse.results());
+            })
+            .map(cosmosItemProperties -> toDomainObject(domainType, cosmosItemProperties))
+            .onErrorResume(throwable ->
+                exceptionHandler("Failed to find items", throwable));
+    }
+
     /**
      * Find by id
      *
