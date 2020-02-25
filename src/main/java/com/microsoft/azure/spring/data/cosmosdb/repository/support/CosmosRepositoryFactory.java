@@ -48,8 +48,8 @@ public class CosmosRepositoryFactory extends RepositoryFactorySupport {
     }
 
     @Override
-    public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-        return new CosmosEntityInformation<>(domainClass);
+    public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainType) {
+        return new CosmosEntityInformation<>(domainType);
     }
 
     @Override

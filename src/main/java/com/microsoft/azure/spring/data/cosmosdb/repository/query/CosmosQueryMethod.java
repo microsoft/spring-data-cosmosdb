@@ -24,11 +24,11 @@ public class CosmosQueryMethod extends QueryMethod {
     @Override
     @SuppressWarnings("unchecked")
     public EntityMetadata<?> getEntityInformation() {
-        final Class<Object> domainClass = (Class<Object>) getDomainClass();
+        final Class<Object> domainType = (Class<Object>) getDomainClass();
         final CosmosEntityInformation entityInformation =
-                new CosmosEntityInformation<Object, String>(domainClass);
+                new CosmosEntityInformation<Object, String>(domainType);
 
-        this.metadata = new SimpleCosmosEntityMetadata<Object>(domainClass, entityInformation);
+        this.metadata = new SimpleCosmosEntityMetadata<Object>(domainType, entityInformation);
         return this.metadata;
     }
 }

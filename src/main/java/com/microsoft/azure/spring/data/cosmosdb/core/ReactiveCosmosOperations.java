@@ -16,19 +16,19 @@ import reactor.core.publisher.Mono;
 
 public interface ReactiveCosmosOperations {
 
-    String getContainerName(Class<?> domainClass);
+    String getContainerName(Class<?> domainType);
 
     Mono<CosmosContainerResponse> createCollectionIfNotExists(CosmosEntityInformation information);
 
-    <T> Flux<T> findAll(String collectionName, Class<T> entityClass);
+    <T> Flux<T> findAll(String collectionName, Class<T> domainType);
 
-    <T> Flux<T> findAll(Class<T> entityClass);
+    <T> Flux<T> findAll(Class<T> domainType);
 
-    <T> Mono<T> findById(Object id, Class<T> entityClass);
+    <T> Mono<T> findById(Object id, Class<T> domainType);
 
-    <T> Mono<T> findById(String collectionName, Object id, Class<T> entityClass);
+    <T> Mono<T> findById(String collectionName, Object id, Class<T> domainType);
 
-    <T> Mono<T> findById(Object id, Class<T> entityClass, PartitionKey partitionKey);
+    <T> Mono<T> findById(Object id, Class<T> domainType, PartitionKey partitionKey);
 
     <T> Mono<T> insert(T objectToSave, PartitionKey partitionKey);
 
@@ -44,13 +44,13 @@ public interface ReactiveCosmosOperations {
 
     void deleteContainer(String collectionName);
 
-    <T> Flux<T> delete(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> Flux<T> delete(DocumentQuery query, Class<T> domainType, String collectionName);
 
-    <T> Flux<T> find(DocumentQuery query, Class<T> entityClass, String collectionName);
+    <T> Flux<T> find(DocumentQuery query, Class<T> domainType, String collectionName);
 
-    Mono<Boolean> exists(DocumentQuery query, Class<?> entityClass, String collectionName);
+    Mono<Boolean> exists(DocumentQuery query, Class<?> domainType, String collectionName);
 
-    Mono<Boolean> existsById(Object id, Class<?> entityClass, String containerName);
+    Mono<Boolean> existsById(Object id, Class<?> domainType, String containerName);
 
     Mono<Long> count(String collectionName);
 
