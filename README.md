@@ -45,7 +45,7 @@ spring-data-cosmosdb | [![Maven Central][Branch master Badge]][Branch master Lin
   - annotate a field in domain class with `@Id`, this field will be mapped to document `id` in Cosmos DB. 
   - set name of this field to `id`, this field will be mapped to document `id` in Azure Cosmos DB.
 - Custom collection Name.
-  By default, collection name will be class name of user domain class. To customize it, add the `@Document(collection="myCustomCollectionName")` annotation to the domain class. The collection field also supports SpEL expressions (eg. `collection = "${dynamic.collection.name}"` or `collection = "#{@someBean.getCollectionName()}"`) in order to provide collection names programmatically/via configuration properties.
+  By default, collection name will be class name of user domain class. To customize it, add the `@Document(collection="myCustomCollectionName")` annotation to the domain class. The collection field also supports SpEL expressions (eg. `collection = "${dynamic.collection.name}"` or `collection = "#{@someBean.getContainerName()}"`) in order to provide collection names programmatically/via configuration properties.
 - Custom IndexingPolicy
   By default, IndexingPolicy will be set by azure service. To customize it add annotation `@DocumentIndexingPolicy` to domain class. This annotation has 4 attributes to customize, see following:
 ```java

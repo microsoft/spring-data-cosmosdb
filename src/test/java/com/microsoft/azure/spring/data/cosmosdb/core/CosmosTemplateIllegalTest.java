@@ -55,7 +55,7 @@ public class CosmosTemplateIllegalTest {
     }
 
     @Test
-    public void deleteIllegalCollectionShouldFail() throws NoSuchMethodException {
+    public void deleteIllegalContainerShouldFail() throws NoSuchMethodException {
         final Method method = dbTemplateClass.getDeclaredMethod("deleteAll", String.class, Class.class);
 
         checkIllegalArgument(method, NULL_STR, Person.class);
@@ -68,7 +68,7 @@ public class CosmosTemplateIllegalTest {
         final Method method = dbTemplateClass.getDeclaredMethod("deleteById", String.class, Object.class,
                 PartitionKey.class);
 
-        // Test argument collectionName
+        // Test argument containerName
         checkIllegalArgument(method, null, DUMMY_ID, DUMMY_KEY);
         checkIllegalArgument(method, EMPTY_STR, DUMMY_ID, DUMMY_KEY);
         checkIllegalArgument(method, WHITESPACES_STR, DUMMY_ID, DUMMY_KEY);

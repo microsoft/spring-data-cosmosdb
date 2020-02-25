@@ -23,10 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,7 +53,7 @@ public class CosmosTemplatePartitionIT {
             TEST_PERSON.getLastName(), HOBBIES, ADDRESSES);
 
     private static CosmosTemplate cosmosTemplate;
-    private static String collectionName;
+    private static String containerName;
     private static CosmosEntityInformation<PartitionPerson, String> personInfo;
     private static boolean initialized;
 
@@ -76,9 +74,9 @@ public class CosmosTemplatePartitionIT {
             final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext, null);
 
             cosmosTemplate = new CosmosTemplate(cosmosDbFactory, dbConverter, dbConfig.getDatabase());
-            collectionName = personInfo.getCollectionName();
+            containerName = personInfo.getContainerName();
 
-            cosmosTemplate.createCollectionIfNotExists(personInfo);
+            cosmosTemplate.createContainerIfNotExists(personInfo);
             initialized = true;
         }
 
@@ -88,7 +86,7 @@ public class CosmosTemplatePartitionIT {
 
     @After
     public void cleanup() {
-        cosmosTemplate.deleteAll(personInfo.getCollectionName(), PartitionPerson.class);
+        cosmosTemplate.deleteAll(personInfo.getContainerName(), PartitionPerson.class);
     }
 
     @Test
@@ -181,12 +179,12 @@ public class CosmosTemplatePartitionIT {
 
     @Test
     public void testCountForPartitionedCollection() {
-        final long prevCount = cosmosTemplate.count(collectionName);
+        final long prevCount = cosmosTemplate.count(containerName);
         assertThat(prevCount).isEqualTo(1);
 
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
-        final long newCount = cosmosTemplate.count(collectionName);
+        final long newCount = cosmosTemplate.count(containerName);
         assertThat(newCount).isEqualTo(2);
     }
 
@@ -198,7 +196,7 @@ public class CosmosTemplatePartitionIT {
                 Arrays.asList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = cosmosTemplate.count(query, PartitionPerson.class, collectionName);
+        final long count = cosmosTemplate.count(query, PartitionPerson.class, containerName);
         assertThat(count).isEqualTo(1);
     }
 
@@ -208,7 +206,7 @@ public class CosmosTemplatePartitionIT {
                 Arrays.asList("non-exist-first-name"));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = cosmosTemplate.count(query, PartitionPerson.class, collectionName);
+        final long count = cosmosTemplate.count(query, PartitionPerson.class, containerName);
         assertThat(count).isEqualTo(0);
     }
 
@@ -217,13 +215,13 @@ public class CosmosTemplatePartitionIT {
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName()));
 
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
-        final Page<PartitionPerson> page1 = cosmosTemplate.findAll(pageRequest, PartitionPerson.class, collectionName);
+        final Page<PartitionPerson> page1 = cosmosTemplate.findAll(pageRequest, PartitionPerson.class, containerName);
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
 
         final Page<PartitionPerson> page2 = cosmosTemplate.findAll(page1.getPageable(),
-                PartitionPerson.class, collectionName);
+                PartitionPerson.class, containerName);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
     }
@@ -237,7 +235,7 @@ public class CosmosTemplatePartitionIT {
         final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
-        final Page<PartitionPerson> page = cosmosTemplate.paginationQuery(query, PartitionPerson.class, collectionName);
+        final Page<PartitionPerson> page = cosmosTemplate.paginationQuery(query, PartitionPerson.class, containerName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, page.getContent().size());
     }

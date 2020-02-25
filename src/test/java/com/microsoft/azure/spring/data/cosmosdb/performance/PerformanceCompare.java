@@ -72,9 +72,9 @@ public class PerformanceCompare {
     public void setup() throws CosmosClientException {
         if (!hasInit) {
             DatabaseUtils.createDatabase(cosmosSyncClient, Constants.PERF_DATABASE_NAME);
-            DatabaseUtils.createCollection(cosmosSyncClient, Constants.PERF_DATABASE_NAME,
+            DatabaseUtils.createContainer(cosmosSyncClient, Constants.PERF_DATABASE_NAME,
                     Constants.SPRING_COLLECTION_NAME);
-            DatabaseUtils.createCollection(cosmosSyncClient,
+            DatabaseUtils.createContainer(cosmosSyncClient,
                 Constants.PERF_DATABASE_NAME, Constants.SDK_COLLECTION_NAME);
 
             sdkService = new SdkService(cosmosSyncClient, Constants.PERF_DATABASE_NAME,

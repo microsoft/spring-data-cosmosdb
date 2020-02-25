@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.domain;
 import java.util.List;
 
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.Data;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.Version;
 
+@Document(ru = "10000")
 @Data
 @EqualsAndHashCode(exclude = "_etag")
 @NoArgsConstructor

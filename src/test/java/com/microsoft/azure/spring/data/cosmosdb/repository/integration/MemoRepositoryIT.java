@@ -68,7 +68,7 @@ public class MemoRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteCollection(entityInformation.getCollectionName());
+        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @Before

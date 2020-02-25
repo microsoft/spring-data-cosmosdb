@@ -40,8 +40,8 @@ public class CosmosAnnotationUnitTest {
         Assert.isNull(policyAnnotation, "NoDBAnnotationPerson class should not have DocumentIndexingPolicy annotation");
         Assert.notNull(policy, "NoDBAnnotationPerson class collection policy should not be null");
 
-        // CollectionName, RequestUnit, Automatic and IndexingMode
-        Assert.isTrue(personInfo.getCollectionName().equals(NoDBAnnotationPerson.class.getSimpleName()),
+        // ContainerName, RequestUnit, Automatic and IndexingMode
+        Assert.isTrue(personInfo.getContainerName().equals(NoDBAnnotationPerson.class.getSimpleName()),
                 "should be default collection name");
         Assert.isTrue(personInfo.getRequestUnit() == TestConstants.DEFAULT_REQUEST_UNIT,
                 "should be default request unit");
@@ -65,12 +65,12 @@ public class CosmosAnnotationUnitTest {
         final Document documentAnnotation = Role.class.getAnnotation(Document.class);
         final DocumentIndexingPolicy policyAnnotation = Role.class.getAnnotation(DocumentIndexingPolicy.class);
 
-        // CollectionName, RequestUnit, Automatic and IndexingMode
+        // ContainerName, RequestUnit, Automatic and IndexingMode
         Assert.notNull(documentAnnotation, "NoDBAnnotationPerson class should have Document annotation");
         Assert.notNull(policyAnnotation, "NoDBAnnotationPerson class should have DocumentIndexingPolicy annotation");
         Assert.notNull(policy, "NoDBAnnotationPerson class collection policy should not be null");
 
-        Assert.isTrue(roleInfo.getCollectionName().equals(TestConstants.ROLE_COLLECTION_NAME),
+        Assert.isTrue(roleInfo.getContainerName().equals(TestConstants.ROLE_COLLECTION_NAME),
                 "should be Role(class) collection name");
         Assert.isTrue(roleInfo.getRequestUnit() == TestConstants.REQUEST_UNIT,
                 "should be Role(class) request unit");
@@ -86,11 +86,11 @@ public class CosmosAnnotationUnitTest {
 
     @Test
     public void testAutoCreateCollectionAnnotation() {
-        final boolean autoCreateCollectionRoleInfo = roleInfo.isAutoCreateCollection();
-        final boolean autoCreateCollectionPersonInfo = personInfo.isAutoCreateCollection();
+        final boolean autoCreateCollectionRoleInfo = roleInfo.isAutoCreateContainer();
+        final boolean autoCreateCollectionPersonInfo = personInfo.isAutoCreateContainer();
 
-        Assert.isTrue(!autoCreateCollectionRoleInfo, "autoCreateCollection in role should be false");
-        Assert.isTrue(autoCreateCollectionPersonInfo, "autoCreateCollection in person should be true");
+        Assert.isTrue(!autoCreateCollectionRoleInfo, "autoCreateContainer in role should be false");
+        Assert.isTrue(autoCreateCollectionPersonInfo, "autoCreateContainer in person should be true");
     }
 
     @Test

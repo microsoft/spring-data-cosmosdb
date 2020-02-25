@@ -97,14 +97,14 @@ public class ReactiveCosmosTemplateIT {
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
             personInfo = new CosmosEntityInformation<>(Person.class);
-            containerName = personInfo.getCollectionName();
+            containerName = personInfo.getContainerName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
             final MappingCosmosConverter dbConverter =
                 new MappingCosmosConverter(mappingContext, null);
             cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, dbConfig.getDatabase());
-            cosmosTemplate.createCollectionIfNotExists(personInfo).block().container();
+            cosmosTemplate.createContainerIfNotExists(personInfo).block().container();
             initialized = true;
         }
 
@@ -210,7 +210,7 @@ public class ReactiveCosmosTemplateIT {
     }
 
     @Test
-    public void testInsertWithCollectionName() {
+    public void testInsertWithContainerName() {
         StepVerifier.create(cosmosTemplate.insert(Person.class.getSimpleName(), TEST_PERSON_2,
             new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_2))))
                     .expectNext(TEST_PERSON_2).verifyComplete();
@@ -276,7 +276,7 @@ public class ReactiveCosmosTemplateIT {
     }
 
     @Test
-    public void testUpsertWithCollectionName() {
+    public void testUpsertWithContainerName() {
         final Person p = TEST_PERSON_2;
         final ArrayList<String> hobbies = new ArrayList<>(p.getHobbies());
         hobbies.add("more code");

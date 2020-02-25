@@ -11,8 +11,6 @@ import java.util.function.Function;
 
 /**
  * Memoize function computation results
- * @author Domenico Sibilio
- *
  */
 public class Memoizer<I, O> {
 

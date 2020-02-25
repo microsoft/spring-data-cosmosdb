@@ -22,5 +22,5 @@ public @interface Document {
 
     int timeToLive() default Constants.DEFAULT_TIME_TO_LIVE;
 
-    boolean autoCreateCollection() default Constants.DEFAULT_AUTO_CREATE_COLLECTION;
+    boolean autoCreateCollection() default Constants.DEFAULT_AUTO_CREATE_CONTAINER;
 }

@@ -33,7 +33,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         this.cosmosOperations = applicationContext.getBean(ReactiveCosmosOperations.class);
         this.entityInformation = metadata;
 
-        createCollectionIfNotExists();
+        createContainerIfNotExists();
     }
 
     public SimpleReactiveCosmosRepository(CosmosEntityInformation<T, K> metadata,
@@ -41,11 +41,11 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         this.cosmosOperations = reactiveCosmosOperations;
         this.entityInformation = metadata;
 
-        createCollectionIfNotExists();
+        createContainerIfNotExists();
     }
 
-    private CosmosContainerResponse createCollectionIfNotExists() {
-        return this.cosmosOperations.createCollectionIfNotExists(this.entityInformation).block();
+    private CosmosContainerResponse createContainerIfNotExists() {
+        return this.cosmosOperations.createContainerIfNotExists(this.entityInformation).block();
     }
 
     @Override
@@ -56,7 +56,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
             new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
 
         return cosmosOperations.find(query, entityInformation.getJavaType(),
-            entityInformation.getCollectionName());
+            entityInformation.getContainerName());
     }
 
     @Override
@@ -65,11 +65,11 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(entity, "Entity must not be null!");
 
         if (entityInformation.isNew(entity)) {
-            return cosmosOperations.insert(entityInformation.getCollectionName(),
+            return cosmosOperations.insert(entityInformation.getContainerName(),
                 entity,
                 createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         } else {
-            return cosmosOperations.upsert(entityInformation.getCollectionName(),
+            return cosmosOperations.upsert(entityInformation.getContainerName(),
                 entity, createKey(entityInformation.getPartitionKeyFieldValue(entity)));
         }
     }
@@ -93,7 +93,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
     @Override
     public Mono<T> findById(K id) {
         Assert.notNull(id, "The given id must not be null!");
-        return cosmosOperations.findById(entityInformation.getCollectionName(), id,
+        return cosmosOperations.findById(entityInformation.getContainerName(), id,
             entityInformation.getJavaType());
     }
 
@@ -102,7 +102,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(publisher, "The given id must not be null!");
 
         return Mono.from(publisher).flatMap(
-            id -> cosmosOperations.findById(entityInformation.getCollectionName(),
+            id -> cosmosOperations.findById(entityInformation.getContainerName(),
                 id, entityInformation.getJavaType()));
     }
 
@@ -118,7 +118,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(id, "The given id must not be null!");
 
         return cosmosOperations.existsById(id, entityInformation.getJavaType(),
-            entityInformation.getCollectionName());
+            entityInformation.getContainerName());
     }
 
     @Override
@@ -127,12 +127,12 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
 
         return Mono.from(publisher).flatMap(id -> cosmosOperations.existsById(id,
             entityInformation.getJavaType(),
-            entityInformation.getCollectionName()));
+            entityInformation.getContainerName()));
     }
 
     @Override
     public Flux<T> findAll() {
-        return cosmosOperations.findAll(entityInformation.getCollectionName(),
+        return cosmosOperations.findAll(entityInformation.getContainerName(),
             entityInformation.getJavaType());
     }
 
@@ -150,21 +150,21 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
 
     @Override
     public Mono<Long> count() {
-        return cosmosOperations.count(entityInformation.getCollectionName());
+        return cosmosOperations.count(entityInformation.getContainerName());
     }
 
     @Override
     public Mono<Void> deleteById(K id) {
         Assert.notNull(id, "The given id must not be null!");
 
-        return cosmosOperations.deleteById(entityInformation.getCollectionName(), id, null);
+        return cosmosOperations.deleteById(entityInformation.getContainerName(), id, null);
     }
 
     @Override
     public Mono<Void> deleteById(Publisher<K> publisher) {
         Assert.notNull(publisher, "Id must not be null!");
 
-        return Mono.from(publisher).flatMap(id -> cosmosOperations.deleteById(entityInformation.getCollectionName(),
+        return Mono.from(publisher).flatMap(id -> cosmosOperations.deleteById(entityInformation.getContainerName(),
             id, null)).then();
     }
 
@@ -173,7 +173,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(partitionKey, "PartitionKey must not be null!");
 
-        return cosmosOperations.deleteById(entityInformation.getCollectionName(), id, partitionKey);
+        return cosmosOperations.deleteById(entityInformation.getContainerName(), id, partitionKey);
 
     }
 
@@ -182,7 +182,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         Assert.notNull(entity, "entity to be deleted must not be null!");
 
         final Object id = entityInformation.getId(entity);
-        return cosmosOperations.deleteById(entityInformation.getCollectionName(),
+        return cosmosOperations.deleteById(entityInformation.getContainerName(),
             id,
             createKey(entityInformation.getPartitionKeyFieldValue(entity)));
     }
@@ -207,7 +207,7 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
 
     @Override
     public Mono<Void> deleteAll() {
-        return cosmosOperations.deleteAll(entityInformation.getCollectionName(),
+        return cosmosOperations.deleteAll(entityInformation.getContainerName(),
             entityInformation.getPartitionKeyFieldName());
     }
 

@@ -9,18 +9,18 @@ import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 
 public interface ReactiveCosmosQueryExecution {
-    Object execute(DocumentQuery query, Class<?> type, String collection);
+    Object execute(DocumentQuery query, Class<?> type, String container);
 
-    final class CollectionExecution implements ReactiveCosmosQueryExecution {
+    final class ContainerExecution implements ReactiveCosmosQueryExecution {
 
         private final ReactiveCosmosOperations operations;
 
-        public CollectionExecution(ReactiveCosmosOperations operations) {
+        public ContainerExecution(ReactiveCosmosOperations operations) {
             this.operations = operations;
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
             return operations.getContainerName(type);
         }
     }
@@ -34,8 +34,8 @@ public interface ReactiveCosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.find(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.find(query, type, container);
         }
     }
 
@@ -48,8 +48,8 @@ public interface ReactiveCosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.exists(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.exists(query, type, container);
         }
     }
 
@@ -62,8 +62,8 @@ public interface ReactiveCosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.delete(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.delete(query, type, container);
         }
     }
 }

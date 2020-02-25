@@ -58,24 +58,24 @@ public class SpELCosmosDBAnnotationIT {
     @After
     public void cleanUp() {
         if (cosmosTemplate != null && cosmosEntityInformation != null) {
-            cosmosTemplate.deleteCollection(cosmosEntityInformation.getCollectionName());
+            cosmosTemplate.deleteContainer(cosmosEntityInformation.getContainerName());
         }
     }
     
     @Test
-    public void testDynamicCollectionNameWithPropertySourceExpression() {
+    public void testDynamicContainerNameWithPropertySourceExpression() {
         final CosmosEntityInformation<SpELPropertyStudent, Object> propertyStudentInfo =
                 new CosmosEntityInformation<>(SpELPropertyStudent.class);
         
-        assertEquals(TestConstants.DYNAMIC_PROPERTY_COLLECTION_NAME, propertyStudentInfo.getCollectionName());
+        assertEquals(TestConstants.DYNAMIC_PROPERTY_COLLECTION_NAME, propertyStudentInfo.getContainerName());
     }
     
     @Test
-    public void testDynamicCollectionNameWithBeanExpression() {
+    public void testDynamicContainerNameWithBeanExpression() {
         final CosmosEntityInformation<SpELBeanStudent, Object> beanStudentInfo =
                 new CosmosEntityInformation<>(SpELBeanStudent.class);
         
-        assertEquals(TestConstants.DYNAMIC_BEAN_COLLECTION_NAME, beanStudentInfo.getCollectionName());
+        assertEquals(TestConstants.DYNAMIC_BEAN_COLLECTION_NAME, beanStudentInfo.getContainerName());
     }
     
     @Test
@@ -91,10 +91,10 @@ public class SpELCosmosDBAnnotationIT {
       final MappingCosmosConverter mappingConverter = new MappingCosmosConverter(dbContext, objectMapper);
       cosmosTemplate = new CosmosTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
       
-      cosmosTemplate.createCollectionIfNotExists(cosmosEntityInformation);
+      cosmosTemplate.createContainerIfNotExists(cosmosEntityInformation);
 
       final SpELPropertyStudent insertedRecord = 
-              cosmosTemplate.insert(cosmosEntityInformation.getCollectionName(), TEST_PROPERTY_STUDENT, null);
+              cosmosTemplate.insert(cosmosEntityInformation.getContainerName(), TEST_PROPERTY_STUDENT, null);
       assertNotNull(insertedRecord);
       
       final SpELPropertyStudent readRecord = 

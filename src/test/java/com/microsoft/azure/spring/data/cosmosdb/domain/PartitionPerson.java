@@ -6,12 +6,14 @@
 
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
 
+@Document(ru = "10000")
 @Data
 @AllArgsConstructor
 public class PartitionPerson {

@@ -50,7 +50,7 @@ public class SimpleCosmosRepositoryUnitTest {
     @Before
     public void setUp() {
         when(entityInformation.getJavaType()).thenReturn(Person.class);
-        when(entityInformation.getCollectionName()).thenReturn(Person.class.getSimpleName());
+        when(entityInformation.getContainerName()).thenReturn(Person.class.getSimpleName());
         when(cosmosOperations.findAll(anyString(), any())).thenReturn(Arrays.asList(TEST_PERSON));
 
         repository = new SimpleCosmosRepository<>(entityInformation, cosmosOperations);

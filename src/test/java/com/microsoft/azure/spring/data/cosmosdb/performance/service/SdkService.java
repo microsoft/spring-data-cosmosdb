@@ -30,12 +30,12 @@ public class SdkService {
 
     private final CosmosSyncClient cosmosSyncClient;
     private final String dbName;
-    private final String collectionName;
+    private final String containerName;
 
-    public SdkService(CosmosSyncClient client, String dbName, String collectionName, CosmosClient asyncClient) {
+    public SdkService(CosmosSyncClient client, String dbName, String containerName, CosmosClient asyncClient) {
         this.cosmosSyncClient = client;
         this.dbName = dbName;
-        this.collectionName = collectionName;
+        this.containerName = containerName;
     }
 
     public PerfPerson save(PerfPerson person) {
@@ -44,7 +44,7 @@ public class SdkService {
             final CosmosItemProperties personDoc = new CosmosItemProperties(personJson);
 
             final CosmosItemProperties doc = cosmosSyncClient.getDatabase(dbName)
-                                                     .getContainer(collectionName)
+                                                     .getContainer(containerName)
                                                      .createItem(personDoc)
                                                      .properties();
 
@@ -63,11 +63,10 @@ public class SdkService {
 
     public void delete(PerfPerson person) {
         try {
-            final String docLink = DatabaseUtils.getDocumentLink(dbName, collectionName, person.getId());
+            final String docLink = DatabaseUtils.getDocumentLink(dbName, containerName, person.getId());
             cosmosSyncClient.getDatabase(dbName)
-                    .getContainer(collectionName)
-                    .getItem(person.getId(),
-                    PartitionKey.None)
+                    .getContainer(containerName)
+                    .getItem(person.getId(), PartitionKey.None)
                     .delete(new CosmosItemRequestOptions());
             
         } catch (CosmosClientException e) {
@@ -82,9 +81,9 @@ public class SdkService {
     public CosmosItemProperties findById(String id) {
         final Iterator<FeedResponse<CosmosItemProperties>> feedResponseIterator =
                 cosmosSyncClient.getDatabase(dbName)
-                        .getContainer(collectionName)
-                        .queryItems("SELECT * FROM " + collectionName + " WHERE " +
-                                    collectionName + ".id='" + id + "'", new FeedOptions());
+                        .getContainer(containerName)
+                        .queryItems("SELECT * FROM " + containerName + " WHERE " +
+                            containerName + ".id='" + id + "'", new FeedOptions());
         CosmosItemProperties itemProperties = null;
         if (feedResponseIterator.hasNext()) {
             final List<CosmosItemProperties> results = feedResponseIterator.next().results();
@@ -99,16 +98,16 @@ public class SdkService {
     public List<PerfPerson> findAllById(Iterable<String> ids) {
         final String idsInList = String.join(",",
                 Arrays.asList(ids).stream().map(id -> "'" + id + "'").collect(Collectors.toList()));
-        final String sql = "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".id IN ("
+        final String sql = "SELECT * FROM " + containerName + " WHERE " + containerName + ".id IN ("
                 + idsInList + ")";
 
         final FeedOptions feedOptions = new FeedOptions();
         feedOptions.enableCrossPartitionQuery(true);
 
-        final List<CosmosItemProperties> docs = null;
+        final List<CosmosItemProperties> docs = new ArrayList<>();
         
         final Iterator<FeedResponse<CosmosItemProperties>> feedResponseIterator = cosmosSyncClient.getDatabase(dbName)
-                                                                                    .getContainer(collectionName)
+                                                                                    .getContainer(containerName)
                                                                                     .queryItems(sql, feedOptions);
         while (feedResponseIterator.hasNext()) {
             final FeedResponse<CosmosItemProperties> next = feedResponseIterator.next();
@@ -120,19 +119,19 @@ public class SdkService {
     }
 
     public List<PerfPerson> findAll() {
-        final String sql = "SELECT * FROM  " + collectionName;
+        final String sql = "SELECT * FROM  " + containerName;
         final List<CosmosItemProperties> docs = getCosmosItemPropertiesList(sql);
         return fromDocuments(docs);
     }
 
     public boolean deleteAll() {
-        final String sql = "SELECT * FROM  " + collectionName;
+        final String sql = "SELECT * FROM  " + containerName;
         final List<CosmosItemProperties> documents = getCosmosItemPropertiesList(sql);
 
         documents.forEach(document -> {
             try {
                 cosmosSyncClient.getDatabase(dbName)
-                        .getContainer(collectionName)
+                        .getContainer(containerName)
                         .getItem(document.id(), PartitionKey.None)
                         .delete(new CosmosItemRequestOptions().partitionKey(PartitionKey.None));
             } catch (CosmosClientException e) {
@@ -147,7 +146,7 @@ public class SdkService {
         final List<CosmosItemProperties> documents = new ArrayList<>();
         final Iterator<FeedResponse<CosmosItemProperties>> feedResponseIterator =
                 cosmosSyncClient.getDatabase(dbName)
-                        .getContainer(collectionName)
+                        .getContainer(containerName)
                         .queryItems(sql, new FeedOptions().enableCrossPartitionQuery(true));
         while (feedResponseIterator.hasNext()) {
             final FeedResponse<CosmosItemProperties> next = feedResponseIterator.next();
@@ -158,7 +157,7 @@ public class SdkService {
 
     public List<PerfPerson> searchDocuments(Sort sort) {
         final Sort.Order order = sort.iterator().next(); // Only one Order supported
-        final String sql = "SELECT * FROM  " + collectionName + " ORDER BY " + collectionName + "." 
+        final String sql = "SELECT * FROM  " + containerName + " ORDER BY " + containerName + "."
                                    + order.getProperty() + " " + order.getDirection().name();
         final List<CosmosItemProperties> docs = getCosmosItemPropertiesList(sql);
 
@@ -166,9 +165,9 @@ public class SdkService {
     }
 
     public long count() {
-        final String sql = "SELECT VALUE COUNT(1) FROM " + collectionName;
+        final String sql = "SELECT VALUE COUNT(1) FROM " + containerName;
         final Iterator<FeedResponse<CosmosItemProperties>> feedResponseIterator = cosmosSyncClient.getDatabase(dbName)
-                                                                                    .getContainer(collectionName)
+                                                                                    .getContainer(containerName)
                                                                                     .queryItems(sql, new FeedOptions());
         final Object result =   feedResponseIterator.next().results().get(0).get("_aggregate");
 
@@ -176,7 +175,7 @@ public class SdkService {
     }
 
     public List<PerfPerson> findByName(String name) {
-        final String sql = "SELECT * FROM " + collectionName + " WHERE " + collectionName + ".name='"
+        final String sql = "SELECT * FROM " + containerName + " WHERE " + containerName + ".name='"
                            + name + "'";
         final Iterator<CosmosItemProperties> result = getCosmosItemPropertiesList(sql).iterator();
         return fromDocuments(Lists.newArrayList(result));
@@ -192,7 +191,7 @@ public class SdkService {
     }
 
     private List<PerfPerson> searchBySize(int size, FeedOptions options) {
-        final String sql = "SELECT * FROM " + collectionName;
+        final String sql = "SELECT * FROM " + containerName;
 
         final Iterator<CosmosItemProperties> it = getCosmosItemPropertiesList(sql).iterator();
         final List<PerfPerson> entities = new ArrayList<>();

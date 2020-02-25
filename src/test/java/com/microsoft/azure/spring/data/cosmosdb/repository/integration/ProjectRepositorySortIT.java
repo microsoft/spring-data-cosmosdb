@@ -84,7 +84,7 @@ public class ProjectRepositorySortIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteCollection(entityInformation.getCollectionName());
+        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @Before
