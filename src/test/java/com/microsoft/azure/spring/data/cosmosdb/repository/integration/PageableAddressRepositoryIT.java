@@ -77,7 +77,7 @@ public class PageableAddressRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteCollection(entityInformation.getCollectionName());
+        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @After
@@ -97,16 +97,16 @@ public class PageableAddressRepositoryIT {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findAll(pageRequest);
 
-        assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_3);
+        assertThat(page.getContent().size()).isLessThanOrEqualTo(PAGE_SIZE_3);
         validateNonLastPage(page, PAGE_SIZE_3);
 
         final Page<Address> nextPage = repository.findAll(page.getPageable());
-        assertThat(nextPage.getContent().size()).isEqualTo(1);
+        assertThat(nextPage.getContent().size()).isLessThanOrEqualTo(PAGE_SIZE_3);
         validateLastPage(nextPage, nextPage.getContent().size());
     }
 
     @Test
-    public void testFindWithParitionKeySinglePage() {
+    public void testFindWithPartitionKeySinglePage() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
@@ -116,7 +116,7 @@ public class PageableAddressRepositoryIT {
     }
 
     @Test
-    public void testFindWithParitionKeyMultiPages() {
+    public void testFindWithPartitionKeyMultiPages() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
         final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
@@ -171,7 +171,7 @@ public class PageableAddressRepositoryIT {
         final CosmosClient cosmosClient = applicationContext.getBean(CosmosClient.class);
         final Flux<FeedResponse<CosmosItemProperties>> feedResponseFlux =
             cosmosClient.getDatabase(dbConfig.getDatabase())
-                        .getContainer(entityInformation.getCollectionName())
+                        .getContainer(entityInformation.getContainerName())
                         .queryItems(query, options);
 
         StepVerifier.create(feedResponseFlux)

@@ -5,10 +5,12 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+@Document(ru = "10000")
 @Data
 @AllArgsConstructor
 public class Contact {

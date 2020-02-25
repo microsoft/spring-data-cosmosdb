@@ -25,10 +25,10 @@ public abstract class AbstractCosmosQuery implements RepositoryQuery {
         final DocumentQuery query = createQuery(accessor);
 
         final ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
-        final String collection = ((CosmosEntityMetadata) method.getEntityInformation()).getCollectionName();
+        final String container = ((CosmosEntityMetadata) method.getEntityInformation()).getContainerName();
 
         final CosmosQueryExecution execution = getExecution(accessor);
-        return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
+        return execution.execute(query, processor.getReturnedType().getDomainType(), container);
     }
 
 

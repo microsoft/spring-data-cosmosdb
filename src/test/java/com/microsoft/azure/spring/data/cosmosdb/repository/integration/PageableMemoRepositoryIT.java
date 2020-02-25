@@ -90,7 +90,7 @@ public class PageableMemoRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteCollection(entityInformation.getCollectionName());
+        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class PageableMemoRepositoryIT {
 
         final CosmosClient cosmosClient = applicationContext.getBean(CosmosClient.class);
         return cosmosClient.getDatabase(dbConfig.getDatabase())
-                    .getContainer(entityInformation.getCollectionName())
+                    .getContainer(entityInformation.getContainerName())
                     .queryItems(query, options);
     }
 

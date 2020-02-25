@@ -18,7 +18,7 @@ public class Constants {
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.CONSISTENT;
     public static final String DEFAULT_REPOSITORY_IMPLEMENT_POSTFIX = "Impl";
     public static final int DEFAULT_TIME_TO_LIVE = -1; // Indicates never expire
-    public static final boolean DEFAULT_AUTO_CREATE_COLLECTION = true;
+    public static final boolean DEFAULT_AUTO_CREATE_CONTAINER = true;
 
     public static final String ID_PROPERTY_NAME = "id";
 

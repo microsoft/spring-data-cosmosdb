@@ -18,49 +18,72 @@ import java.util.List;
 
 public interface CosmosOperations {
 
+    /**
+     * Use getContainerName() instead
+     * @param domainType class type
+     * @return container name
+     */
+    @Deprecated
     String getCollectionName(Class<?> domainType);
 
+    String getContainerName(Class<?> domainType);
+
+    /**
+     * Use createContainerIfNotExists() instead
+     * @param information cosmos entity information
+     * @return created container properties
+     */
+    @Deprecated
     CosmosContainerProperties createCollectionIfNotExists(CosmosEntityInformation<?, ?> information);
+
+    CosmosContainerProperties createContainerIfNotExists(CosmosEntityInformation<?, ?> information);
 
     <T> List<T> findAll(Class<T> domainType);
 
-    <T> List<T> findAll(String collectionName, Class<T> domainType);
+    <T> List<T> findAll(String containerName, Class<T> domainType);
 
     <T> T findById(Object id, Class<T> domainType);
 
-    <T> T findById(String collectionName, Object id, Class<T> domainType);
+    <T> T findById(String containerName, Object id, Class<T> domainType);
 
     <T> T findById(Object id, Class<T> domainType, PartitionKey partitionKey);
 
     <T> T insert(T objectToSave, PartitionKey partitionKey);
 
-    <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
+    <T> T insert(String containerName, T objectToSave, PartitionKey partitionKey);
 
     <T> void upsert(T object, PartitionKey partitionKey);
 
-    <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
+    <T> void upsert(String containerName, T object, PartitionKey partitionKey);
 
-    void deleteById(String collectionName, Object id, PartitionKey partitionKey);
+    void deleteById(String containerName, Object id, PartitionKey partitionKey);
 
-    void deleteAll(String collectionName, Class<?> domainType);
+    void deleteAll(String containerName, Class<?> domainType);
 
-    void deleteCollection(String collectionName);
+    /**
+     * Use deleteContainer() instead
+     * @param containerName container name
+     */
+    @Deprecated
+    void deleteCollection(String containerName);
 
-    <T> List<T> delete(DocumentQuery query, Class<T> domainType, String collectionName);
+    void deleteContainer(String containerName);
 
-    <T> List<T> find(DocumentQuery query, Class<T> domainType, String collectionName);
+    <T> List<T> delete(DocumentQuery query, Class<T> domainType, String containerName);
 
-    <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> domainType, String collectionName);
+    <T> List<T> find(DocumentQuery query, Class<T> domainType, String containerName);
 
-    <T> Boolean exists(DocumentQuery query, Class<T> domainType, String collectionName);
+    <T, ID> List<T> findByIds(Iterable<ID> ids, Class<T> domainType, String containerName);
 
-    <T> Page<T> findAll(Pageable pageable, Class<T> domainType, String collectionName);
+    <T> Boolean exists(DocumentQuery query, Class<T> domainType, String containerName);
 
-    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainType, String collectionName);
+    <T> Page<T> findAll(Pageable pageable, Class<T> domainType, String containerName);
 
-    long count(String collectionName);
+    <T> Page<T> paginationQuery(DocumentQuery query, Class<T> domainType, String containerName);
 
-    <T> long count(DocumentQuery query, Class<T> domainType, String collectionName);
+    long count(String containerName);
+
+    <T> long count(DocumentQuery query, Class<T> domainType, String containerName);
 
     MappingCosmosConverter getConverter();
 }

@@ -26,6 +26,10 @@ public class SimpleCosmosEntityMetadata<T> implements CosmosEntityMetadata<T> {
     }
 
     public String getCollectionName() {
-        return entityInformation.getCollectionName();
+        return entityInformation.getContainerName();
+    }
+
+    public String getContainerName() {
+        return entityInformation.getContainerName();
     }
 }

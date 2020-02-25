@@ -30,17 +30,17 @@ public class DatabaseUtils {
         documentClient.createDatabase(databaseName);
     }
 
-    public static void deleteCollection(CosmosSyncClient documentClient, String databaseName, String collectionName)
+    public static void deleteContainer(CosmosSyncClient documentClient, String databaseName, String containerName)
             throws CosmosClientException{
         final RequestOptions requestOptions = new RequestOptions();
         requestOptions.setOfferThroughput(1000);
 
-        documentClient.getDatabase(databaseName).getContainer(collectionName).delete();
+        documentClient.getDatabase(databaseName).getContainer(containerName).delete();
     }
 
-    public static void createCollection(CosmosSyncClient documentClient, String databaseName, String collectionName)
+    public static void createContainer(CosmosSyncClient documentClient, String databaseName, String containerName)
             throws CosmosClientException {
-        final CosmosContainerProperties containerProperties = new CosmosContainerProperties(collectionName,
+        final CosmosContainerProperties containerProperties = new CosmosContainerProperties(containerName,
                 new PartitionKeyDefinition().paths(Collections.singletonList("/mypk")));
 
         final IndexingPolicy policy = new IndexingPolicy();
@@ -50,15 +50,15 @@ public class DatabaseUtils {
         documentClient.getDatabase(databaseName).createContainer(containerProperties);
     }
 
-    public static String getDocumentLink(String databaseName, String collectionName, Object documentId) {
-        return getCollectionLink(databaseName, collectionName) + "/docs/" + documentId;
+    public static String getDocumentLink(String databaseName, String containerName, Object documentId) {
+        return getContainerLink(databaseName, containerName) + "/docs/" + documentId;
     }
 
     public static String getDatabaseLink(String databaseName) {
         return "dbs/" + databaseName;
     }
 
-    public static String getCollectionLink(String databaseName, String collectionName) {
-        return getDatabaseLink(databaseName) + "/colls/" + collectionName;
+    public static String getContainerLink(String databaseName, String containerName) {
+        return getDatabaseLink(databaseName) + "/colls/" + containerName;
     }
 }

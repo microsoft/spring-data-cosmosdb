@@ -80,7 +80,7 @@ public class CosmosTemplateIT {
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosEntityInformation<Person, String> personInfo;
-    private static String collectionName;
+    private static String containerName;
     private static boolean initialized;
 
     private Person insertedPerson;
@@ -99,14 +99,14 @@ public class CosmosTemplateIT {
 
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
             personInfo = new CosmosEntityInformation<>(Person.class);
-            collectionName = personInfo.getCollectionName();
+            containerName = personInfo.getContainerName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
             final MappingCosmosConverter cosmosConverter = new MappingCosmosConverter(mappingContext,
                 null);
             cosmosTemplate = new CosmosTemplate(cosmosDbFactory, cosmosConverter, dbConfig.getDatabase());
-            cosmosTemplate.createCollectionIfNotExists(personInfo);
+            cosmosTemplate.createContainerIfNotExists(personInfo);
             initialized = true;
         }
 
@@ -156,7 +156,7 @@ public class CosmosTemplateIT {
                 new PartitionKey(personInfo.getPartitionKeyFieldValue(TEST_PERSON_3)));
 
         final List<Object> ids = Lists.newArrayList(ID_1, ID_2, ID_3);
-        final List<Person> result = cosmosTemplate.findByIds(ids, Person.class, collectionName);
+        final List<Person> result = cosmosTemplate.findByIds(ids, Person.class, containerName);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
@@ -261,8 +261,8 @@ public class CosmosTemplateIT {
     }
 
     @Test
-    public void testCountByCollection() {
-        final long prevCount = cosmosTemplate.count(collectionName);
+    public void testCountByContainer() {
+        final long prevCount = cosmosTemplate.count(containerName);
         assertThat(prevCount).isEqualTo(1);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
@@ -274,7 +274,7 @@ public class CosmosTemplateIT {
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
 
-        final long newCount = cosmosTemplate.count(collectionName);
+        final long newCount = cosmosTemplate.count(containerName);
         assertThat(newCount).isEqualTo(2);
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNull();
@@ -296,7 +296,7 @@ public class CosmosTemplateIT {
                 Collections.singletonList(TEST_PERSON_2.getFirstName()));
         final DocumentQuery query = new DocumentQuery(criteria);
 
-        final long count = cosmosTemplate.count(query, Person.class, collectionName);
+        final long count = cosmosTemplate.count(query, Person.class, containerName);
         assertThat(count).isEqualTo(1);
 
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
@@ -314,7 +314,7 @@ public class CosmosTemplateIT {
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
-        final Page<Person> page1 = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
+        final Page<Person> page1 = cosmosTemplate.findAll(pageRequest, Person.class, containerName);
 
         assertThat(page1.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateNonLastPage(page1, PAGE_SIZE_1);
@@ -325,7 +325,7 @@ public class CosmosTemplateIT {
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
 
         final Page<Person> page2 = cosmosTemplate.findAll(page1.getPageable(), Person.class,
-                collectionName);
+            containerName);
         assertThat(page2.getContent().size()).isEqualTo(1);
         validateLastPage(page2, PAGE_SIZE_1);
 
@@ -349,7 +349,7 @@ public class CosmosTemplateIT {
         final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_2, null);
         final DocumentQuery query = new DocumentQuery(criteria).with(pageRequest);
 
-        final Page<Person> page = cosmosTemplate.paginationQuery(query, Person.class, collectionName);
+        final Page<Person> page = cosmosTemplate.paginationQuery(query, Person.class, containerName);
         assertThat(page.getContent().size()).isEqualTo(1);
         validateLastPage(page, page.getContent().size());
 
@@ -373,7 +373,7 @@ public class CosmosTemplateIT {
         final Sort sort = Sort.by(Sort.Direction.DESC, "firstName");
         final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null, sort);
 
-        final Page<Person> page = cosmosTemplate.findAll(pageRequest, Person.class, collectionName);
+        final Page<Person> page = cosmosTemplate.findAll(pageRequest, Person.class, containerName);
         assertThat(page.getContent().size()).isEqualTo(3);
         validateLastPage(page, PAGE_SIZE_3);
 
@@ -407,7 +407,7 @@ public class CosmosTemplateIT {
         final PageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null, sort);
 
         final Page<Person> firstPage = cosmosTemplate.findAll(pageRequest, Person.class,
-                collectionName);
+            containerName);
 
         assertThat(firstPage.getContent().size()).isEqualTo(3);
         validateNonLastPage(firstPage, firstPage.getContent().size());
@@ -418,7 +418,7 @@ public class CosmosTemplateIT {
         assertThat(firstPageResults.get(2).getFirstName()).isEqualTo(testPerson5.getFirstName());
 
         final Page<Person> secondPage = cosmosTemplate.findAll(firstPage.getPageable(), Person.class,
-                collectionName);
+            containerName);
 
         assertThat(secondPage.getContent().size()).isEqualTo(2);
         validateLastPage(secondPage, secondPage.getContent().size());

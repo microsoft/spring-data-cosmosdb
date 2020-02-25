@@ -58,7 +58,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private Function<Class<?>, CosmosEntityInformation<?, ?>> entityInfoCreator =
         Memoizer.memoize(this::getCosmosEntityInformation);
 
-    private final List<String> collectionCache;
+    private final List<String> containerNameCache;
 
     /**
      * Constructor
@@ -75,7 +75,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
 
         this.mappingCosmosConverter = mappingCosmosConverter;
         this.databaseName = dbName;
-        this.collectionCache = new ArrayList<>();
+        this.containerNameCache = new ArrayList<>();
 
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
         this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
@@ -91,13 +91,24 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     }
 
     /**
-     * Creates a collection if it doesn't already exist
+     * Creates a container if it doesn't already exist
      *
      * @param information the CosmosEntityInformation
      * @return Mono containing CosmosContainerResponse
      */
     @Override
     public Mono<CosmosContainerResponse> createCollectionIfNotExists(CosmosEntityInformation information) {
+        return createContainerIfNotExists(information);
+    }
+
+    /**
+     * Creates a container if it doesn't already exist
+     *
+     * @param information the CosmosEntityInformation
+     * @return Mono containing CosmosContainerResponse
+     */
+    @Override
+    public Mono<CosmosContainerResponse> createContainerIfNotExists(CosmosEntityInformation information) {
 
         return cosmosClient
             .createDatabaseIfNotExists(this.databaseName)
@@ -108,16 +119,16 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                     cosmosDatabaseResponse, null);
                 return cosmosDatabaseResponse
                     .database()
-                    .createContainerIfNotExists(information.getCollectionName(),
+                    .createContainerIfNotExists(information.getContainerName(),
                         "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                     .map(cosmosContainerResponse -> {
                         fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                             cosmosContainerResponse, null);
-                        this.collectionCache.add(information.getCollectionName());
+                        this.containerNameCache.add(information.getContainerName());
                         return cosmosContainerResponse;
                     })
                     .onErrorResume(throwable ->
-                        exceptionHandler("Failed to create collection", throwable));
+                        exceptionHandler("Failed to create container", throwable));
             });
 
     }
@@ -170,7 +181,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      */
     @Override
     public <T> Mono<T> findById(String containerName, Object id, Class<T> domainType) {
-        Assert.hasText(containerName, "collectionName should not be null, empty or only whitespaces");
+        Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(domainType, "domainType should not be null");
         assertValidId(id);
 
@@ -515,11 +526,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                 .map(r -> r.results().get(0).getLong(COUNT_VALUE_KEY));
     }
 
-    private Flux<FeedResponse<CosmosItemProperties>> executeQuery(SqlQuerySpec sqlQuerySpec, String collectionName,
+    private Flux<FeedResponse<CosmosItemProperties>> executeQuery(SqlQuerySpec sqlQuerySpec, String containerName,
                                                         FeedOptions options) {
 
         return cosmosClient.getDatabase(this.databaseName)
-                           .getContainer(collectionName)
+                           .getContainer(containerName)
                            .queryItems(sqlQuerySpec, options)
                            .onErrorResume(throwable ->
                                exceptionHandler("Failed to execute query", throwable));
@@ -542,7 +553,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
                     .onErrorResume(throwable ->
                         exceptionHandler("Failed to delete container", throwable))
                     .block();
-        this.collectionCache.remove(containerName);
+        this.containerNameCache.remove(containerName);
     }
 
     /**
@@ -552,7 +563,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     public String getContainerName(Class<?> domainType) {
         Assert.notNull(domainType, "domainType should not be null");
 
-        return entityInfoCreator.apply(domainType).getCollectionName();
+        return entityInfoCreator.apply(domainType).getContainerName();
     }
 
     private Flux<CosmosItemProperties> findItems(@NonNull DocumentQuery query, @NonNull Class<?> domainType,

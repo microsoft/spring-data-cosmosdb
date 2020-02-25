@@ -25,8 +25,13 @@ public class SimpleReactiveCosmosEntityMetadata<T> implements ReactiveCosmosEnti
     public Class<T> getJavaType() {
         return type;
     }
-
+    
     public String getCollectionName() {
-        return entityInformation.getCollectionName();
+        return entityInformation.getContainerName();
+    }
+
+    @Override
+    public String getContainerName() {
+        return entityInformation.getContainerName();
     }
 }

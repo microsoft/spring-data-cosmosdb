@@ -21,10 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -36,7 +34,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ADDRESSES;
-import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.DB_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.FIRST_NAME;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.HOBBIES;
 import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.ID_1;
@@ -79,14 +76,14 @@ public class ReactiveCosmosTemplatePartitionIT {
             final CosmosMappingContext mappingContext = new CosmosMappingContext();
             personInfo =
                 new CosmosEntityInformation<>(PartitionPerson.class);
-            containerName = personInfo.getCollectionName();
+            containerName = personInfo.getContainerName();
 
             mappingContext.setInitialEntitySet(new EntityScanner(this.applicationContext).scan(Persistent.class));
 
             final MappingCosmosConverter dbConverter = new MappingCosmosConverter(mappingContext,
                 null);
             cosmosTemplate = new ReactiveCosmosTemplate(dbFactory, dbConverter, dbConfig.getDatabase());
-            cosmosTemplate.createCollectionIfNotExists(personInfo).block();
+            cosmosTemplate.createContainerIfNotExists(personInfo).block();
 
             initialized = true;
         }

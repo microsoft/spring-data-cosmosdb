@@ -14,7 +14,7 @@ import java.util.Date;
 /**
  * For testing date and enum purpose
  */
-@Document
+@Document(ru = "100000")
 @Data
 @AllArgsConstructor
 public class Memo {
