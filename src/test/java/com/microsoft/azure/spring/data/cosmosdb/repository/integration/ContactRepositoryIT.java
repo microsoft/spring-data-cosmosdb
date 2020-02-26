@@ -26,6 +26,7 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -115,7 +116,11 @@ public class ContactRepositoryIT {
     public void testUpdateEntity() {
         final Contact updatedContact = new Contact(TEST_CONTACT.getLogicId(), "updated");
 
-        repository.save(updatedContact);
+        final Contact savedContact = repository.save(updatedContact);
+
+        //  Test save operation return saved entity
+        assertThat(savedContact.getLogicId()).isEqualTo(updatedContact.getLogicId());
+        assertThat(savedContact.getTitle()).isEqualTo(updatedContact.getTitle());
 
         final Contact contact = repository.findById(TEST_CONTACT.getLogicId()).get();
 
@@ -131,7 +136,15 @@ public class ContactRepositoryIT {
         final ArrayList<Contact> contacts = new ArrayList<Contact>();
         contacts.add(contact1);
         contacts.add(contact2);
-        repository.saveAll(contacts);
+        final Iterable<Contact> savedContacts = repository.saveAll(contacts);
+
+        final AtomicInteger savedCount = new AtomicInteger();
+        savedContacts.forEach(se -> {
+            savedCount.incrementAndGet();
+            assertThat(contacts.contains(se)).isTrue();
+        });
+
+        assertThat(savedCount.get()).isEqualTo(contacts.size());
 
         final ArrayList<String> ids = new ArrayList<String>();
         ids.add(contact1.getLogicId());

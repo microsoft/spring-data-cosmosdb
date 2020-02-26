@@ -58,6 +58,8 @@ public interface CosmosOperations {
 
     <T> void upsert(String containerName, T object, PartitionKey partitionKey);
 
+    <T> T upsertAndReturnEntity(String containerName, T object, PartitionKey partitionKey);
+
     void deleteById(String containerName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String containerName, Class<?> domainType);
