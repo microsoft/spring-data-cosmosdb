@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.azure.data.cosmos.PartitionKey;
+import com.google.common.collect.Lists;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
@@ -27,6 +28,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -489,5 +492,30 @@ public class ProjectRepositoryIT {
 
         projects = repository.findByNameIsNotNullAndHasReleased(true);
         Assert.assertTrue(projects.isEmpty());
+    }
+
+    @Test
+    public void testFindAllByPartitionKey() {
+        List<Project> findAll =
+            repository.findAll(new PartitionKey(CREATOR_0));
+        //  Since there are two projects with creator_0
+        assertThat(findAll.size()).isEqualTo(2);
+        assertThat(findAll.containsAll(Lists.newArrayList(PROJECT_0, PROJECT_4))).isTrue();
+
+        findAll = repository.findAll(new PartitionKey(CREATOR_1));
+        //  Since there is one projects with creator_1
+        assertThat(findAll.size()).isEqualTo(1);
+        assertThat(findAll.contains(PROJECT_1)).isTrue();
+
+
+        findAll = repository.findAll(new PartitionKey(CREATOR_2));
+        //  Since there is one projects with creator_2
+        assertThat(findAll.size()).isEqualTo(1);
+        assertThat(findAll.contains(PROJECT_2)).isTrue();
+
+        findAll = repository.findAll(new PartitionKey(CREATOR_3));
+        //  Since there is one projects with creator_3
+        assertThat(findAll.size()).isEqualTo(1);
+        assertThat(findAll.contains(PROJECT_3)).isTrue();
     }
 }

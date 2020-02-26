@@ -260,4 +260,9 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         return operation.findAll(pageable, information.getJavaType(), information.getContainerName());
     }
+
+    @Override
+    public List<T> findAll(PartitionKey partitionKey) {
+        return operation.findAll(partitionKey, information.getJavaType());
+    }
 }

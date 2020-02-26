@@ -192,6 +192,27 @@ public class AddressRepositoryIT {
     }
 
     @Test
+    public void testFindAllByPartitionKey() {
+        List<Address> findAll =
+            repository.findAll(new PartitionKey(TEST_ADDRESS1_PARTITION1.getCity()));
+        //  Since there are two addresses with partition1
+        assertThat(findAll.size()).isEqualTo(2);
+        assertThat(findAll.containsAll(Lists.newArrayList(TEST_ADDRESS1_PARTITION1,
+            TEST_ADDRESS2_PARTITION1))).isTrue();
+
+        findAll = repository.findAll(new PartitionKey(TEST_ADDRESS1_PARTITION2.getCity()));
+        //  Since there is one address with partition2
+        assertThat(findAll.size()).isEqualTo(1);
+        assertThat(findAll.contains(TEST_ADDRESS1_PARTITION2)).isTrue();
+
+
+        findAll = repository.findAll(new PartitionKey(TEST_ADDRESS4_PARTITION3.getCity()));
+        //  Since there is one address with partition3
+        assertThat(findAll.size()).isEqualTo(1);
+        assertThat(findAll.contains(TEST_ADDRESS4_PARTITION3)).isTrue();
+    }
+
+    @Test
     public void testUpdateEntity() {
         final Address updatedAddress = new Address(TEST_ADDRESS1_PARTITION1.getPostalCode(), TestConstants.NEW_STREET,
                 TEST_ADDRESS1_PARTITION1.getCity());

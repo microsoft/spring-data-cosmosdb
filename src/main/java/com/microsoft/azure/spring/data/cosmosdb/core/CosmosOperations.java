@@ -42,6 +42,8 @@ public interface CosmosOperations {
 
     <T> List<T> findAll(String containerName, Class<T> domainType);
 
+    <T> List<T> findAll(PartitionKey partitionKey, Class<T> domainType);
+
     <T> T findById(Object id, Class<T> domainType);
 
     <T> T findById(String containerName, Object id, Class<T> domainType);

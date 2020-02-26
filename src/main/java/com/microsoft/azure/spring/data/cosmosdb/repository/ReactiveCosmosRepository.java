@@ -8,6 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 import com.azure.data.cosmos.PartitionKey;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @NoRepositoryBean
@@ -30,4 +31,11 @@ public interface ReactiveCosmosRepository<T, K> extends ReactiveSortingRepositor
      * @throws IllegalArgumentException in case the given {@code id} is {@literal null}.
      */
     Mono<Void> deleteById(K id, PartitionKey partitionKey);
+
+    /**
+     * Returns Flux of items in a specific partition
+     * @param partitionKey partition key value
+     * @return {@link Flux} of items with partition key value
+     */
+    Flux<T> findAll(PartitionKey partitionKey);
 }

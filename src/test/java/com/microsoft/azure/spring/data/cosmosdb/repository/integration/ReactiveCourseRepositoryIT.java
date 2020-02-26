@@ -194,4 +194,22 @@ public class ReactiveCourseRepositoryIT {
             repository.findByDepartmentIn(Collections.singletonList(DEPARTMENT_NAME_2));
         StepVerifier.create(byDepartmentIn).expectNextCount(2).verifyComplete();
     }
+
+    @Test
+    public void testFindAllByPartitionKey() {
+        final Mono<Course> save = repository.save(COURSE_5);
+        StepVerifier.create(save).expectNext(COURSE_5).verifyComplete();
+
+        Flux<Course> findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_1));
+        //  Since there are two courses with department_1
+        StepVerifier.create(findAll).expectNext(COURSE_4, COURSE_5).verifyComplete();
+
+        findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_3));
+        //  Since there are two courses with department_3
+        StepVerifier.create(findAll).expectNext(COURSE_1).verifyComplete();
+
+        findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_2));
+        //  Since there are two courses with department_2
+        StepVerifier.create(findAll).expectNext(COURSE_2, COURSE_3).verifyComplete();
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 @NoRepositoryBean
@@ -33,6 +34,13 @@ public interface CosmosRepository<T, ID extends Serializable> extends PagingAndS
      * @throws IllegalArgumentException in case the given {@code id} is {@literal null}.
      */
     void deleteById(ID id, PartitionKey partitionKey);
+
+    /**
+     * Returns list of items in a specific partition
+     * @param partitionKey partition key value
+     * @return list of items with partition key value
+     */
+    List<T> findAll(PartitionKey partitionKey);
 
 }
 
