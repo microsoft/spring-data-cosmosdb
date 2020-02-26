@@ -180,6 +180,10 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     }
 
     public <T> void upsert(String containerName, T object, PartitionKey partitionKey) {
+        upsertAndReturnEntity(containerName, object,  partitionKey);
+    }
+
+    public <T> T upsertAndReturnEntity(String containerName, T object, PartitionKey partitionKey) {
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(object, "Upsert object should not be null");
 
@@ -187,9 +191,12 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
 
         log.debug("execute upsert item in database {} container {}", this.databaseName, containerName);
 
+        @SuppressWarnings("unchecked")
+        final Class<T> domainType = (Class<T>) object.getClass();
+
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         options.partitionKey(partitionKey);
-        applyVersioning(object.getClass(), originalItem, options);
+        applyVersioning(domainType, originalItem, options);
 
         final CosmosItemResponse cosmosItemResponse = cosmosClient
             .getDatabase(this.databaseName)
@@ -201,6 +208,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             .block();
 
         assert cosmosItemResponse != null;
+        return mappingCosmosConverter.read(domainType, cosmosItemResponse.properties());
     }
 
     public <T> List<T> findAll(Class<T> domainType) {

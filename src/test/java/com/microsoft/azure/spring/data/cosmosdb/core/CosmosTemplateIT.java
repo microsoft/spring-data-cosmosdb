@@ -177,21 +177,31 @@ public class CosmosTemplateIT {
         final Person newPerson = new Person(TEST_PERSON.getId(), firstName,
                 NEW_FIRST_NAME, null, null);
 
-        cosmosTemplate.upsert(Person.class.getSimpleName(), newPerson,
-                new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
+        final Person person = cosmosTemplate.upsertAndReturnEntity(Person.class.getSimpleName(),
+            newPerson,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
-        final List<Person> result = cosmosTemplate.findAll(Person.class);
+        assertEquals(person.getFirstName(), firstName);
+    }
 
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
+    @Test
+    public void testUpdateWithReturnEntity() {
+        final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
+            TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+        updated.set_etag(insertedPerson.get_etag());
 
-        assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0).getFirstName(), firstName);
+        final Person updatedPerson = cosmosTemplate.upsertAndReturnEntity(Person.class.getSimpleName(),
+            updated, null);
+
+        final Person findPersonById = cosmosTemplate.findById(Person.class.getSimpleName(),
+            updatedPerson.getId(), Person.class);
+
+        assertEquals(updatedPerson, updated);
+        assertThat(updatedPerson.get_etag()).isEqualTo(findPersonById.get_etag());
     }
 
     @Test
@@ -200,20 +210,14 @@ public class CosmosTemplateIT {
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         updated.set_etag(insertedPerson.get_etag());
 
-        cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null);
+        final Person person = cosmosTemplate.upsertAndReturnEntity(Person.class.getSimpleName(),
+            updated, null);
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNull();
 
-        final Person result = cosmosTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class);
-
-        assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics()).isNotNull();
-        assertThat(responseDiagnosticsTestUtils.getCosmosResponseStatistics().getRequestCharge()).isGreaterThan(0);
-
-        assertEquals(result, updated);
+        assertEquals(person, updated);
     }
 
     @Test
