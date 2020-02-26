@@ -172,13 +172,26 @@ public class DocumentDbTemplateIT {
         final Person newPerson = new Person(TEST_PERSON.getId(), firstName,
                 NEW_FIRST_NAME, null, null);
 
-        dbTemplate.upsert(Person.class.getSimpleName(), newPerson,
-                new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
+        final Person person = dbTemplate.upsertAndReturnEntity(Person.class.getSimpleName(), newPerson,
+            new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
 
-        final List<Person> result = dbTemplate.findAll(Person.class);
+        assertEquals(person.getFirstName(), firstName);
+    }
 
-        assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0).getFirstName(), firstName);
+    @Test
+    public void testUpdateWithReturnEntity() {
+        final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
+            TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
+        updated.set_etag(insertedPerson.get_etag());
+
+        final Person updatedPerson = dbTemplate.upsertAndReturnEntity(Person.class.getSimpleName(),
+            updated, null);
+
+        final Person findPersonById = dbTemplate.findById(Person.class.getSimpleName(),
+            updatedPerson.getId(), Person.class);
+
+        assertEquals(updatedPerson, updated);
+        assertThat(updatedPerson.get_etag()).isEqualTo(findPersonById.get_etag());
     }
 
     @Test
@@ -187,12 +200,10 @@ public class DocumentDbTemplateIT {
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         updated.set_etag(insertedPerson.get_etag());
 
-        dbTemplate.upsert(Person.class.getSimpleName(), updated, null);
+        final Person person = dbTemplate.upsertAndReturnEntity(Person.class.getSimpleName(), updated,
+            null);
 
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class);
-
-        assertEquals(result, updated);
+        assertEquals(person, updated);
     }
 
     @Test

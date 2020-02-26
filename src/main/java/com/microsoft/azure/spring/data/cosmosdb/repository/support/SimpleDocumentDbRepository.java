@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -78,11 +79,9 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
                     entity,
                     createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
-            operation.upsert(information.getCollectionName(),
+            return operation.upsertAndReturnEntity(information.getCollectionName(),
                     entity, createKey(information.getPartitionKeyFieldValue(entity)));
         }
-
-        return entity;
     }
 
     private PartitionKey createKey(String partitionKeyValue) {
@@ -104,9 +103,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        entities.forEach(this::save);
+        final List<S> savedEntities = new ArrayList<>();
+        entities.forEach(entity -> {
+            final S savedEntity = this.save(entity);
+            savedEntities.add(savedEntity);
+        });
 
-        return entities;
+        return savedEntities;
     }
 
     /**

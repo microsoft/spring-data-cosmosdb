@@ -46,6 +46,8 @@ public interface DocumentDbOperations {
 
     <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
 
+    <T> T upsertAndReturnEntity(String collectionName, T object, PartitionKey partitionKey);
+
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
     void deleteAll(String collectionName, Class<?> domainClass);
