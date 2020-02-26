@@ -204,6 +204,10 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     }
 
     public <T> void upsert(String collectionName, T object, PartitionKey partitionKey) {
+        upsertAndReturnEntity(collectionName, object, partitionKey);
+    }
+
+    public <T> T upsertAndReturnEntity(String collectionName, T object, PartitionKey partitionKey) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(object, "Upsert object should not be null");
 
@@ -212,19 +216,24 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
 
             log.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
 
+            @SuppressWarnings("unchecked")
+            final Class<T> domainClass = (Class<T>) object.getClass();
+
             final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
             options.partitionKey(toCosmosPartitionKey(partitionKey));
-            applyVersioning(object.getClass(), originalItem, options);
+            applyVersioning(domainClass, originalItem, options);
 
-            final CosmosItemResponse cosmosItemResponse = cosmosClient.getDatabase(this.databaseName)
-                    .getContainer(collectionName)
-                    .upsertItem(originalItem, options)
-                    .onErrorResume(this::databaseAccessExceptionHandler)
-                    .block();
+            final CosmosItemResponse cosmosItemResponse = cosmosClient
+                .getDatabase(this.databaseName)
+                .getContainer(collectionName)
+                .upsertItem(originalItem, options)
+                .onErrorResume(this::databaseAccessExceptionHandler)
+                .block();
 
             if (cosmosItemResponse == null) {
                 throw new DocumentDBAccessException("Failed to upsert item");
             }
+            return toDomainObject(domainClass, cosmosItemResponse.properties());
         } catch (Exception ex) {
             throw new DocumentDBAccessException("Failed to upsert document to database.", ex);
         }

@@ -138,28 +138,26 @@ public class DocumentDbTemplatePartitionIT {
             null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
+        final PartitionPerson partitionPerson =
+            dbTemplate.upsertAndReturnEntity(PartitionPerson.class.getSimpleName(), newPerson,
+                new PartitionKey(partitionKeyValue));
 
         final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
 
         assertThat(result.size()).isEqualTo(2);
 
-        final PartitionPerson person = result.stream()
-                .filter(p -> p.getLastName().equals(partitionKeyValue)).findFirst().get();
-        assertThat(person.getFirstName()).isEqualTo(firstName);
+        assertThat(partitionPerson.getFirstName()).isEqualTo(firstName);
     }
 
     @Test
     public void testUpdatePartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        dbTemplate.upsert(PartitionPerson.class.getSimpleName(), updated, new PartitionKey(updated.getLastName()));
+        final PartitionPerson partitionPerson =
+            dbTemplate.upsertAndReturnEntity(PartitionPerson.class.getSimpleName(), updated,
+                new PartitionKey(updated.getLastName()));
 
-        final List<PartitionPerson> result = dbTemplate.findAll(PartitionPerson.class);
-        final PartitionPerson person = result.stream().filter(
-                p -> TEST_PERSON.getId().equals(p.getId())).findFirst().get();
-
-        assertTrue(person.equals(updated));
+        assertTrue(partitionPerson.equals(updated));
     }
 
     @Test
