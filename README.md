@@ -191,8 +191,14 @@ public class AppConfiguration extends AbstractCosmosConfiguration {
 ### Define an entity
 Define a simple entity as Document in Azure Cosmos DB.
 
+You can define entities by adding the `@Document` annotation and specifying properties related to the container, such as the container name, request units (RUs), time to live, and auto-create container. 
+
+Containers are created automatically unless you don't want them to: Set `autoCreateCollection` to false in `@Document` annotation to disable auto creation of containers. 
+
+Note: By default request units assigned to newly created containers is 4000. Specify different ru value to customize request units for container created by the SDK (minimum RU value is 400). 
+
 ```java
-@Document(collection = "mycollection")
+@Document(collection = "myCollection", ru = "400")
 public class User {
     private String id;
     private String firstName;
