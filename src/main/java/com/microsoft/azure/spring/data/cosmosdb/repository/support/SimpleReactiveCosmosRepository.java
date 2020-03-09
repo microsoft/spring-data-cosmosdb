@@ -33,7 +33,9 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         this.cosmosOperations = applicationContext.getBean(ReactiveCosmosOperations.class);
         this.entityInformation = metadata;
 
-        createContainerIfNotExists();
+        if (this.entityInformation.isAutoCreateContainer()) {
+            createContainerIfNotExists();
+        }
     }
 
     public SimpleReactiveCosmosRepository(CosmosEntityInformation<T, K> metadata,
@@ -41,7 +43,9 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
         this.cosmosOperations = reactiveCosmosOperations;
         this.entityInformation = metadata;
 
-        createContainerIfNotExists();
+        if (this.entityInformation.isAutoCreateContainer()) {
+            createContainerIfNotExists();
+        }
     }
 
     private CosmosContainerResponse createContainerIfNotExists() {
