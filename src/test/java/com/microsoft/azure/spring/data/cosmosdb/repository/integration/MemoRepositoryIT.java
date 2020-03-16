@@ -9,6 +9,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
+import com.microsoft.azure.spring.data.cosmosdb.exception.DocumentDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.MemoRepository;
 import org.junit.*;
@@ -221,8 +222,8 @@ public class MemoRepositoryIT {
         Assert.assertEquals(reference, memos);
     }
 
-//    @Test(expected = DocumentDBAccessException.class)
-//    public void testFindByStartsWithWithException() {
-//        repository.findByMessageStartsWith(testMemo1.getMessage());
-//    }
+    @Test(expected = DocumentDBAccessException.class)
+    public void testFindByStartsWithWithException() {
+        repository.findByMessageStartsWith(testMemo1.getMessage());
+    }
 }

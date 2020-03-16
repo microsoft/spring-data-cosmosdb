@@ -140,12 +140,12 @@ public class ProjectRepositorySortIT {
         this.repository.findAll(sort);
     }
 
-//    @Test(expected = DocumentDBAccessException.class)
-//    public void testFindAllSortWithIdName() {
-//        final Sort sort = new Sort(Sort.Direction.ASC, "id");
-//
-//        this.repository.findAll(sort);
-//    }
+    @Test(expected = DocumentDBAccessException.class)
+    public void testFindAllSortWithIdName() {
+        final Sort sort = new Sort(Sort.Direction.ASC, "id");
+
+        this.repository.findAll(sort);
+    }
 
     @Test
     public void testFindSortWithOr() {

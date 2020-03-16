@@ -212,7 +212,7 @@ public class DocumentDbTemplatePartitionIT {
         final Page<PartitionPerson> page2 = dbTemplate.findAll(page1.getPageable(),
                 PartitionPerson.class, collectionName);
         assertThat(page2.getContent().size()).isEqualTo(1);
-        // validateLastPage(page2, PAGE_SIZE_1);
+        validateLastPage(page2, PAGE_SIZE_1);
     }
 
     @Test
