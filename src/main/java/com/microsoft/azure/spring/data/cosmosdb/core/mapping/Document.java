@@ -21,4 +21,6 @@ public @interface Document {
     String ru() default Constants.DEFAULT_REQUEST_UNIT;
 
     int timeToLive() default Constants.DEFAULT_TIME_TO_LIVE;
+
+    boolean autoCreateCollection() default Constants.DEFAULT_AUTO_CREATE_COLLECTION;
 }
