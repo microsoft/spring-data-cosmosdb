@@ -34,6 +34,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
     private Integer requestUnit;
     private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
+    private boolean autoCreateCollection;
 
     public DocumentDbEntityInformation(Class<T> domainClass) {
         super(domainClass);
@@ -50,6 +51,7 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         this.requestUnit = getRequestUnit(domainClass);
         this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
+        this.autoCreateCollection = getIsAutoCreateCollection(domainClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -89,6 +91,10 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
 
     public String getPartitionKeyFieldValue(T entity) {
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
+    }
+
+    public boolean isAutoCreateCollection() {
+        return autoCreateCollection;
     }
 
     private IndexingPolicy getIndexingPolicy(Class<?> domainClass) {
@@ -230,6 +236,17 @@ public class DocumentDbEntityInformation<T, ID> extends AbstractEntityInformatio
         }
 
         return pathsCollection;
+    }
+
+    private boolean getIsAutoCreateCollection(Class<T> domainClass) {
+        final Document annotation = domainClass.getAnnotation(Document.class);
+
+        boolean autoCreateCollection = Constants.DEFAULT_AUTO_CREATE_COLLECTION;
+        if (annotation != null) {
+            autoCreateCollection = annotation.autoCreateCollection();
+        }
+
+        return autoCreateCollection;
     }
 }
 
