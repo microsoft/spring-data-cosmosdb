@@ -24,9 +24,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -62,11 +62,6 @@ public class ReactiveCourseRepositoryIT {
 
     @Autowired
     private ReactiveCourseRepository repository;
-
-    @PreDestroy
-    public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
-    }
 
     @Before
     public void setup() {
@@ -202,7 +197,27 @@ public class ReactiveCourseRepositoryIT {
 
         Flux<Course> findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_1));
         //  Since there are two courses with department_1
-        StepVerifier.create(findAll).expectNext(COURSE_4, COURSE_5).verifyComplete();
+        final AtomicBoolean courseFound = new AtomicBoolean(false);
+        StepVerifier.create(findAll).expectNextCount(2).verifyComplete();
+        StepVerifier.create(findAll)
+                    .expectNextMatches(course -> {
+                        if (course.equals(COURSE_4)) {
+                            courseFound.set(true);
+                        } else if (course.equals(COURSE_5)) {
+                            courseFound.set(false);
+                        } else {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .expectNextMatches(course -> {
+                        if (courseFound.get()) {
+                            return course.equals(COURSE_5);
+                        } else {
+                            return course.equals(COURSE_4);
+                        }
+                    })
+                    .verifyComplete();
 
         findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_3));
         //  Since there are two courses with department_3
@@ -210,6 +225,25 @@ public class ReactiveCourseRepositoryIT {
 
         findAll = repository.findAll(new PartitionKey(DEPARTMENT_NAME_2));
         //  Since there are two courses with department_2
-        StepVerifier.create(findAll).expectNext(COURSE_2, COURSE_3).verifyComplete();
+        StepVerifier.create(findAll).expectNextCount(2).verifyComplete();
+        StepVerifier.create(findAll)
+                    .expectNextMatches(course -> {
+                        if (course.equals(COURSE_2)) {
+                            courseFound.set(true);
+                        } else if (course.equals(COURSE_3)) {
+                            courseFound.set(false);
+                        } else {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .expectNextMatches(course -> {
+                        if (courseFound.get()) {
+                            return course.equals(COURSE_3);
+                        } else {
+                            return course.equals(COURSE_2);
+                        }
+                    })
+                    .verifyComplete();
     }
 }

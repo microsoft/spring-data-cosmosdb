@@ -30,7 +30,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,11 +72,6 @@ public class PageableAddressRepositoryIT {
         repository.save(TEST_ADDRESS1_PARTITION2);
         repository.save(TEST_ADDRESS2_PARTITION1);
         repository.save(TEST_ADDRESS4_PARTITION3);
-    }
-
-    @PreDestroy
-    public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @After

@@ -22,7 +22,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -49,11 +48,6 @@ public class RoleRepositoryCollectionIT {
     @Before
     public void setUp() {
         repository.deleteAll();
-    }
-
-    @PreDestroy
-    public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test
