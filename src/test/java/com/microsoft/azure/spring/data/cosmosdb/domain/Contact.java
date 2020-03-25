@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-@Document(ru = "10000")
+@Document()
 @Data
 @AllArgsConstructor
 public class Contact {

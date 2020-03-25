@@ -13,7 +13,7 @@ import org.springframework.data.annotation.Id;
 
 import java.util.Objects;
 
-@Document(ru = "400")
+@Document()
 @Data
 @AllArgsConstructor
 public class Address {
