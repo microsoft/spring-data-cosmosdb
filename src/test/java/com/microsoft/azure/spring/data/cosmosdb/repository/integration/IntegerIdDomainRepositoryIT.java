@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.annotation.PreDestroy;
 import java.util.Optional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -40,11 +39,6 @@ public class IntegerIdDomainRepositoryIT {
 
     @Autowired
     private IntegerIdDomainRepository repository;
-
-    @PreDestroy
-    public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
-    }
 
     @Before
     public void setup() {

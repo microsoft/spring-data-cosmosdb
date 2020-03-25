@@ -13,7 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-@Document(ru = "10000")
+@Document()
 @Data
 @AllArgsConstructor
 @DocumentIndexingPolicy(includePaths = TestConstants.ORDER_BY_STRING_PATH)
