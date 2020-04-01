@@ -13,6 +13,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.repository.QuestionRe
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +36,11 @@ public class QuestionRepositoryIT {
 
     private static final Question QUESTION = new Question(QUESTION_ID, QUESTION_URL);
 
-    private final CosmosEntityInformation<Question, String> entityInformation =
+    private static final CosmosEntityInformation<Question, String> entityInformation =
             new CosmosEntityInformation<>(Question.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -49,12 +53,22 @@ public class QuestionRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         this.repository.save(QUESTION);
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         this.repository.deleteAll();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test
