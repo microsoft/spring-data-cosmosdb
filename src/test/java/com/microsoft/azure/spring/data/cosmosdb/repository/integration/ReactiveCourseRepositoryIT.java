@@ -13,6 +13,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ReactiveCourseRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,8 +55,11 @@ public class ReactiveCourseRepositoryIT {
     private static final Course COURSE_4 = new Course(COURSE_ID_4, COURSE_NAME_4, DEPARTMENT_NAME_1);
     private static final Course COURSE_5 = new Course(COURSE_ID_5, COURSE_NAME_5, DEPARTMENT_NAME_1);
 
-    private final CosmosEntityInformation<Course, String> entityInformation =
+    private static final CosmosEntityInformation<Course, String> entityInformation =
         new CosmosEntityInformation<>(Course.class);
+
+    private static ReactiveCosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private ReactiveCosmosTemplate template;
@@ -65,15 +69,25 @@ public class ReactiveCourseRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         final Flux<Course> savedFlux = repository.saveAll(Arrays.asList(COURSE_1, COURSE_2,
             COURSE_3, COURSE_4));
         StepVerifier.create(savedFlux).thenConsumeWhile(course -> true).expectComplete().verify();
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         final Mono<Void> deletedMono = repository.deleteAll();
         StepVerifier.create(deletedMono).thenAwait().verifyComplete();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

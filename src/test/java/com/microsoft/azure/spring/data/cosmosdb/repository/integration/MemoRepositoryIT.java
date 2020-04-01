@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.MemoRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -49,8 +50,11 @@ public class MemoRepositoryIT {
     private static Memo testMemo2;
     private static Memo testMemo3;
 
-    private final CosmosEntityInformation<Memo, String> entityInformation =
+    private static final CosmosEntityInformation<Memo, String> entityInformation =
             new CosmosEntityInformation<>(Memo.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -72,12 +76,22 @@ public class MemoRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         repository.saveAll(Arrays.asList(testMemo1, testMemo2, testMemo3));
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         repository.deleteAll();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

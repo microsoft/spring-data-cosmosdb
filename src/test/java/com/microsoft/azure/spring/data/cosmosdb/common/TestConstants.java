@@ -17,7 +17,6 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestConstants {
     private static final int SUFFIX_LENGTH = 1;
-    private static final String DB_NAME_SUFFIX = UUID.randomUUID().toString().substring(0, SUFFIX_LENGTH);
 
     private static final Address ADDRESS_1 = new Address("201107", "Zixing Road", "Shanghai");
     private static final Address ADDRESS_2 = new Address("200000", "Xuhui", "Shanghai");
@@ -85,7 +84,7 @@ public class TestConstants {
             STARTSWITH_INCLUDEDPATH
     };
 
-    public static final String DB_NAME = String.join("-", "testdb", DB_NAME_SUFFIX);
+    public static final String DB_NAME = "testdb";
     public static final String FIRST_NAME = "first_name_li";
     public static final String LAST_NAME = "last_name_p";
     public static final String ID_1 = "id-1";

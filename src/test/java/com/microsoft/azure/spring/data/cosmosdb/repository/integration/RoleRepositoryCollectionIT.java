@@ -12,6 +12,7 @@ import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessExceptio
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.IntegerIdDomainRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,15 +40,28 @@ public class RoleRepositoryCollectionIT {
     @Autowired
     private IntegerIdDomainRepository repository;
 
-    private final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
+    private static final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
             new CosmosEntityInformation<>(IntegerIdDomain.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
 
     @Before
     public void setUp() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         repository.deleteAll();
+        isSetupDone = true;
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

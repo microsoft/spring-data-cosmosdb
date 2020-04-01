@@ -23,6 +23,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,6 +117,11 @@ public class CosmosTemplateIT {
     @After
     public void cleanup() {
         cosmosTemplate.deleteAll(Person.class.getSimpleName(), Person.class);
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        cosmosTemplate.deleteContainer(personInfo.getContainerName());
     }
 
     @Test(expected = CosmosDBAccessException.class)

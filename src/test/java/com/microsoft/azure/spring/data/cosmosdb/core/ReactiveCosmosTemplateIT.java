@@ -23,6 +23,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,6 +119,11 @@ public class ReactiveCosmosTemplateIT {
         cosmosKeyCredential.key(dbConfig.getKey());
         cosmosTemplate.deleteAll(Person.class.getSimpleName(),
             personInfo.getPartitionKeyFieldName()).block();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        cosmosTemplate.deleteContainer(personInfo.getContainerName());
     }
 
     @Test

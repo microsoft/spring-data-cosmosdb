@@ -12,6 +12,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.repository.CustomerRe
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.NonNull;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,8 +51,11 @@ public class CustomerRepositoryIT {
     private static final Customer CUSTOMER_1 = new Customer(CUSTOMER_ID_1, CUSTOMER_LEVEL_1, USER_1);
     private static final Customer CUSTOMER_2 = new Customer(CUSTOMER_ID_2, CUSTOMER_LEVEL_1, USER_2);
 
-    private final CosmosEntityInformation<Customer, String> entityInformation =
+    private static final CosmosEntityInformation<Customer, String> entityInformation =
             new CosmosEntityInformation<>(Customer.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private CustomerRepository repository;
@@ -61,12 +65,22 @@ public class CustomerRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         this.repository.saveAll(Arrays.asList(CUSTOMER_0, CUSTOMER_1, CUSTOMER_2));
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         this.repository.deleteAll();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     private void assertCustomerListEquals(@NonNull List<Customer> customers, @NonNull List<Customer> reference) {

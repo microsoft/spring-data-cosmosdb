@@ -15,6 +15,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AddressRep
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,8 +47,11 @@ public class AddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_2, TestConstants.CITY_1);
 
-    private final CosmosEntityInformation<Address, String> entityInformation
+    private static final CosmosEntityInformation<Address, String> entityInformation
             = new CosmosEntityInformation<>(Address.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     AddressRepository repository;
@@ -60,14 +64,24 @@ public class AddressRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         repository.save(TEST_ADDRESS1_PARTITION1);
         repository.saveAll(Lists.newArrayList(TEST_ADDRESS1_PARTITION2,
             TEST_ADDRESS2_PARTITION1, TEST_ADDRESS4_PARTITION3));
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         repository.deleteAll();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

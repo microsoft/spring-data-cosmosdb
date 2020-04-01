@@ -13,6 +13,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityI
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,8 +32,11 @@ public class IntegerIdDomainRepositoryIT {
     private static final String NAME = "panli";
     private static final IntegerIdDomain DOMAIN = new IntegerIdDomain(ID, NAME);
 
-    private final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
+    private static final CosmosEntityInformation<IntegerIdDomain, Integer> entityInformation =
             new CosmosEntityInformation<>(IntegerIdDomain.class);
+
+    private static CosmosTemplate staticTemplate;
+    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -42,12 +46,22 @@ public class IntegerIdDomainRepositoryIT {
 
     @Before
     public void setup() {
+        if (!isSetupDone) {
+            staticTemplate = template;
+            template.createContainerIfNotExists(entityInformation);
+        }
         this.repository.save(DOMAIN);
+        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         this.repository.deleteAll();
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
+        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

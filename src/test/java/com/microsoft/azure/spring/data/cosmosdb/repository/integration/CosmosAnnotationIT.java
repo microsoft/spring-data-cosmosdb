@@ -19,15 +19,14 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -76,6 +75,12 @@ public class CosmosAnnotationIT {
 
     @After
     public void cleanUp() {
+        cosmosTemplate.deleteContainer(roleInfo.getContainerName());
+        cosmosTemplate.deleteContainer(sampleInfo.getContainerName());
+    }
+
+    @AfterClass
+    public static void afterClassCleanup() {
         cosmosTemplate.deleteContainer(roleInfo.getContainerName());
         cosmosTemplate.deleteContainer(sampleInfo.getContainerName());
     }
