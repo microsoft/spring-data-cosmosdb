@@ -163,7 +163,6 @@ public class ReactiveCosmosTemplatePartitionIT {
     @Test
     public void testDeleteByIdPartition() {
         cosmosTemplate.insert(TEST_PERSON_2, new PartitionKey(TEST_PERSON_2.getLastName())).block();
-        System.out.println("TEST_PERSON_2 = " + TEST_PERSON_2);
         StepVerifier.create(cosmosTemplate.findAll(PartitionPerson.class)).expectNextCount(2).verifyComplete();
 
         cosmosTemplate.deleteById(PartitionPerson.class.getSimpleName(),

@@ -45,6 +45,7 @@ public class CosmosAnnotationIT {
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosContainerProperties collectionRole;
+    private static CosmosContainerProperties collectionSample;
     private static CosmosEntityInformation<Role, String> roleInfo;
     private static CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
 
@@ -68,15 +69,9 @@ public class CosmosAnnotationIT {
         }
         collectionRole = cosmosTemplate.createContainerIfNotExists(roleInfo);
 
-        cosmosTemplate.createContainerIfNotExists(sampleInfo);
+        collectionSample = cosmosTemplate.createContainerIfNotExists(sampleInfo);
 
         cosmosTemplate.insert(roleInfo.getContainerName(), TEST_ROLE, null);
-    }
-
-    @After
-    public void cleanUp() {
-        cosmosTemplate.deleteContainer(roleInfo.getContainerName());
-        cosmosTemplate.deleteContainer(sampleInfo.getContainerName());
     }
 
     @AfterClass
@@ -86,14 +81,25 @@ public class CosmosAnnotationIT {
     }
 
     @Test
-    @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
+    public void testTimeToLiveAnnotation() {
+        Integer timeToLive = sampleInfo.getTimeToLive();
+        Assert.isTrue(timeToLive.equals(collectionSample.defaultTimeToLive()),
+            "unmatched time to live value for class TimeToLiveSample");
+
+        timeToLive = roleInfo.getTimeToLive();
+        Assert.isTrue(timeToLive.equals(collectionRole.defaultTimeToLive()),
+            "unmatched time to live value for class Role");
+    }
+
+    @Test
+    @Ignore // TODO(kuthapar): Ignore this test case for now, will update this from service update.
     public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = collectionRole.indexingPolicy();
 
-        Assert.isTrue(policy.automatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
-                "unmatched collection policy automatic of class Role");
         Assert.isTrue(policy.indexingMode() == TestConstants.INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
+        Assert.isTrue(policy.automatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
+            "unmatched collection policy automatic of class Role");
 
         TestUtils.testIndexingPolicyPathsEquals(policy.includedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.excludedPaths(), TestConstants.EXCLUDEDPATHS);
