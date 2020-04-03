@@ -18,6 +18,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -31,6 +32,8 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -83,12 +86,10 @@ public class CosmosAnnotationIT {
     @Test
     public void testTimeToLiveAnnotation() {
         Integer timeToLive = sampleInfo.getTimeToLive();
-        Assert.isTrue(timeToLive.equals(collectionSample.defaultTimeToLive()),
-            "unmatched time to live value for class TimeToLiveSample");
+        assertThat(timeToLive).isEqualTo(collectionSample.defaultTimeToLive());
 
         timeToLive = roleInfo.getTimeToLive();
-        Assert.isTrue(timeToLive.equals(collectionRole.defaultTimeToLive()),
-            "unmatched time to live value for class Role");
+        assertThat(timeToLive).isEqualTo(collectionRole.defaultTimeToLive());
     }
 
     @Test
