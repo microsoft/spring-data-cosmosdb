@@ -9,6 +9,7 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.AccessCondition;
 import com.azure.data.cosmos.AccessConditionType;
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
@@ -117,10 +118,14 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
             .flatMap(cosmosDatabaseResponse -> {
                 fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                     cosmosDatabaseResponse, null);
+                final CosmosContainerProperties cosmosContainerProperties = new CosmosContainerProperties(
+                    information.getContainerName(),
+                    "/" + information.getPartitionKeyFieldName());
+                cosmosContainerProperties.defaultTimeToLive(information.getTimeToLive());
+                cosmosContainerProperties.indexingPolicy(information.getIndexingPolicy());
                 return cosmosDatabaseResponse
                     .database()
-                    .createContainerIfNotExists(information.getContainerName(),
-                        "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
+                    .createContainerIfNotExists(cosmosContainerProperties, information.getRequestUnit())
                     .map(cosmosContainerResponse -> {
                         fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                             cosmosContainerResponse, null);

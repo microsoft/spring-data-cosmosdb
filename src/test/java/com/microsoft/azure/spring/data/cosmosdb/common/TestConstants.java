@@ -40,7 +40,6 @@ public class TestConstants {
     public static final String ROLE_COLLECTION_NAME = "RoleCollectionName";
     public static final int REQUEST_UNIT = 4000;
     public static final int TIME_TO_LIVE = 5;
-    public static final String REQUEST_UNIT_STRING = "4000";
     public static final boolean INDEXINGPOLICY_AUTOMATIC = false;
     public static final IndexingMode INDEXINGPOLICY_MODE = IndexingMode.LAZY;
     public static final String INCLUDEDPATH_0 = "{\"path\":\"/*\",\"indexes\":[" +
