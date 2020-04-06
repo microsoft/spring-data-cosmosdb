@@ -18,10 +18,10 @@ import java.util.Objects;
 @AllArgsConstructor
 public class PageableAddress {
     @Id
-    String postalCode;
-    String street;
+    private String postalCode;
+    private String street;
     @PartitionKey
-    String city;
+    private String city;
 
     @Override
     public boolean equals(Object o) {
