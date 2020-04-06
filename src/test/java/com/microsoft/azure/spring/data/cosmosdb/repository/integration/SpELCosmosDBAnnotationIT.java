@@ -7,6 +7,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
+import com.microsoft.azure.spring.data.cosmosdb.common.DynamicContainer;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
@@ -18,6 +19,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.SpELPropertyStudent;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +49,31 @@ public class SpELCosmosDBAnnotationIT {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private CosmosTemplate cosmosTemplate;
+
+    @Autowired
+    private DynamicContainer dynamicContainer;
+
     private static CosmosTemplate staticTemplate;
     private static CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
 
+    @Before
+    public void setup() {
+        if (staticTemplate == null) {
+            staticTemplate = cosmosTemplate;
+        }
+        final String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
+        for (final String beanName: beanDefinitionNames) {
+            System.out.println("Bean registered with name [" + beanName + "]");
+        }
+    }
+
     @AfterClass
     public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(cosmosEntityInformation.getContainerName());
+        if (cosmosEntityInformation != null) {
+            staticTemplate.deleteContainer(cosmosEntityInformation.getContainerName());
+        }
     }
     
     @Test
