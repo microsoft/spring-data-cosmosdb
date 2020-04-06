@@ -7,7 +7,6 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
-import com.microsoft.azure.spring.data.cosmosdb.common.DynamicContainer;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
@@ -52,9 +51,6 @@ public class SpELCosmosDBAnnotationIT {
     @Autowired
     private CosmosTemplate cosmosTemplate;
 
-    @Autowired
-    private DynamicContainer dynamicContainer;
-
     private static CosmosTemplate staticTemplate;
     private static CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
 
@@ -62,10 +58,6 @@ public class SpELCosmosDBAnnotationIT {
     public void setup() {
         if (staticTemplate == null) {
             staticTemplate = cosmosTemplate;
-        }
-        final String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
-        for (final String beanName: beanDefinitionNames) {
-            System.out.println("Bean registered with name [" + beanName + "]");
         }
     }
 
