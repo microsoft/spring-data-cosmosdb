@@ -71,7 +71,7 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
                 .build();
     }
     
-    @Bean
+    @Bean(name = "dynamicCollectionContainer")
     public DynamicCollectionContainer dynamicCollectionContainer() {
         return new DynamicCollectionContainer("spel-bean-collection");
     }
