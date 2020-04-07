@@ -8,7 +8,7 @@
 
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>spring-data-cosmosdb-samples</artifactId>
-	<version>2.2.4</version>
+	<version>2.2.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
