@@ -7,10 +7,10 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Project;
+import com.microsoft.azure.spring.data.cosmosdb.domain.SortedProject;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
-import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRepository;
+import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SortedProjectRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -68,16 +68,22 @@ public class ProjectRepositorySortIT {
     private static final Long FORK_COUNT_3 = 3L;
     private static final Long FORK_COUNT_4 = FORK_COUNT_3;
 
-    private static final Project PROJECT_0 = new Project(ID_0, NAME_0, CREATOR_0, true, STAR_COUNT_0, FORK_COUNT_0);
-    private static final Project PROJECT_1 = new Project(ID_1, NAME_1, CREATOR_1, true, STAR_COUNT_1, FORK_COUNT_1);
-    private static final Project PROJECT_2 = new Project(ID_2, NAME_2, CREATOR_2, true, STAR_COUNT_2, FORK_COUNT_2);
-    private static final Project PROJECT_3 = new Project(ID_3, NAME_3, CREATOR_3, true, STAR_COUNT_3, FORK_COUNT_3);
-    private static final Project PROJECT_4 = new Project(ID_4, NAME_4, CREATOR_4, true, STAR_COUNT_4, FORK_COUNT_4);
+    private static final SortedProject PROJECT_0 = new SortedProject(ID_0, NAME_0, CREATOR_0,
+        true, STAR_COUNT_0, FORK_COUNT_0);
+    private static final SortedProject PROJECT_1 = new SortedProject(ID_1, NAME_1, CREATOR_1,
+        true, STAR_COUNT_1, FORK_COUNT_1);
+    private static final SortedProject PROJECT_2 = new SortedProject(ID_2, NAME_2, CREATOR_2,
+        true, STAR_COUNT_2, FORK_COUNT_2);
+    private static final SortedProject PROJECT_3 = new SortedProject(ID_3, NAME_3, CREATOR_3,
+        true, STAR_COUNT_3, FORK_COUNT_3);
+    private static final SortedProject PROJECT_4 = new SortedProject(ID_4, NAME_4, CREATOR_4,
+        true, STAR_COUNT_4, FORK_COUNT_4);
 
-    private static final List<Project> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3, PROJECT_2, PROJECT_1, PROJECT_0);
+    private static final List<SortedProject> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3,
+        PROJECT_2, PROJECT_1, PROJECT_0);
 
-    private static final CosmosEntityInformation<Project, String> entityInformation =
-            new CosmosEntityInformation<>(Project.class);
+    private static final CosmosEntityInformation<SortedProject, String> entityInformation =
+            new CosmosEntityInformation<>(SortedProject.class);
 
     private static CosmosTemplate staticTemplate;
     private static boolean isSetupDone;
@@ -86,10 +92,10 @@ public class ProjectRepositorySortIT {
     private CosmosTemplate template;
 
     @Autowired
-    private ProjectRepository repository;
+    private SortedProjectRepository repository;
     
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);
@@ -111,9 +117,9 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindAllSortASC() {
         final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
-        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
+        final List<SortedProject> projects = Lists.newArrayList(this.repository.findAll(sort));
 
-        PROJECTS.sort(Comparator.comparing(Project::getStarCount));
+        PROJECTS.sort(Comparator.comparing(SortedProject::getStarCount));
 
         Assert.assertEquals(PROJECTS.size(), projects.size());
         Assert.assertEquals(PROJECTS, projects);
@@ -122,9 +128,9 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindAllSortDESC() {
         final Sort sort = Sort.by(Sort.Direction.DESC, "creator");
-        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
+        final List<SortedProject> projects = Lists.newArrayList(this.repository.findAll(sort));
 
-        PROJECTS.sort(Comparator.comparing(Project::getCreator).reversed());
+        PROJECTS.sort(Comparator.comparing(SortedProject::getCreator).reversed());
 
         Assert.assertEquals(PROJECTS.size(), projects.size());
         Assert.assertEquals(PROJECTS, projects);
@@ -133,10 +139,10 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindAllUnSorted() {
         final Sort sort = Sort.unsorted();
-        final List<Project> projects = Lists.newArrayList(this.repository.findAll(sort));
+        final List<SortedProject> projects = Lists.newArrayList(this.repository.findAll(sort));
 
-        PROJECTS.sort(Comparator.comparing(Project::getId));
-        projects.sort(Comparator.comparing(Project::getId));
+        PROJECTS.sort(Comparator.comparing(SortedProject::getId));
+        projects.sort(Comparator.comparing(SortedProject::getId));
 
         Assert.assertEquals(PROJECTS.size(), projects.size());
         Assert.assertEquals(PROJECTS, projects);
@@ -165,11 +171,12 @@ public class ProjectRepositorySortIT {
     }
 
     public void testFindAllSortWithIdName() {
-        final List<Project> projectListSortedById = Lists.newArrayList(PROJECTS);
-        projectListSortedById.sort(Comparator.comparing(Project::getId));
+        final List<SortedProject> projectListSortedById = Lists.newArrayList(PROJECTS);
+        projectListSortedById.sort(Comparator.comparing(SortedProject::getId));
 
         final Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        final List<Project> results = StreamSupport.stream(this.repository.findAll(sort).spliterator(), false)
+        final List<SortedProject> results = StreamSupport.stream(this.repository.findAll(sort).spliterator(),
+            false)
                 .collect(Collectors.toList());
 
         Assert.assertEquals(projectListSortedById, results);
@@ -178,10 +185,11 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindSortWithOr() {
         final Sort sort = Sort.by(Sort.Direction.ASC, "starCount");
-        final List<Project> projects = Lists.newArrayList(this.repository.findByNameOrCreator(NAME_0, CREATOR_3, sort));
-        final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_3);
+        final List<SortedProject> projects = Lists.newArrayList(this.repository.findByNameOrCreator(NAME_0, CREATOR_3,
+            sort));
+        final List<SortedProject> references = Arrays.asList(PROJECT_0, PROJECT_3);
 
-        references.sort(Comparator.comparing(Project::getStarCount));
+        references.sort(Comparator.comparing(SortedProject::getStarCount));
 
         Assert.assertEquals(references.size(), projects.size());
         Assert.assertEquals(references, projects);
@@ -190,10 +198,11 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindSortWithAnd() {
         final Sort sort = Sort.by(Sort.Direction.ASC, "forkCount");
-        final List<Project> projects = Lists.newArrayList(repository.findByNameAndCreator(NAME_0, CREATOR_0, sort));
-        final List<Project> references = Arrays.asList(PROJECT_0);
+        final List<SortedProject> projects = Lists.newArrayList(repository.findByNameAndCreator(NAME_0, CREATOR_0,
+            sort));
+        final List<SortedProject> references = Arrays.asList(PROJECT_0);
 
-        references.sort(Comparator.comparing(Project::getStarCount));
+        references.sort(Comparator.comparing(SortedProject::getStarCount));
 
         Assert.assertEquals(references.size(), projects.size());
         Assert.assertEquals(references, projects);
@@ -202,10 +211,10 @@ public class ProjectRepositorySortIT {
     @Test
     public void testFindSortWithEqual() {
         final Sort sort = Sort.by(Sort.Direction.DESC, "name");
-        final List<Project> projects = Lists.newArrayList(this.repository.findByForkCount(FORK_COUNT_3, sort));
-        final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
+        final List<SortedProject> projects = Lists.newArrayList(this.repository.findByForkCount(FORK_COUNT_3, sort));
+        final List<SortedProject> references = Arrays.asList(PROJECT_3, PROJECT_4);
 
-        references.sort(Comparator.comparing(Project::getName).reversed());
+        references.sort(Comparator.comparing(SortedProject::getName).reversed());
 
         Assert.assertEquals(references.size(), projects.size());
         Assert.assertEquals(references, projects);
@@ -216,10 +225,10 @@ public class ProjectRepositorySortIT {
         final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
-        final Page<Project> result = this.repository.findAll(pageable);
+        final Page<SortedProject> result = this.repository.findAll(pageable);
 
-        final List<Project> references = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
-        references.sort(Comparator.comparing(Project::getName).reversed());
+        final List<SortedProject> references = Arrays.asList(PROJECT_0, PROJECT_1, PROJECT_2, PROJECT_3, PROJECT_4);
+        references.sort(Comparator.comparing(SortedProject::getName).reversed());
 
         Assert.assertEquals(references.size(), result.getContent().size());
         Assert.assertEquals(references, result.getContent());
@@ -231,11 +240,11 @@ public class ProjectRepositorySortIT {
         final Sort sort = Sort.by(Sort.Direction.DESC, "name");
         final Pageable pageable = new CosmosPageRequest(0, 5, null, sort);
 
-        final Page<Project> result = this.repository.findByForkCount(FORK_COUNT_3, pageable);
+        final Page<SortedProject> result = this.repository.findByForkCount(FORK_COUNT_3, pageable);
 
-        final List<Project> references = Arrays.asList(PROJECT_3, PROJECT_4);
+        final List<SortedProject> references = Arrays.asList(PROJECT_3, PROJECT_4);
 
-        references.sort(Comparator.comparing(Project::getName).reversed());
+        references.sort(Comparator.comparing(SortedProject::getName).reversed());
 
         Assert.assertEquals(references.size(), result.getContent().size());
         Assert.assertEquals(references, result.getContent());

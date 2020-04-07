@@ -49,7 +49,7 @@ public class ContactRepositoryIT {
     private CosmosTemplate template;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

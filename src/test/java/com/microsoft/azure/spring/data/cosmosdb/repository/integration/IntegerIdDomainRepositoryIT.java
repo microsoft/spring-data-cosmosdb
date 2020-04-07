@@ -56,7 +56,7 @@ public class IntegerIdDomainRepositoryIT {
     private IntegerIdDomainRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

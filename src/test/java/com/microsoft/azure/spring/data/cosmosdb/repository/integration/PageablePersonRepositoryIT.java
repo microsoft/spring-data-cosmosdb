@@ -8,7 +8,7 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
+import com.microsoft.azure.spring.data.cosmosdb.domain.PageablePerson;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageablePersonRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
@@ -40,8 +40,8 @@ public class PageablePersonRepositoryIT {
 
     private static final int TOTAL_CONTENT_SIZE = 50;
 
-    private static final CosmosEntityInformation<Person, String> entityInformation =
-        new CosmosEntityInformation<>(Person.class);
+    private static final CosmosEntityInformation<PageablePerson, String> entityInformation =
+        new CosmosEntityInformation<>(PageablePerson.class);
 
     private static CosmosTemplate staticTemplate;
 
@@ -51,12 +51,12 @@ public class PageablePersonRepositoryIT {
     @Autowired
     private PageablePersonRepository repository;
 
-    private static Set<Person> personSet;
+    private static Set<PageablePerson> personSet;
 
     private static boolean isSetupDone;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (isSetupDone) {
             return;
         }
@@ -73,7 +73,7 @@ public class PageablePersonRepositoryIT {
             address.add(new Address("postalCode-" + UUID.randomUUID().toString(),
                 "street-" + UUID.randomUUID().toString(),
                 "city-" + UUID.randomUUID().toString()));
-            final Person person = new Person(UUID.randomUUID().toString(),
+            final PageablePerson person = new PageablePerson(UUID.randomUUID().toString(),
                 UUID.randomUUID().toString(), UUID.randomUUID().toString(),
                 hobbies, address);
             repository.save(person);
@@ -95,28 +95,28 @@ public class PageablePersonRepositoryIT {
     //  This test covers the case where page size is greater than returned documents
     @Test
     public void testFindAllWithPageSizeGreaterThanReturned() {
-        final Set<Person> outputSet = findAllWithPageSize(30, false);
+        final Set<PageablePerson> outputSet = findAllWithPageSize(30, false);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
     //  This test covers the case where page size is less than returned documents
     @Test
     public void testFindAllWithPageSizeLessThanReturned() {
-        final Set<Person> outputSet = findAllWithPageSize(5, false);
+        final Set<PageablePerson> outputSet = findAllWithPageSize(5, false);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
     //  This test covers the case where page size is greater than total number of documents
     @Test
     public void testFindAllWithPageSizeGreaterThanTotal() {
-        final Set<Person> outputSet = findAllWithPageSize(120, true);
+        final Set<PageablePerson> outputSet = findAllWithPageSize(120, true);
         assertThat(outputSet).isEqualTo(personSet);
     }
 
-    private Set<Person> findAllWithPageSize(int pageSize, boolean checkContentLimit) {
+    private Set<PageablePerson> findAllWithPageSize(int pageSize, boolean checkContentLimit) {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
-        Page<Person> page = repository.findAll(pageRequest);
-        final Set<Person> outputSet = new HashSet<>(page.getContent());
+        Page<PageablePerson> page = repository.findAll(pageRequest);
+        final Set<PageablePerson> outputSet = new HashSet<>(page.getContent());
         if (checkContentLimit) {
             //  Make sure CosmosDB returns less number of documents than requested
             //  This will verify the functionality of new pagination implementation

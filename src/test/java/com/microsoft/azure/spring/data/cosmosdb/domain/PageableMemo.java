@@ -3,20 +3,23 @@
  * Licensed under the MIT License. See LICENSE in the project root for
  * license information.
  */
-
 package com.microsoft.azure.spring.data.cosmosdb.domain;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
+/**
+ * For testing date and enum purpose
+ */
+@Document()
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-@Document(collection = "#{@dynamicContainer.getContainerName()}")
-public class SpELBeanStudent {
+public class PageableMemo {
     private String id;
-    private String firstName;
-    private String lastName;
+    private String message;
+    private Date date;
+    private Importance importance;
 }

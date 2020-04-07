@@ -38,7 +38,7 @@ public class MappingCosmosConverterUnitTest {
     ApplicationContext applicationContext;
 
     @Before
-    public void setup() {
+    public void setUp() {
         final CosmosMappingContext mappingContext = new CosmosMappingContext();
         final ObjectMapper objectMapper = new ObjectMapper();
 

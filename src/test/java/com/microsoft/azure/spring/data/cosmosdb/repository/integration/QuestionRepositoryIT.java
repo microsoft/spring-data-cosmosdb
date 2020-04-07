@@ -52,7 +52,7 @@ public class QuestionRepositoryIT {
     private ProjectRepository projectRepository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

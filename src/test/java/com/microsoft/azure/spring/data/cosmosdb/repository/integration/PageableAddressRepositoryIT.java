@@ -14,7 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.common.TestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
+import com.microsoft.azure.spring.data.cosmosdb.domain.PageableAddress;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableAddressRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
@@ -43,17 +43,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class PageableAddressRepositoryIT {
-    private static final Address TEST_ADDRESS1_PARTITION1 = new Address(
+    private static final PageableAddress TEST_ADDRESS1_PARTITION1 = new PageableAddress(
             TestConstants.POSTAL_CODE, TestConstants.STREET, TestConstants.CITY);
-    private static final Address TEST_ADDRESS2_PARTITION1 = new Address(
+    private static final PageableAddress TEST_ADDRESS2_PARTITION1 = new PageableAddress(
             TestConstants.POSTAL_CODE_0, TestConstants.STREET, TestConstants.CITY);
-    private static final Address TEST_ADDRESS1_PARTITION2 = new Address(
+    private static final PageableAddress TEST_ADDRESS1_PARTITION2 = new PageableAddress(
             TestConstants.POSTAL_CODE_1, TestConstants.STREET_0, TestConstants.CITY_0);
-    private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
+    private static final PageableAddress TEST_ADDRESS4_PARTITION3 = new PageableAddress(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
 
-    private static final CosmosEntityInformation<Address, String> entityInformation =
-            new CosmosEntityInformation<>(Address.class);
+    private static final CosmosEntityInformation<PageableAddress, String> entityInformation =
+            new CosmosEntityInformation<>(PageableAddress.class);
 
     private static CosmosTemplate staticTemplate;
     private static boolean isSetupDone;
@@ -71,7 +71,7 @@ public class PageableAddressRepositoryIT {
     private CosmosDBConfig dbConfig;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);
@@ -95,7 +95,7 @@ public class PageableAddressRepositoryIT {
 
     @Test
     public void testFindAll() {
-        final List<Address> result = TestUtils.toList(repository.findAll());
+        final List<PageableAddress> result = TestUtils.toList(repository.findAll());
 
         assertThat(result.size()).isEqualTo(4);
     }
@@ -103,12 +103,12 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindAllByPage() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
-        final Page<Address> page = repository.findAll(pageRequest);
+        final Page<PageableAddress> page = repository.findAll(pageRequest);
 
         assertThat(page.getContent().size()).isLessThanOrEqualTo(PAGE_SIZE_3);
         validateNonLastPage(page, PAGE_SIZE_3);
 
-        final Page<Address> nextPage = repository.findAll(page.getPageable());
+        final Page<PageableAddress> nextPage = repository.findAll(page.getPageable());
         assertThat(nextPage.getContent().size()).isLessThanOrEqualTo(PAGE_SIZE_3);
         validateLastPage(nextPage, nextPage.getContent().size());
     }
@@ -116,7 +116,7 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindWithPartitionKeySinglePage() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
-        final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
+        final Page<PageableAddress> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultCityMatch(page, TestConstants.CITY);
@@ -126,13 +126,13 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindWithPartitionKeyMultiPages() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
-        final Page<Address> page = repository.findByCity(TestConstants.CITY, pageRequest);
+        final Page<PageableAddress> page = repository.findByCity(TestConstants.CITY, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultCityMatch(page, TestConstants.CITY);
         validateNonLastPage(page, PAGE_SIZE_1);
 
-        final Page<Address> nextPage = repository.findByCity(TestConstants.CITY, page.getPageable());
+        final Page<PageableAddress> nextPage = repository.findByCity(TestConstants.CITY, page.getPageable());
 
         assertThat(nextPage.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultCityMatch(page, TestConstants.CITY);
@@ -142,7 +142,7 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindWithoutPartitionKeySinglePage() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_3, null);
-        final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
+        final Page<PageableAddress> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(2);
         validateResultStreetMatch(page, TestConstants.STREET);
@@ -152,13 +152,13 @@ public class PageableAddressRepositoryIT {
     @Test
     public void testFindWithoutPartitionKeyMultiPages() {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, PAGE_SIZE_1, null);
-        final Page<Address> page = repository.findByStreet(TestConstants.STREET, pageRequest);
+        final Page<PageableAddress> page = repository.findByStreet(TestConstants.STREET, pageRequest);
 
         assertThat(page.getContent().size()).isEqualTo(1);
         validateResultStreetMatch(page, TestConstants.STREET);
         validateNonLastPage(page, PAGE_SIZE_1);
 
-        final Page<Address> nextPage = repository.findByStreet(TestConstants.STREET, page.getPageable());
+        final Page<PageableAddress> nextPage = repository.findByStreet(TestConstants.STREET, page.getPageable());
 
         assertThat(nextPage.getContent().size()).isEqualTo(PAGE_SIZE_1);
         validateResultStreetMatch(page, TestConstants.STREET);
@@ -189,14 +189,14 @@ public class PageableAddressRepositoryIT {
         assertThat(results.size()).isEqualTo(takeCount);
     }
 
-    private void validateResultCityMatch(Page<Address> page, String city) {
+    private void validateResultCityMatch(Page<PageableAddress> page, String city) {
         assertThat((int) page.getContent()
                             .stream()
                             .filter(address -> address.getCity().equals(city))
                             .count()).isEqualTo(page.getContent().size());
     }
 
-    private void validateResultStreetMatch(Page<Address> page, String street) {
+    private void validateResultStreetMatch(Page<PageableAddress> page, String street) {
         assertThat((int) page.getContent()
                             .stream()
                             .filter(address -> address.getStreet().equals(street))

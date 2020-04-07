@@ -13,7 +13,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.CosmosPageRequest;
 import com.microsoft.azure.spring.data.cosmosdb.domain.Importance;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Memo;
+import com.microsoft.azure.spring.data.cosmosdb.domain.PageableMemo;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableMemoRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
@@ -48,8 +48,8 @@ public class PageableMemoRepositoryIT {
 
     private static final int TOTAL_CONTENT_SIZE = 500;
 
-    private static final CosmosEntityInformation<Memo, String> entityInformation =
-        new CosmosEntityInformation<>(Memo.class);
+    private static final CosmosEntityInformation<PageableMemo, String> entityInformation =
+        new CosmosEntityInformation<>(PageableMemo.class);
 
     private static CosmosTemplate staticTemplate;
 
@@ -65,12 +65,12 @@ public class PageableMemoRepositoryIT {
     @Autowired
     private CosmosDBConfig dbConfig;
 
-    private static Set<Memo> memoSet;
+    private static Set<PageableMemo> memoSet;
 
     private static boolean isSetupDone;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (isSetupDone) {
             return;
         }
@@ -85,7 +85,7 @@ public class PageableMemoRepositoryIT {
             final String id = UUID.randomUUID().toString();
             final String message = UUID.randomUUID().toString();
             final int randomIndex = random.nextInt(3);
-            final Memo memo = new Memo(id, message, new Date(), importanceValues[randomIndex]);
+            final PageableMemo memo = new PageableMemo(id, message, new Date(), importanceValues[randomIndex]);
             repository.save(memo);
             memoSet.add(memo);
         }
@@ -99,19 +99,19 @@ public class PageableMemoRepositoryIT {
 
     @Test
     public void testFindAllWithPageSizeLessThanReturned() {
-        final Set<Memo> memos = findAllWithPageSize(20);
+        final Set<PageableMemo> memos = findAllWithPageSize(20);
         assertThat(memos).isEqualTo(memoSet);
     }
 
     @Test
     public void testFindAllWithPageSizeLessThanTotal() {
-        final Set<Memo> memos = findAllWithPageSize(200);
+        final Set<PageableMemo> memos = findAllWithPageSize(200);
         assertThat(memos).isEqualTo(memoSet);
     }
 
     @Test
     public void testFindAllWithPageSizeGreaterThanTotal() {
-        final Set<Memo> memos = findAllWithPageSize(10000);
+        final Set<PageableMemo> memos = findAllWithPageSize(10000);
         assertThat(memos).isEqualTo(memoSet);
     }
 
@@ -163,10 +163,10 @@ public class PageableMemoRepositoryIT {
         assertThat(itemsWithOffsetAndLimit.size()).isEqualTo(verifyCount);
     }
 
-    private Set<Memo> findAllWithPageSize(int pageSize) {
+    private Set<PageableMemo> findAllWithPageSize(int pageSize) {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
-        Page<Memo> page = repository.findAll(pageRequest);
-        final Set<Memo> outputSet = new HashSet<>(page.getContent());
+        Page<PageableMemo> page = repository.findAll(pageRequest);
+        final Set<PageableMemo> outputSet = new HashSet<>(page.getContent());
         while (page.hasNext()) {
             final Pageable pageable = page.nextPageable();
             page = repository.findAll(pageable);

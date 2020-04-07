@@ -5,15 +5,15 @@
  */
 package com.microsoft.azure.spring.data.cosmosdb.repository.repository;
 
+import com.microsoft.azure.spring.data.cosmosdb.domain.PageableAddress;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import com.microsoft.azure.spring.data.cosmosdb.domain.Address;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PageableAddressRepository extends PagingAndSortingRepository<Address, String>{
-    Page<Address> findByStreet(String street, Pageable pageable);
+public interface PageableAddressRepository extends PagingAndSortingRepository<PageableAddress, String>{
+    Page<PageableAddress> findByStreet(String street, Pageable pageable);
 
-    Page<Address> findByCity(String city, Pageable pageable);
+    Page<PageableAddress> findByCity(String city, Pageable pageable);
 }
