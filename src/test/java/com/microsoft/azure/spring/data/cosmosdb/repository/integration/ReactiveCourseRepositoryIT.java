@@ -68,7 +68,7 @@ public class ReactiveCourseRepositoryIT {
     private ReactiveCourseRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

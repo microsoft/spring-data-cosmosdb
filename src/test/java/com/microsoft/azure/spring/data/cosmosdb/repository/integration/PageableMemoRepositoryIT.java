@@ -70,7 +70,7 @@ public class PageableMemoRepositoryIT {
     private static boolean isSetupDone;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (isSetupDone) {
             return;
         }

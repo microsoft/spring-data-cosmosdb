@@ -69,7 +69,7 @@ public class PerformanceCompare {
     private static PerformanceReport report = new PerformanceReport();
 
     @Before
-    public void setup() throws CosmosClientException {
+    public void setUp() throws CosmosClientException {
         if (!hasInit) {
             DatabaseUtils.createDatabase(cosmosSyncClient, Constants.PERF_DATABASE_NAME);
             DatabaseUtils.createContainer(cosmosSyncClient, Constants.PERF_DATABASE_NAME,

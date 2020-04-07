@@ -66,7 +66,7 @@ public class StudentRepositoryIT {
     private StudentRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

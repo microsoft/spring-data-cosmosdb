@@ -88,7 +88,7 @@ public class ProjectRepositoryIT {
     private ProjectRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

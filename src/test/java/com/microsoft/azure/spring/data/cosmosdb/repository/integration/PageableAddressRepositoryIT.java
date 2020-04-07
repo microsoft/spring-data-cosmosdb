@@ -71,7 +71,7 @@ public class PageableAddressRepositoryIT {
     private CosmosDBConfig dbConfig;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

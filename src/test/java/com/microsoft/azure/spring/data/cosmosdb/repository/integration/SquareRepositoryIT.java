@@ -44,7 +44,7 @@ public class SquareRepositoryIT {
     private SquareRepository repository;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

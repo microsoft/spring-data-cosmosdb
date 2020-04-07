@@ -55,7 +55,7 @@ public class SpELCosmosDBAnnotationIT {
     private static CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
 
     @Before
-    public void setup() {
+    public void setUp() {
         if (staticTemplate == null) {
             staticTemplate = cosmosTemplate;
         }
