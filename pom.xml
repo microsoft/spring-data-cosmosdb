@@ -45,7 +45,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>MM-dd-HH-mm-ss</maven.build.timestamp.format>
 
-        <spring.springframework.version>5.2.0.RELEASE</spring.springframework.version>
+        <spring.springframework.version>5.2.6.RELEASE</spring.springframework.version>
         <spring.data.version>2.3.0.RELEASE</spring.data.version>
         <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
 
