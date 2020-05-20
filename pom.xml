@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>spring-data-cosmosdb</artifactId>
-    <version>2.2.5-SNAPSHOT</version>
+    <version>2.2.5</version>
 
     <name>Spring Data for Azure Cosmos DB SQL API</name>
     <description>Spring Data for Azure Cosmos DB SQL API</description>
@@ -58,7 +58,7 @@
         <gson.version>2.8.4</gson.version>
         <project.reactor.test.version>3.3.0.RELEASE</project.reactor.test.version>
 
-        <azure.cosmos.version>3.7.1</azure.cosmos.version>
+        <azure.cosmos.version>3.7.3</azure.cosmos.version>
         <azure.test.resourcegroup>spring-data-cosmosdb-test</azure.test.resourcegroup>
         <azure.test.dbname>testdb-${maven.build.timestamp}</azure.test.dbname>
         <skip.integration.tests>true</skip.integration.tests>
