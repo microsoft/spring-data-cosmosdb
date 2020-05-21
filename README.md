@@ -24,13 +24,15 @@
 ## Sample Code
 Please refer to [sample project here](./samplecode).
 
-## Spring data version support
-This repository supports both Spring Data 1.x, 2.0.x, 2.1.x and 2.2.x. Below packages are available with latest release version.
-We recommend users to leverage latest version for bug fix and new features.
+## Spring Data Version Support
+Version mapping between spring boot and spring-data-cosmosdb:
 
-Name | Version for Spring Boot 2.2.x | Version for Spring Boot 2.1.x | Version for Spring Boot 2.0.x
-:---:|:---:|:---:|:---:|
-spring-data-cosmosdb | [![Maven Central][Branch master Badge]][Branch master Link] | [![Maven Central][Branch 2.1.x Badge]][Branch 2.1.x Link] | [![Maven Central][Branch 2.0.x Badge]][Branch 2.0.x Link]
+Spring boot version | spring-data-cosmosdb version
+:---:|:---:|
+![version](https://img.shields.io/badge/version-2.3.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.3.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.3.*)
+![version](https://img.shields.io/badge/version-2.2.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.2.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.2.*)
+![version](https://img.shields.io/badge/version-2.1.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.1.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.1.*)
+![version](https://img.shields.io/badge/version-2.0.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.0.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.0.*)
 
 ## Feature List
 - Spring Data ReactiveCrudRepository CrudRepository basic CRUD functionality
@@ -331,12 +333,3 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ### Data/Telemetry
 
  This project collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy](https://privacy.microsoft.com/en-us/privacystatement) statement to learn more.
-
-<!-- URL List -->
-[Branch Master Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.2.svg
-[Branch 2.1.x Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.1.svg
-[Branch 2.0.x Badge]:https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.0.svg
-
-[Branch Master Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.2.*
-[Branch 2.1.x Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.1.*
-[Branch 2.0.x Link]:https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.0.*
