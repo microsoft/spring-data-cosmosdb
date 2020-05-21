@@ -27,8 +27,8 @@ Please refer to [sample project here](./samplecode).
 ## Spring Data Version Support
 Version mapping between spring boot and spring-data-cosmosdb:
 
-| Spring boot version | spring-data-cosmosdb version |
-| :------------------:|:----------------------------:|
+| Spring boot version                                         | spring-data-cosmosdb version                                                                                                                                                                                        |
+| :----------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![version](https://img.shields.io/badge/version-2.3.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.3.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.3.*) |
 | ![version](https://img.shields.io/badge/version-2.2.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.2.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.2.*) |
 | ![version](https://img.shields.io/badge/version-2.1.x-blue) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/spring-data-cosmosdb/2.1.svg)](https://search.maven.org/search?q=g:com.microsoft.azure%20AND%20a:spring-data-cosmosdb%20AND%20v:2.1.*) |
