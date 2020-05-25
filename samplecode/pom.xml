@@ -8,13 +8,13 @@
 
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>spring-data-cosmosdb-samples</artifactId>
-	<version>2.2.6-SNAPSHOT</version>
+	<version>2.3.0</version>
 	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.0.RELEASE</version>
+		<version>2.3.0.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
