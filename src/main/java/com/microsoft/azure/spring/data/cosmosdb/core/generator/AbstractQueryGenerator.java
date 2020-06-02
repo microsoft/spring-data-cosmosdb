@@ -66,8 +66,8 @@ public abstract class AbstractQueryGenerator {
         final String subject = criteria.getSubject();
         final Object value1 = toCosmosDbValue(criteria.getSubjectValues().get(0));
         final Object value2 = toCosmosDbValue(criteria.getSubjectValues().get(1));
-        final String subject1 = "start";
-        final String subject2 = "end";
+        final String subject1 = subject + "start";
+        final String subject2 = subject + "end";
         final String parameter1 = generateQueryParameter(subject1);
         final String parameter2 = generateQueryParameter(subject2);
         final String keyword = criteria.getType().getSqlKeyword();
