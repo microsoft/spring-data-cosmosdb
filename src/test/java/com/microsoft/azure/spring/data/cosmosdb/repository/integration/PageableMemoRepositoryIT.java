@@ -31,6 +31,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -46,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 public class PageableMemoRepositoryIT {
 
-    private static final int TOTAL_CONTENT_SIZE = 500;
+    private static final int TOTAL_CONTENT_SIZE = 10000;
 
     private static final CosmosEntityInformation<PageableMemo, String> entityInformation =
         new CosmosEntityInformation<>(PageableMemo.class);
@@ -68,6 +70,8 @@ public class PageableMemoRepositoryIT {
     private static Set<PageableMemo> memoSet;
 
     private static boolean isSetupDone;
+    private static Date startDate = new Date();
+    private static Date endDate = null;
 
     @Before
     public void setUp() {
@@ -79,13 +83,15 @@ public class PageableMemoRepositoryIT {
         memoSet = new HashSet<>();
         final Random random = new Random();
         final Importance[] importanceValues = Importance.values();
+        final Date date = new Date(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli());
+        log.info("Content date is : {}", date);
 
         //  Create larger documents with size more than 10 kb
         for (int i = 0; i < TOTAL_CONTENT_SIZE; i++) {
             final String id = UUID.randomUUID().toString();
-            final String message = UUID.randomUUID().toString();
+            final String message = "partitionKey";
             final int randomIndex = random.nextInt(3);
-            final PageableMemo memo = new PageableMemo(id, message, new Date(), importanceValues[randomIndex]);
+            final PageableMemo memo = new PageableMemo(id, message, startDate, importanceValues[randomIndex]);
             repository.save(memo);
             memoSet.add(memo);
         }
@@ -95,6 +101,20 @@ public class PageableMemoRepositoryIT {
     @AfterClass
     public static void afterClassCleanup() {
         staticTemplate.deleteContainer(entityInformation.getContainerName());
+    }
+
+    @Test
+    public void testFindAllPages() {
+        final Set<PageableMemo> memos = findAllWithPageSize(100);
+        final boolean equals = memos.equals(memoSet);
+        assertThat(equals).isTrue();
+    }
+
+    @Test
+    public void testFindAllUsingBetween() {
+        final Set<PageableMemo> memos = findAllUsingBetweenWithPageSize(100);
+        final boolean equals = memos.equals(memoSet);
+        assertThat(equals).isTrue();
     }
 
     @Test
@@ -166,11 +186,39 @@ public class PageableMemoRepositoryIT {
     private Set<PageableMemo> findAllWithPageSize(int pageSize) {
         final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
         Page<PageableMemo> page = repository.findAll(pageRequest);
-        final Set<PageableMemo> outputSet = new HashSet<>(page.getContent());
+        List<PageableMemo> content = page.getContent();
+        log.info("Total elements are : {}", page.getTotalElements());
+        log.info("Content size is : {}", content.size());
+        final Set<PageableMemo> outputSet = new HashSet<>(content);
         while (page.hasNext()) {
             final Pageable pageable = page.nextPageable();
+            log.info("Offset is  : {}", pageable.getOffset());
             page = repository.findAll(pageable);
-            outputSet.addAll((page.getContent()));
+            content = page.getContent();
+            log.info("Content size is : {}", content.size());
+            outputSet.addAll(content);
+        }
+        return outputSet;
+    }
+
+    private Set<PageableMemo> findAllUsingBetweenWithPageSize(int pageSize) {
+        endDate = new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli());
+        log.info("Start Date is : {}", startDate);
+        log.info("End Date is : {}", endDate);
+        final CosmosPageRequest pageRequest = new CosmosPageRequest(0, pageSize, null);
+        Date date = new Date();
+        Page<PageableMemo> page = repository.findByMessageAndDateBetween("partitionKey", startDate, endDate, pageRequest);
+        List<PageableMemo> content = page.getContent();
+        log.info("Total elements are : {}", page.getTotalElements());
+        log.info("Content size is : {}", content.size());
+        final Set<PageableMemo> outputSet = new HashSet<>(content);
+        while (page.hasNext()) {
+            final Pageable pageable = page.nextPageable();
+            log.info("Offset is  : {}", pageable.getOffset());
+            page = repository.findByMessageAndDateBetween("partitionKey", startDate, endDate, pageable);
+            content = page.getContent();
+            log.info("Content size is : {}", content.size());
+            outputSet.addAll(content);
         }
         return outputSet;
     }
