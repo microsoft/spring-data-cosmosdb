@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter.toCosmosDbValue;
@@ -30,7 +31,8 @@ import static com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmo
 public abstract class AbstractQueryGenerator {
 
     private String generateQueryParameter(@NonNull String subject) {
-        return subject.replaceAll("\\.", "_"); // user.name is not valid sql parameter identifier.
+        // user.name is not valid sql parameter identifier.
+        return subject.replaceAll("\\.", "_") + UUID.randomUUID().toString().replaceAll("-", "_");
     }
 
     private String generateUnaryQuery(@NonNull Criteria criteria) {

@@ -21,6 +21,8 @@ public interface ProjectRepository extends CosmosRepository<Project, String> {
     List<Project> findByNameOrForkCount(String name, Long forkCount);
 
     List<Project> findByNameAndCreator(String name, String creator);
+    
+    List<Project> findByNameAndCreatorOrNameAndCreator(String name, String creator, String name2, String creator2);
 
     List<Project> findByNameOrCreator(String name, String creator);
 
