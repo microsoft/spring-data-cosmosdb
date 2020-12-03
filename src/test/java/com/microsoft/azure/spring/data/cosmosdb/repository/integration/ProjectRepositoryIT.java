@@ -163,7 +163,8 @@ public class ProjectRepositoryIT {
     
     @Test
     public void testFindByWithRepeatedParameters() {
-        List<Project> projects = this.repository.findByNameAndCreatorOrNameAndCreator(NAME_1, CREATOR_1, NAME_2, CREATOR_2);
+        final List<Project> projects = 
+            this.repository.findByNameAndCreatorOrNameAndCreator(NAME_1, CREATOR_1, NAME_2, CREATOR_2);
 
         assertProjectListEquals(projects, Arrays.asList(PROJECT_1, PROJECT_2));
     }
