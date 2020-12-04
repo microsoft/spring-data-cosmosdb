@@ -260,4 +260,12 @@ public class ReactiveCourseRepositoryIT {
                     })
                     .verifyComplete();
     }
+    
+    @Test
+    public void testFindByNameAndDepartmentOrNameAndDepartment() {
+        final Flux<Course> findResult = repository.findByNameAndDepartmentOrNameAndDepartment(
+            COURSE_NAME_1, DEPARTMENT_NAME_3, COURSE_NAME_2, DEPARTMENT_NAME_2);
+        StepVerifier.create(findResult).expectNext(COURSE_1, COURSE_2).verifyComplete();
+    }
+
 }
