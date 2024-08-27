@@ -1,3 +1,7 @@
+> [!IMPORTANT]  
+> We have **deprecated** spring-data-cosmosdb and will continue support on [azure-sdk-for-java/sdk/spring/azure-spring-data-cosmos](https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/spring/azure-spring-data-cosmos).
+> For issues or any questions, please raise an issue in the [Azure Java SDK repo](https://github.com/Azure/azure-sdk-for-java/).
+
 # Spring Data for Azure Cosmos DB 
 
 ## Spring Data CosmosDb has been moved to new repo - [Azure-sdk-for-java](https://github.com/Azure/azure-sdk-for-java)
